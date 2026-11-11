@@ -234,3 +234,19 @@ def test_profile_display_name_stored_as_bytes(schema: Engine, db: Session) -> No
 def test_session_id_must_be_uuid(bad: str) -> None:
     with pytest.raises(ValueError):
         CaptureSession(id=bad)
+
+
+def test_safety_event_details_encrypted(schema: Engine, db: Session) -> None:
+    from backend.models import SafetyEvent
+
+    u = _user(db, "a@x")
+    db.add(SafetyEvent(user_id=u.id, source="phq9", reason="safety_item",
+                       details_enc={"item": "phq9_9"}))
+    db.add(SafetyEvent(user_id=u.id, source="phq9", reason="safety_item"))
+    db.commit()
+    stored = db.execute(text("SELECT details_enc FROM safety_events")).scalars().all()
+    assert None in stored
+    blob = next(x for x in stored if x is not None)
+    assert isinstance(blob, bytes) and b"phq9_9" not in blob
+    db.expire_all()
+    assert {"item": "phq9_9"} in db.scalars(select(SafetyEvent.details_enc)).all()

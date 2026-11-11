@@ -298,8 +298,14 @@ def set_consents(
             db.add(row)
         row.granted, row.ts, row.policy_version = granted, now, policy_version
         if before != granted:
-            audit(db, user_id, "consent.change", scope=scope, granted=granted,
-                  policy_version=policy_version)
+            audit(
+                db,
+                user_id,
+                "consent.change",
+                scope=scope,
+                granted=granted,
+                policy_version=policy_version,
+            )
     db.commit()
     return get_consents(db, user_id)
 
@@ -364,25 +370,36 @@ def export_user(db: Session, user_id: str) -> dict[str, Any]:
     }
 
 
+def _inside_raw(stored: str, data_dir: Path, raw_root: Path) -> Path:
+    """Resolve a stored path (relative to DATA_DIR, e.g. "raw/<uuid>") and require it to
+    lie strictly inside DATA_DIR/raw."""
+    p = Path(stored)
+    p = (p if p.is_absolute() else data_dir / p).resolve()
+    if p == raw_root or not p.is_relative_to(raw_root):
+        raise ValueError("stored raw path is outside DATA_DIR/raw")
+    return p
+
+
 def _raw_paths(db: Session, user_id: str, data_dir: Path) -> list[Path]:
-    """DATA_DIR/raw/<session_id> for each session, plus sessions.raw_path when it lies
-    inside DATA_DIR/raw. Anything that would escape DATA_DIR/raw raises."""
-    sessions = Base.metadata.tables.get("sessions")
-    if sessions is None:
-        return []
+    """Everything on disk that belongs to the user: DATA_DIR/raw/<session_id>,
+    sessions.raw_path and raw_files.path (both stored relative to DATA_DIR).
+    Anything that would escape DATA_DIR/raw raises before a single file is touched."""
+    tables = Base.metadata.tables
+    sessions, raw_files = tables.get("sessions"), tables.get("raw_files")
     raw_root = (data_dir / "raw").resolve()
-    has_raw_path = "raw_path" in sessions.c
-    cols = [sessions.c.id] + ([sessions.c.raw_path] if has_raw_path else [])
     paths: list[Path] = []
-    for row in db.execute(select(*cols).where(sessions.c.user_id == user_id)):
-        uuid.UUID(row.id)  # session ids are UUIDs; anything else must not become a path
-        paths.append(raw_root / row.id)
-        if has_raw_path and row.raw_path:
-            p = Path(row.raw_path).expanduser()
-            p = (p if p.is_absolute() else data_dir / p).resolve()
-            if p == raw_root or not p.is_relative_to(raw_root):
-                raise ValueError("session raw_path is outside DATA_DIR/raw")
-            paths.append(p)
+    if sessions is not None:
+        has_raw_path = "raw_path" in sessions.c
+        cols = [sessions.c.id] + ([sessions.c.raw_path] if has_raw_path else [])
+        for row in db.execute(select(*cols).where(sessions.c.user_id == user_id)):
+            uuid.UUID(row.id)  # session ids are UUIDs; anything else must not become a path
+            paths.append(raw_root / row.id)
+            if has_raw_path and row.raw_path:
+                paths.append(_inside_raw(row.raw_path, data_dir, raw_root))
+    if raw_files is not None and "path" in raw_files.c:
+        for fp in db.scalars(select(raw_files.c.path).where(raw_files.c.user_id == user_id)):
+            if fp:
+                paths.append(_inside_raw(fp, data_dir, raw_root))
     return paths
 
 
@@ -396,7 +413,8 @@ def delete_user(db: Session, user_id: str, data_dir: Path | None = None) -> None
     _active_user(db, user_id)
     data_dir = Path(data_dir if data_dir is not None else get_settings().data_dir)
     try:
-        for p in _raw_paths(db, user_id, data_dir):
+        # Deepest first, so files inside an already-removed folder are simply skipped.
+        for p in sorted(set(_raw_paths(db, user_id, data_dir)), key=lambda x: -len(x.parts)):
             if p.is_dir():
                 shutil.rmtree(p)
             elif p.exists():

@@ -9,7 +9,6 @@ from sqlalchemy import (
     Date,
     Float,
     ForeignKey,
-    LargeBinary,
     String,
     Text,
     UniqueConstraint,
@@ -104,7 +103,8 @@ class IndexValue(UserOwned, Base):
 
 
 class SafetyEvent(UserOwned, Base):
-    """Red class, minimal. Any free-text detail goes in details_enc as ciphertext."""
+    """Red class, minimal. details_enc holds any detail as Fernet ciphertext (EncryptedJSON);
+    the attribute takes and returns plain JSON values."""
 
     __tablename__ = "safety_events"
 
@@ -112,7 +112,7 @@ class SafetyEvent(UserOwned, Base):
     ts: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow, nullable=False)
     source: Mapped[str] = mapped_column(String(64), nullable=False)
     reason: Mapped[str] = mapped_column(String(64), nullable=False)
-    details_enc: Mapped[bytes | None] = mapped_column(LargeBinary)
+    details_enc: Mapped[Any | None] = mapped_column(EncryptedJSON, nullable=True)
     acknowledged_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
 
 

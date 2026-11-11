@@ -1,0 +1,189 @@
+{
+  "id": "who5",
+  "name": "WHO-Five Well-Being Index (WHO-5)",
+  "version": "1.0",
+  "timeframe": "Over the last two weeks",
+  "license_note": "World Health Organization, 2024. License: CC BY-NC-SA 3.0 IGO (non-commercial use; attribution required).",
+  "source_url": "https://www.who.int/publications/m/item/WHO-UCN-MSD-MHE-2024.01",
+  "verification": "TODO-VERIFY: item wording written from the published instrument; compare character-by-character against the official PDF before release.",
+  "notes": "Raw score 0-25 multiplied by 4 gives a 0-100 percentage; higher is better wellbeing. Ranges apply to the percentage. Screening and awareness only, not a diagnosis.",
+  "items": [
+    {
+      "key": "who5_1",
+      "text": "I have felt cheerful and in good spirits",
+      "options": [
+        {
+          "value": 5,
+          "label": "All of the time"
+        },
+        {
+          "value": 4,
+          "label": "Most of the time"
+        },
+        {
+          "value": 3,
+          "label": "More than half of the time"
+        },
+        {
+          "value": 2,
+          "label": "Less than half of the time"
+        },
+        {
+          "value": 1,
+          "label": "Some of the time"
+        },
+        {
+          "value": 0,
+          "label": "At no time"
+        }
+      ]
+    },
+    {
+      "key": "who5_2",
+      "text": "I have felt calm and relaxed",
+      "options": [
+        {
+          "value": 5,
+          "label": "All of the time"
+        },
+        {
+          "value": 4,
+          "label": "Most of the time"
+        },
+        {
+          "value": 3,
+          "label": "More than half of the time"
+        },
+        {
+          "value": 2,
+          "label": "Less than half of the time"
+        },
+        {
+          "value": 1,
+          "label": "Some of the time"
+        },
+        {
+          "value": 0,
+          "label": "At no time"
+        }
+      ]
+    },
+    {
+      "key": "who5_3",
+      "text": "I have felt active and vigorous",
+      "options": [
+        {
+          "value": 5,
+          "label": "All of the time"
+        },
+        {
+          "value": 4,
+          "label": "Most of the time"
+        },
+        {
+          "value": 3,
+          "label": "More than half of the time"
+        },
+        {
+          "value": 2,
+          "label": "Less than half of the time"
+        },
+        {
+          "value": 1,
+          "label": "Some of the time"
+        },
+        {
+          "value": 0,
+          "label": "At no time"
+        }
+      ]
+    },
+    {
+      "key": "who5_4",
+      "text": "I woke up feeling fresh and rested",
+      "options": [
+        {
+          "value": 5,
+          "label": "All of the time"
+        },
+        {
+          "value": 4,
+          "label": "Most of the time"
+        },
+        {
+          "value": 3,
+          "label": "More than half of the time"
+        },
+        {
+          "value": 2,
+          "label": "Less than half of the time"
+        },
+        {
+          "value": 1,
+          "label": "Some of the time"
+        },
+        {
+          "value": 0,
+          "label": "At no time"
+        }
+      ]
+    },
+    {
+      "key": "who5_5",
+      "text": "My daily life has been filled with things that interest me",
+      "options": [
+        {
+          "value": 5,
+          "label": "All of the time"
+        },
+        {
+          "value": 4,
+          "label": "Most of the time"
+        },
+        {
+          "value": 3,
+          "label": "More than half of the time"
+        },
+        {
+          "value": 2,
+          "label": "Less than half of the time"
+        },
+        {
+          "value": 1,
+          "label": "Some of the time"
+        },
+        {
+          "value": 0,
+          "label": "At no time"
+        }
+      ]
+    }
+  ],
+  "scoring": {
+    "method": "sum_x4",
+    "min": 0,
+    "max": 100,
+    "ranges_source": "Topp CW, Ostergaard SD, Sondergaard S, Bech P. The WHO-5 Well-Being Index: a systematic review of the literature. Psychother Psychosom. 2015;84(3):167-176. doi:10.1159/000376585 (<=50 poor wellbeing; <=28 likely depression, labelled here without diagnostic wording). Alert basis: a percentage score <=50 is the cut-off for poor wellbeing in that review, so both ranges at or below 50 are alert=true.",
+    "ranges": [
+      {
+        "min": 0,
+        "max": 28,
+        "label": "very low wellbeing",
+        "alert": true
+      },
+      {
+        "min": 29,
+        "max": 50,
+        "label": "low wellbeing",
+        "alert": true
+      },
+      {
+        "min": 51,
+        "max": 100,
+        "label": "above screening cutoff",
+        "alert": false
+      }
+    ]
+  },
+  "direction": -1
+}

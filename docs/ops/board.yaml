@@ -594,12 +594,13 @@ tasks:
   title: delete_user deletes the user's pipeline_runs (not anonymise); login rate limiting / lockout
   owner: 7a
   branch: feat/accounts
-  state: review
+  state: done
   blockers: []
   done_when: delete leaves 0 pipeline_runs for the user; N failed logins -> 429 with Retry-After; limits in config.yaml (placeholder)
-  sha: 313f450
+  sha: 3ed5f4b
   times:
     review: '2026-11-11T15:37:48Z'
+    done: '2026-11-11T15:44:34Z'
 - id: PIPE-4
   title: services/personas.py + cli seed-personas per docs/ops/personas.md (option C)
   owner: f4

@@ -26,15 +26,14 @@ Owners: `ca` build-astronaut-health-backend (main) · `f4` pankajkashyap-f4 (fea
 |----|------|-------|--------|-----------|----------|-----|
 | CORE-7 | `fusion.score_night` → `FlagDraft` | f4 | csi-core | components dict explains priority; thresholds only from config.yaml | CORE-6 |  |
 
-## review (3)
+## review (2)
 
 | ID | Task | Owner | Branch | Done when | Blockers | sha |
 |----|------|-------|--------|-----------|----------|-----|
 | CA-2 | `/api/v1/today` (night features, flags, guidance, due check-ins) | ca | main | e2e test with seeded user | CA-1, DB-5, SUR-6 | a08f660 |
 | CA-5 | Wire worker start/stop into main.py lifespan; persona seeding command once OPS-6 lands | ca | main | app starts worker; seed-personas produces 3 synthetic users with expected flags | DB-7 | f3cd03f |
-| ACC-8 | delete_user deletes the user's pipeline_runs (not anonymise); login rate limiting / lockout | 7a | accounts | delete leaves 0 pipeline_runs for the user; N failed logins -> 429 with Retry-After; limits in config.yaml (placeholder) | — | 313f450 |
 
-## done (46)
+## done (47)
 
 | ID | Task | Owner | Branch | Done when | Blockers | sha |
 |----|------|-------|--------|-----------|----------|-----|
@@ -84,6 +83,7 @@ Owners: `ca` build-astronaut-health-backend (main) · `f4` pankajkashyap-f4 (fea
 | DB-7 | `api/v1/sessions.py` (POST from DATA_DIR/inbox, list, get, /windows) + `api/v1/jobs.py` + `backend/worker.py` | b0 | db-ingest | TestClient covers register/list/get/windows/jobs; path traversal rejected; worker start/stop safe; isolation A/B | DB-6 | 79466b5 |
 | SUR-8 | `api/v1/nights.py` (nights, flags, indices, checkins) + `api/v1/today.py` | cf | surveys | TestClient for every route; /today returns latest night, top-3 flags with guidance, pending check-ins, maturity; isolation A/B | SUR-7 | 0d23b00 |
 | PIPE-3 | runs.py lazy builtin registration (one-off ownership exception) + slow marker | f4 | pipeline | test_builtin_kinds_registered passes; full suite green | PIPE-2 | 2c55b36 |
+| ACC-8 | delete_user deletes the user's pipeline_runs (not anonymise); login rate limiting / lockout | 7a | accounts | delete leaves 0 pipeline_runs for the user; N failed logins -> 429 with Retry-After; limits in config.yaml (placeholder) | — | 3ed5f4b |
 
 ## proposed (0)
 

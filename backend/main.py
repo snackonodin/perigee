@@ -69,12 +69,30 @@ def mount_routers(app: FastAPI) -> list[str]:
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     from backend.db import init_db
 
+    from sqlalchemy import inspect
+
+    from backend import worker
+    from backend.db import SessionLocal
+    from backend.services.guidance import load_guidance_cards
+    from backend.services.surveys import load_catalog
+
     configure_logging()
     engine = init_db()
-    with engine.connect():  # fail fast if the DB is unreachable; schema comes from alembic
-        pass
-    log.info("api started", extra={"routers": len(app.state.mounted)})
-    yield
+    if not inspect(engine).has_table("instrument_catalog"):
+        raise RuntimeError("database schema missing: run `alembic upgrade head` first")
+    with SessionLocal() as db:  # idempotent seed upserts from seeds/
+        load_catalog(db)
+        load_guidance_cards(db)
+        db.commit()
+    run_worker = os.environ.get("ASTRO_DISABLE_WORKER") != "1"
+    if run_worker:
+        worker.start_worker()
+    log.info("api started", extra={"routers": len(app.state.mounted), "worker": run_worker})
+    try:
+        yield
+    finally:
+        if run_worker:
+            worker.stop_worker()
 
 
 def create_app(*, with_lifespan: bool = True) -> FastAPI:

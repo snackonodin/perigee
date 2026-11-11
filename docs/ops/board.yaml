@@ -624,17 +624,20 @@ tasks:
   title: 'Offline demo page backend/static/demo/ (vanilla JS, no CDN): login, Today, trend chart, check-in form from instrument JSON, safety screen'
   owner: 7a
   branch: feat/accounts
-  state: review
+  state: done
   blockers: []
   done_when: E2E flow drivable from the page; safety screen shown before scores; works with no internet
-  sha: 07ab4ae
+  sha: 7de3794
   times:
     review: '2026-11-11T15:44:45Z'
+    done: '2026-11-11T16:02:02Z'
 - id: OPS-15
-  title: 'Chrome walkthrough of /demo (3 personas + live PHQ-9 safety); fix UI bugs; demo_walkthrough.gif'
+  title: Chrome walkthrough of /demo (3 personas + live PHQ-9 safety); fix UI bugs; demo_walkthrough.gif
   owner: 7a
   branch: feat/accounts
-  state: review
+  state: done
   blockers: []
   done_when: all 3 personas render; safety screen verified live; GIF exported (user approval)
-  sha: fbed201
+  sha: 7de3794
+  times:
+    done: '2026-11-11T16:02:02Z'

@@ -41,10 +41,14 @@ Rules:
 
 Folder ownership (parallel sessions, one branch each):
 - csi_core/                                  -> branch feat/csi-core
-- backend/models, migrations, services/ingestion.py, services/runs.py,
-  tools/cli.py                               -> branch feat/db-ingest
-- backend/security.py, services/accounts.py, api/v1/auth.py, api/v1/me.py
+- backend/db.py, backend/models, migrations, services/ingestion.py,
+  services/runs.py, tools/cli.py             -> branch feat/db-ingest
+- backend/security.py, backend/deps.py, backend/logging.py, backend/errors.py,
+  services/accounts.py, api/v1/auth.py, api/v1/me.py
                                              -> branch feat/accounts
+- docs/ops/, tools/ops/                      -> branch feat/ops
+- Coordinator (main): backend/main.py, backend/schemas/, config.yaml, CLAUDE.md,
+  docs/*.md, scripts/, plugins/, csi_core/config.py
 - seeds/, services/surveys.py, services/guidance.py, api/v1/responses.py
                                              -> branch feat/surveys
 Change files outside your folder only through the coordinator session.

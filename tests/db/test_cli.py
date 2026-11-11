@@ -8,6 +8,7 @@ import pytest
 from sqlalchemy import Engine, func, select
 from sqlalchemy.orm import Session
 
+from backend import db as db_mod
 from backend.models import Base, CaptureSession, PipelineRun, RawFile, User
 from tools import cli
 
@@ -110,9 +111,16 @@ def test_reset_demo_only_deletes_synthetic(schema, db, capture_dir, data_dir, ca
     assert not raw.exists()  # read-only raw files removed too
 
 
-def test_seed_personas_is_a_stub(schema, capsys) -> None:
-    code, out = _run(capsys, "seed-personas")
-    assert code == 2 and out["status"] == "not_implemented"
+def test_seed_personas_smoke(schema, capsys, monkeypatch) -> None:
+    """seed-personas end to end on a tiny raw capture (full checks: tests/pipeline)."""
+    from backend.services import personas
+
+    monkeypatch.setattr(personas, "DEMO_RAW_H", 0.05)  # 3-min raw part keeps this fast
+    code, out = _run(capsys, "seed-personas", "--anchor", "2026-11-18")
+    assert code == 0 and [p["key"] for p in out["personas"]] == [
+        "steady", "breath-drift", "mental-dip",
+    ]  # fmt: skip
+    assert all(p["nights_run"] == 14 for p in out["personas"])
 
 
 def test_export_writes_private_file_and_never_overwrites(schema, db, tmp_path, capsys) -> None:
@@ -128,6 +136,7 @@ def test_export_writes_private_file_and_never_overwrites(schema, db, tmp_path, c
 
 def test_db_url_override(data_dir: Path, capsys) -> None:
     other = data_dir / "other" / "x.db"
-    code = cli.main(["--db-url", f"sqlite:///{other}", "seed-personas"])
-    capsys.readouterr()
-    assert code == 2 and other.parent.is_dir()
+    Base.metadata.create_all(db_mod.get_engine(f"sqlite:///{other}"))
+    code = cli.main(["--db-url", f"sqlite:///{other}", "reset-demo"])  # dry run: exit 2
+    out = json.loads(capsys.readouterr().out)
+    assert code == 2 and other.parent.is_dir() and out["would_delete_synthetic_users"] == 0

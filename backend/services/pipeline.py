@@ -25,7 +25,6 @@ from backend.models import (
     WindowEstimateRow,
     scoped,
 )
-from backend.services import runs
 from csi_core import breath, heart
 from csi_core.config import CoreConfig, get_config
 from csi_core.load import read_rotating
@@ -149,7 +148,6 @@ def process(
     }
 
 
-@runs.register("process_session")
 def process_session(db: Session, run: PipelineRun) -> str:
     sid = run.parameters.get("session_id")
     if not sid:

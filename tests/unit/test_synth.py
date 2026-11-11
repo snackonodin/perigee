@@ -59,3 +59,38 @@ def test_deterministic(tmp_path) -> None:
     b = synth_night(tmp_path / "b", **kw)
     for pa, pb in zip(a, b, strict=True):
         assert hashlib.sha256(pa.read_bytes()).digest() == hashlib.sha256(pb.read_bytes()).digest()
+
+
+def test_default_motion_bursts_scale_with_hours(tmp_path) -> None:
+    def n_bursts(hours: float) -> int:
+        d = tmp_path / str(hours)
+        synth_night(
+            d,
+            start_utc=datetime(2026, 1, 1, tzinfo=UTC),
+            hours=hours,
+            rr_bpm=14.0,
+            fs=2.0,
+            n_sub=2,
+            seed=1,
+        )
+        return int((pd.read_csv(d / "markers.csv")["label"] == "motion_start").sum())
+
+    assert n_bursts(0.25) == 0
+    assert n_bursts(8.0) == 6
+    assert n_bursts(2.0) == 2
+
+
+def test_extra_markers(tmp_path) -> None:
+    synth_night(
+        tmp_path,
+        start_utc=datetime(2026, 1, 1, tzinfo=UTC),
+        hours=0.05,
+        rr_bpm=14.0,
+        fs=2.0,
+        n_sub=2,
+        motion_bursts=0,
+        seed=1,
+        extra_markers=[(0.0, "demo_night")],
+    )
+    mk = pd.read_csv(tmp_path / "markers.csv")
+    assert mk.iloc[0].tolist() == ["2026-01-01T00:00:00.000000Z", "demo_night"]

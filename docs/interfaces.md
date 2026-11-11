@@ -53,6 +53,9 @@ def breath_core(x: np.ndarray, fs: float, cfg: CoreConfig) -> tuple[float | None
 def heart_core(x: np.ndarray, fs: float, cfg: CoreConfig) -> tuple[float | None, float]:   # (hr_bpm, quality)
 def motion_core(x: np.ndarray, fs: float, cfg: CoreConfig) -> tuple[bool, float]:           # (motion, score)
 ```
+motion_core score: higher = more movement. csi_core flags a window when the core
+returns motion=True OR the score's session robust z exceeds breath.motion_z.
+Heart reuses breath.window_s / step_s / min_pnr_db for now.
 The windowing, quality, presence and contract wrapping stay in csi_core, so a swapped
 core changes numbers only, never shapes. A golden test on the synth fixture checks each swap.
 

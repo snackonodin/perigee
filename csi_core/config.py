@@ -42,7 +42,7 @@ class BreathCfg(_Section):
     min_pnr_db: float
     max_estimator_disagreement_bpm: float
     motion_z: float
-    presence_min_var: float
+    presence_rel_var: float
 
 
 class NightCfg(_Section):

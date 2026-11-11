@@ -23,7 +23,7 @@ breath:
   min_pnr_db: 3.0                  # PLACEHOLDER: peak-to-noise floor for a valid estimate
   max_estimator_disagreement_bpm: 3.0   # PLACEHOLDER
   motion_z: 4.0                    # PLACEHOLDER: robust z of window variance => motion
-  presence_min_var: 1.0e-4         # PLACEHOLDER
+  presence_rel_var: 0.1            # PLACEHOLDER: window var / session median var below this => absent (scale-free)
 
 night:
   min_valid_hours: 3.0             # PLACEHOLDER: below this the night is not valid

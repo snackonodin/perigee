@@ -16,7 +16,7 @@ When a value is validated, record the data and date next to it.
 | breath.min_pnr_db | 3.0 | Reject windows with no clear spectral peak | no |
 | breath.max_estimator_disagreement_bpm | 3.0 | Spectral vs peak-count agreement | no |
 | breath.motion_z | 4.0 | Motion flag from robust z of window variance | no |
-| breath.presence_min_var | 1e-4 | Empty-room detection | no |
+| breath.presence_rel_var | 0.1 | Empty-room detection, scale-free: window variance relative to the session median. Fails if the room is empty all night (median is then 'absent'); acceptable for the demo | no |
 | night.min_valid_hours | 3.0 | Night validity | no |
 | night.min_quality | 0.5 | Night validity | no |
 | baseline.window_days | 28 | Rolling personal baseline | no |

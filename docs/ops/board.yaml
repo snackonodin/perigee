@@ -649,10 +649,12 @@ tasks:
   title: 'Randomised testing: pytest-randomly + hypothesis pinned; tools/ops/stress.sh runs the suite under N random seeds; fix every order dependence (L2)'
   owner: b0
   branch: feat/db-ingest
-  state: todo
+  state: review
   blockers: []
   done_when: 10 consecutive random-order full runs green; failing seed printed and reproducible
-  sha: null
+  sha: dc12594
+  times:
+    review: '2026-11-11T20:23:48Z'
 - id: LIVE-1
   title: 'SSE /api/v1/live/vitals: per-user stream of newest injected windows (breath, heart[experimental], motion, presence) + replay mode for a stored session at Nx speed'
   owner: b0
@@ -743,10 +745,12 @@ tasks:
   title: Root-cause the flaky tests/pipeline/test_personas.py failures on main (2-4 different tests per run)
   owner: b0
   branch: feat/db-ingest
-  state: doing
+  state: review
   blockers: []
   done_when: test_personas.py green 10/10 runs alone and in the full suite; root cause + guard recorded as a lesson
-  sha: null
+  sha: cba0fa4
+  times:
+    review: '2026-11-11T20:23:48Z'
 - id: FE-2
   title: 'Frontend pages on existing API (fixture-tested, no new packages): AuthProvider, global SafetyOverlay (port local pre-check + 3 s ack), Overview (Today, FlagWhy, Guidance), Sleep, Psyche (CheckinForm
     from instrument JSON, Questionnaires), Settings (consents, export, delete)'

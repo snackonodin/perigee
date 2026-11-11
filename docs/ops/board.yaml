@@ -82,11 +82,13 @@ tasks:
   title: '`tools/cli.py` ingest / process / reset-demo / seed-personas / export'
   owner: b0
   branch: feat/db-ingest
-  state: todo
+  state: review
   blockers:
   - DB-5
   done_when: each subcommand has a test on tmp DATA_DIR
-  sha: null
+  sha: 824bafc
+  times:
+    review: '2026-11-11T11:10:26Z'
 - id: CORE-1
   title: '`timebase.unwrap_us`'
   owner: f4
@@ -524,3 +526,39 @@ tasks:
   blockers: []
   done_when: scaffold merged
   sha: 7b576d3
+- id: DB-7
+  title: '`api/v1/sessions.py` (POST from DATA_DIR/inbox, list, get, /windows) + `api/v1/jobs.py` + `backend/worker.py`'
+  owner: b0
+  branch: feat/db-ingest
+  state: doing
+  blockers:
+  - DB-6
+  done_when: TestClient covers register/list/get/windows/jobs; path traversal rejected; worker start/stop safe; isolation A/B
+  sha: null
+- id: SUR-8
+  title: '`api/v1/nights.py` (nights, flags, indices, checkins) + `api/v1/today.py`'
+  owner: cf
+  branch: feat/surveys
+  state: doing
+  blockers:
+  - SUR-7
+  done_when: TestClient for every route; /today returns latest night, top-3 flags with guidance, pending check-ins, maturity; isolation A/B
+  sha: null
+- id: PIPE-3
+  title: runs.py lazy builtin registration (one-off ownership exception) + slow marker
+  owner: f4
+  branch: feat/pipeline
+  state: doing
+  blockers:
+  - PIPE-2
+  done_when: test_builtin_kinds_registered passes; full suite green
+  sha: null
+- id: CA-5
+  title: Wire worker start/stop into main.py lifespan; persona seeding command once OPS-6 lands
+  owner: ca
+  branch: main
+  state: todo
+  blockers:
+  - DB-7
+  done_when: app starts worker; seed-personas produces 3 synthetic users with expected flags
+  sha: null

@@ -165,26 +165,28 @@ tasks:
   title: '`services/pipeline.py`: process_session / run_nightly glue (csi_core → DB rows with run_id)'
   owner: f4
   branch: feat/pipeline
-  state: review
+  state: done
   blockers:
   - DB-4
   - CORE-6
   done_when: synth night → window_estimates + night_features rows for one user, isolated by user_id
-  sha: null
+  sha: 2c55b36
   times:
     review: '2026-11-11T11:05:42Z'
+    done: '2026-11-11T15:05:22Z'
 - id: PIPE-2
   title: '`services/fusion.py`: score_night → flags rows (+ guidance hook)'
   owner: f4
   branch: feat/pipeline
-  state: review
+  state: done
   blockers:
   - PIPE-1
   - CORE-7
   done_when: flags carry components; thresholds only from config.yaml
-  sha: null
+  sha: 2c55b36
   times:
     review: '2026-11-11T11:05:43Z'
+    done: '2026-11-11T15:05:22Z'
 - id: ACC-1
   title: '`security.py` `hash_password` / `verify_password` (Argon2)'
   owner: 7a
@@ -560,13 +562,14 @@ tasks:
   title: runs.py lazy builtin registration (one-off ownership exception) + slow marker
   owner: f4
   branch: feat/pipeline
-  state: review
+  state: done
   blockers:
   - PIPE-2
   done_when: test_builtin_kinds_registered passes; full suite green
-  sha: 076136f
+  sha: 2c55b36
   times:
     review: '2026-11-11T15:01:13Z'
+    done: '2026-11-11T15:05:22Z'
 - id: CA-5
   title: Wire worker start/stop into main.py lifespan; persona seeding command once OPS-6 lands
   owner: ca

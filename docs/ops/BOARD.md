@@ -27,17 +27,14 @@ Owners: `ca` build-astronaut-health-backend (main) · `f4` pankajkashyap-f4 (fea
 | DB-7 | `api/v1/sessions.py` (POST from DATA_DIR/inbox, list, get, /windows) + `api/v1/jobs.py` + `backend/worker.py` | b0 | db-ingest | TestClient covers register/list/get/windows/jobs; path traversal rejected; worker start/stop safe; isolation A/B | DB-6 |  |
 | SUR-8 | `api/v1/nights.py` (nights, flags, indices, checkins) + `api/v1/today.py` | cf | surveys | TestClient for every route; /today returns latest night, top-3 flags with guidance, pending check-ins, maturity; isolation A/B | SUR-7 |  |
 
-## review (5)
+## review (2)
 
 | ID | Task | Owner | Branch | Done when | Blockers | sha |
 |----|------|-------|--------|-----------|----------|-----|
-| PIPE-1 | `services/pipeline.py`: process_session / run_nightly glue (csi_core → DB rows with run_id) | f4 | pipeline | synth night → window_estimates + night_features rows for one user, isolated by user_id | DB-4, CORE-6 |  |
-| PIPE-2 | `services/fusion.py`: score_night → flags rows (+ guidance hook) | f4 | pipeline | flags carry components; thresholds only from config.yaml | PIPE-1, CORE-7 |  |
 | OPS-6 | Persona data spec `docs/ops/personas.md` (steady; breathing/sleep drift; mental dip + safety) | ops | ops | per persona: synth params, seeds, survey schedule, expected /today derived from config placeholders | — | 9f816a0 |
 | OPS-7 | `tests/e2e/curl_flow.sh` demo flow against BASE_URL (default http://127.0.0.1:8000) | ops | ops | signup→login→check-in→safety→/today→logout→token rejected, pass/fail per step | CA-2 | 94d71d2 |
-| PIPE-3 | runs.py lazy builtin registration (one-off ownership exception) + slow marker | f4 | pipeline | test_builtin_kinds_registered passes; full suite green | PIPE-2 | 076136f |
 
-## done (39)
+## done (42)
 
 | ID | Task | Owner | Branch | Done when | Blockers | sha |
 |----|------|-------|--------|-----------|----------|-----|
@@ -53,6 +50,8 @@ Owners: `ca` build-astronaut-health-backend (main) · `f4` pankajkashyap-f4 (fea
 | CORE-4 | `preprocess.clean` → `CleanSignal` | f4 | csi-core | quality_notes populated on gaps; no FastAPI/SQLAlchemy imports | CORE-3 | 947de1e |
 | CORE-5 | `breath.estimate_windows` | f4 | csi-core | synth at 14 bpm recovers 14±1 bpm; motion windows flagged | CORE-4 | 947de1e |
 | CORE-6 | `night.aggregate`, `update_baseline`, `robust_z` | f4 | csi-core | baseline maturity stages tested; alert nights excluded | CORE-5 | 947de1e |
+| PIPE-1 | `services/pipeline.py`: process_session / run_nightly glue (csi_core → DB rows with run_id) | f4 | pipeline | synth night → window_estimates + night_features rows for one user, isolated by user_id | DB-4, CORE-6 | 2c55b36 |
+| PIPE-2 | `services/fusion.py`: score_night → flags rows (+ guidance hook) | f4 | pipeline | flags carry components; thresholds only from config.yaml | PIPE-1, CORE-7 | 2c55b36 |
 | ACC-1 | `security.py` `hash_password` / `verify_password` (Argon2) | 7a | accounts | wrong pw fails; hash never logged | — | 09ff38c |
 | ACC-2 | access JWT + `new_refresh_token` (plaintext, sha256) | 7a | accounts | expired token rejected; secret from env only | ACC-1 | 09ff38c |
 | ACC-3 | `encrypt` / `decrypt` (Fernet FIELD_KEY) + `EncryptedJSON` | 7a | accounts | round-trip test; ciphertext ≠ plaintext in DB | DB-2 | 09ff38c |
@@ -80,6 +79,7 @@ Owners: `ca` build-astronaut-health-backend (main) · `f4` pankajkashyap-f4 (fea
 | OPS-12 | Coordinator loop recipe (notify_when_idle + /loop heartbeat) in prompts and PROTOCOL | ops | ops | workers auto-pick via board.py | — | 7a88fdf |
 | OPS-13 | `tools/ops/metrics.sh`: cycle time, merges/day, reverts | ops | ops | fits one screen | — | 7a88fdf |
 | SCAF | Scaffold: layout, config, contracts, docs, health API | ca | main | scaffold merged | — | 7b576d3 |
+| PIPE-3 | runs.py lazy builtin registration (one-off ownership exception) + slow marker | f4 | pipeline | test_builtin_kinds_registered passes; full suite green | PIPE-2 | 2c55b36 |
 
 ## proposed (0)
 

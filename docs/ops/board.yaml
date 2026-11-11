@@ -737,8 +737,8 @@ tasks:
   sha: null
 - id: FLAKY-1
   title: Root-cause the flaky tests/pipeline/test_personas.py failures on main (2-4 different tests per run)
-  owner: cf
-  branch: feat/surveys
+  owner: b0
+  branch: feat/db-ingest
   state: doing
   blockers: []
   done_when: test_personas.py green 10/10 runs alone and in the full suite; root cause + guard recorded as a lesson

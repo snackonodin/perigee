@@ -29,7 +29,7 @@ Owners: `ca` build-astronaut-health-backend (main) · `f4` pankajkashyap-f4 (fea
 | ID | Task | Owner | Branch | Done when | Blockers | sha |
 |----|------|-------|--------|-----------|----------|-----|
 | CORE-7 | `fusion.score_night` → `FlagDraft` | f4 | csi-core | components dict explains priority; thresholds only from config.yaml | CORE-6 |  |
-| FLAKY-1 | Root-cause the flaky tests/pipeline/test_personas.py failures on main (2-4 different tests per run) | cf | surveys | test_personas.py green 10/10 runs alone and in the full suite; root cause + guard recorded as a lesson | — |  |
+| FLAKY-1 | Root-cause the flaky tests/pipeline/test_personas.py failures on main (2-4 different tests per run) | b0 | db-ingest | test_personas.py green 10/10 runs alone and in the full suite; root cause + guard recorded as a lesson | — |  |
 
 ## review (4)
 

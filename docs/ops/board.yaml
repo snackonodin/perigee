@@ -645,3 +645,75 @@ tasks:
   sha: 7de3794
   times:
     done: '2026-11-11T16:02:02Z'
+- id: QA-1
+  title: 'Randomised testing: pytest-randomly + hypothesis pinned; tools/ops/stress.sh runs the suite under N random seeds; fix every order dependence (L2)'
+  owner: b0
+  branch: feat/db-ingest
+  state: todo
+  blockers: []
+  done_when: 10 consecutive random-order full runs green; failing seed printed and reproducible
+  sha: null
+- id: LIVE-1
+  title: 'SSE /api/v1/live/vitals: per-user stream of newest injected windows (breath, heart[experimental], motion, presence) + replay mode for a stored session at Nx speed'
+  owner: b0
+  branch: feat/db-ingest
+  state: todo
+  blockers: [QA-1, INJ-1]
+  done_when: TestClient stream test; isolation (B never receives A events); replay deterministic
+  sha: null
+- id: SCR-1
+  title: 'Read-only survey of features script/ (team scripts): capture CSV format, breath/heart/motion entry points; plugins/ adapters wrapping them (no new algorithms); load.py reader for the real capture format'
+  owner: f4
+  branch: feat/pipeline
+  state: todo
+  blockers: []
+  done_when: report of formats + entry points; plugins.* specs pass the golden swap test on a real capture CSV (no data committed)
+  sha: null
+- id: INJ-1
+  title: 'Data injection (Path B): POST /api/v1/ingest/estimates (batch windows/heart/motion from the team scripts, idempotent by batch hash, run provenance with client code_version) + cli ingest-estimates (CSV/JSON); hypothesis tests on random batches'
+  owner: f4
+  branch: feat/pipeline
+  state: todo
+  blockers: [SCR-1]
+  done_when: random batches round-trip exactly; replays are no-ops; malformed batches rejected without partial writes; run_nightly works on injected data
+  sha: null
+- id: FUZZ-1
+  title: 'Hypothesis API invariants: safety object on every survey/symptom response, isolation for random users/data, consent gating, no answer values in logs'
+  owner: cf
+  branch: feat/surveys
+  state: todo
+  blockers: []
+  done_when: property tests with >=200 examples each, deterministic seed
+  sha: null
+- id: LEAK-1
+  title: 'weekly_indices(..., until: datetime | None) upper time bound; run_nightly passes the night end (L6)'
+  owner: cf
+  branch: feat/surveys
+  state: todo
+  blockers: []
+  done_when: backfill test proves answers after the night never affect it
+  sha: null
+- id: LOOP-1
+  title: 'Failure-learning loop: tools/ops/lessons.py (add/list/close), merge_ready + stress.sh auto-record failures as lesson stubs, prompts read LESSONS.md, check_merge lints tracked files only (L1) and warns on broad reformat (L3), metrics.sh shows recurrence'
+  owner: 7a
+  branch: feat/accounts
+  state: todo
+  blockers: []
+  done_when: a simulated RED merge creates a lesson stub; lessons.py close refuses without a guard reference; tests in tmp repos
+  sha: null
+- id: GATE-1
+  title: 'Backend gate: QA-1, INJ-1, LIVE-1, FUZZ-1, LEAK-1, LOOP-1 merged; e2e flow + seed-personas + backup/restore green on a fresh bootstrap'
+  owner: ca
+  branch: main
+  state: todo
+  blockers: [QA-1, INJ-1, LIVE-1, FUZZ-1, LEAK-1, LOOP-1]
+  done_when: all green; frontend work starts
+  sha: null
+- id: FE-1
+  title: 'Frontend scaffold: React+TS+Vite in frontend/, builds to backend/static/app (served at /), no CDN, typed client from /openapi.json; space theme tokens; tab shell (Overview, Breathing, Heart, Sleep, Psyche, Settings)'
+  owner: 7a
+  branch: feat/frontend
+  state: todo
+  blockers: [GATE-1]
+  done_when: npm run build offline; FastAPI serves it; generated client compiles
+  sha: null

@@ -8,7 +8,7 @@ Next task for a worker: `tools/ops/board.py list --owner <id> --next`.
 
 Owners: `ca` build-astronaut-health-backend (main) · `f4` pankajkashyap-f4 (feat/csi-core, feat/pipeline) · `b0` pankajkashyap-b0 (feat/db-ingest) · `7a` pankajkashyap-7a (feat/accounts) · `cf` pankajkashyap-cf (feat/surveys) · `ops` claude-multiplayer server launch (feat/ops)
 
-## todo (4)
+## todo (13)
 
 | ID | Task | Owner | Branch | Done when | Blockers | sha |
 |----|------|-------|--------|-----------|----------|-----|
@@ -16,6 +16,15 @@ Owners: `ca` build-astronaut-health-backend (main) · `f4` pankajkashyap-f4 (fea
 | CA-1 | Integrate routers in `backend/main.py` | ca | main | all routers mounted; /openapi.json lists them | ACC-6, SUR-7 |  |
 | CA-3 | Three synthetic personas (`is_synthetic`) via normal ingestion | ca | main | `cli seed-personas` → `/today` differs per persona | DB-6, CA-2, OPS-6 |  |
 | CA-4 | Demo HTML page (single file, localhost) | ca | main | login → today → check-in → safety screen shown in a dry run | CA-2 |  |
+| QA-1 | Randomised testing: pytest-randomly + hypothesis pinned; tools/ops/stress.sh runs the suite under N random seeds; fix every order dependence (L2) | b0 | db-ingest | 10 consecutive random-order full runs green; failing seed printed and reproducible | — |  |
+| LIVE-1 | SSE /api/v1/live/vitals: per-user stream of newest injected windows (breath, heart[experimental], motion, presence) + replay mode for a stored session at Nx speed | b0 | db-ingest | TestClient stream test; isolation (B never receives A events); replay deterministic | QA-1, INJ-1 |  |
+| SCR-1 | Read-only survey of features script/ (team scripts): capture CSV format, breath/heart/motion entry points; plugins/ adapters wrapping them (no new algorithms); load.py reader for the real capture format | f4 | pipeline | report of formats + entry points; plugins.* specs pass the golden swap test on a real capture CSV (no data committed) | — |  |
+| INJ-1 | Data injection (Path B): POST /api/v1/ingest/estimates (batch windows/heart/motion from the team scripts, idempotent by batch hash, run provenance with client code_version) + cli ingest-estimates (CSV/JSON); hypothesis tests on random batches | f4 | pipeline | random batches round-trip exactly; replays are no-ops; malformed batches rejected without partial writes; run_nightly works on injected data | SCR-1 |  |
+| FUZZ-1 | Hypothesis API invariants: safety object on every survey/symptom response, isolation for random users/data, consent gating, no answer values in logs | cf | surveys | property tests with >=200 examples each, deterministic seed | — |  |
+| LEAK-1 | weekly_indices(..., until: datetime \| None) upper time bound; run_nightly passes the night end (L6) | cf | surveys | backfill test proves answers after the night never affect it | — |  |
+| LOOP-1 | Failure-learning loop: tools/ops/lessons.py (add/list/close), merge_ready + stress.sh auto-record failures as lesson stubs, prompts read LESSONS.md, check_merge lints tracked files only (L1) and warns on broad reformat (L3), metrics.sh shows recurrence | 7a | accounts | a simulated RED merge creates a lesson stub; lessons.py close refuses without a guard reference; tests in tmp repos | — |  |
+| GATE-1 | Backend gate: QA-1, INJ-1, LIVE-1, FUZZ-1, LEAK-1, LOOP-1 merged; e2e flow + seed-personas + backup/restore green on a fresh bootstrap | ca | main | all green; frontend work starts | QA-1, INJ-1, LIVE-1, FUZZ-1, LEAK-1, LOOP-1 |  |
+| FE-1 | Frontend scaffold: React+TS+Vite in frontend/, builds to backend/static/app (served at /), no CDN, typed client from /openapi.json; space theme tokens; tab shell (Overview, Breathing, Heart, Sleep, Psyche, Settings) | 7a | frontend | npm run build offline; FastAPI serves it; generated client compiles | GATE-1 |  |
 
 ## doing (1)
 

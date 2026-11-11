@@ -134,3 +134,13 @@ def test_heart_reference_on_sine(cfg) -> None:
     est = heart.estimate_windows(_sine(1.2, cfg.preprocess.resample_hz), "s", cfg)
     assert est and all(e.experimental for e in est)
     assert all(abs(e.hr_bpm - 72.0) <= 1.0 for e in est)
+
+
+def test_end_to_end_night_recovers_rr(windows, cfg) -> None:
+    from datetime import date
+
+    from csi_core.night import aggregate
+
+    nf = aggregate("u", date(2026, 11, 10), windows, cfg)
+    assert abs(nf.rr_med - RR) <= 1.0
+    assert not nf.valid  # 10-min fixture is below min_valid_hours

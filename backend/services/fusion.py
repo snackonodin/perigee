@@ -303,6 +303,8 @@ def run_nightly(
 @runs.register("run_nightly")
 def run_nightly_handler(db: Session, run: PipelineRun) -> str:
     p = run.parameters
+    if not p.get("user_id") or not p.get("day"):
+        raise ValueError("run_nightly params must include user_id and day (ISO date)")
     out = run_nightly(db, p["user_id"], date.fromisoformat(p["day"]), run_id=run.id)
     return (
         f"run_nightly night={out['night']} windows={out['windows']} "

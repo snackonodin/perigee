@@ -151,7 +151,10 @@ def process(
 
 @runs.register("process_session")
 def process_session(db: Session, run: PipelineRun) -> str:
-    out = process(db, run.parameters["session_id"], run.id)
+    sid = run.parameters.get("session_id")
+    if not sid:
+        raise ValueError("process_session params must include session_id")
+    out = process(db, sid, run.id)
     return (
         f"process_session windows={out['windows']} valid={out['valid_windows']} "
         f"heart={out['heart_windows']} nights={','.join(out['nights'])}"

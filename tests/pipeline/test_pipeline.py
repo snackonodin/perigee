@@ -213,3 +213,9 @@ def test_night_date_uses_profile_timezone() -> None:
 def test_raw_path_cannot_escape_data_dir(data_dir) -> None:
     with pytest.raises(ValueError):
         pipeline.resolve_raw_path("../outside.csv.gz", data_dir)
+
+
+def test_missing_params_fail_clearly(db) -> None:
+    for kind, msg in (("process_session", "session_id"), ("run_nightly", "user_id and day")):
+        rec = _run(db, kind, {})
+        assert rec.status is RunStatus.failed and msg in rec.log

@@ -658,11 +658,14 @@ tasks:
   owner: b0
   branch: feat/db-ingest
   state: todo
-  blockers: [QA-1, INJ-1]
+  blockers:
+  - QA-1
+  - INJ-1
   done_when: TestClient stream test; isolation (B never receives A events); replay deterministic
   sha: null
 - id: SCR-1
-  title: 'Read-only survey of features script/ (team scripts): capture CSV format, breath/heart/motion entry points; plugins/ adapters wrapping them (no new algorithms); load.py reader for the real capture format'
+  title: 'Read-only survey of features script/ (team scripts): capture CSV format, breath/heart/motion entry points; plugins/ adapters wrapping them (no new algorithms); load.py reader for the real capture
+    format'
   owner: f4
   branch: feat/pipeline
   state: todo
@@ -670,11 +673,13 @@ tasks:
   done_when: report of formats + entry points; plugins.* specs pass the golden swap test on a real capture CSV (no data committed)
   sha: null
 - id: INJ-1
-  title: 'Data injection (Path B): POST /api/v1/ingest/estimates (batch windows/heart/motion from the team scripts, idempotent by batch hash, run provenance with client code_version) + cli ingest-estimates (CSV/JSON); hypothesis tests on random batches'
+  title: 'Data injection (Path B): POST /api/v1/ingest/estimates (batch windows/heart/motion from the team scripts, idempotent by batch hash, run provenance with client code_version) + cli ingest-estimates
+    (CSV/JSON); hypothesis tests on random batches'
   owner: f4
   branch: feat/pipeline
   state: todo
-  blockers: [SCR-1]
+  blockers:
+  - SCR-1
   done_when: random batches round-trip exactly; replays are no-ops; malformed batches rejected without partial writes; run_nightly works on injected data
   sha: null
 - id: FUZZ-1
@@ -689,12 +694,15 @@ tasks:
   title: 'weekly_indices(..., until: datetime | None) upper time bound; run_nightly passes the night end (L6)'
   owner: cf
   branch: feat/surveys
-  state: todo
+  state: review
   blockers: []
   done_when: backfill test proves answers after the night never affect it
-  sha: null
+  sha: '7931346'
+  times:
+    review: '2026-11-11T16:28:39Z'
 - id: LOOP-1
-  title: 'Failure-learning loop: tools/ops/lessons.py (add/list/close), merge_ready + stress.sh auto-record failures as lesson stubs, prompts read LESSONS.md, check_merge lints tracked files only (L1) and warns on broad reformat (L3), metrics.sh shows recurrence'
+  title: 'Failure-learning loop: tools/ops/lessons.py (add/list/close), merge_ready + stress.sh auto-record failures as lesson stubs, prompts read LESSONS.md, check_merge lints tracked files only (L1) and
+    warns on broad reformat (L3), metrics.sh shows recurrence'
   owner: 7a
   branch: feat/accounts
   state: todo
@@ -706,14 +714,22 @@ tasks:
   owner: ca
   branch: main
   state: todo
-  blockers: [QA-1, INJ-1, LIVE-1, FUZZ-1, LEAK-1, LOOP-1]
+  blockers:
+  - QA-1
+  - INJ-1
+  - LIVE-1
+  - FUZZ-1
+  - LEAK-1
+  - LOOP-1
   done_when: all green; frontend work starts
   sha: null
 - id: FE-1
-  title: 'Frontend scaffold: React+TS+Vite in frontend/, builds to backend/static/app (served at /), no CDN, typed client from /openapi.json; space theme tokens; tab shell (Overview, Breathing, Heart, Sleep, Psyche, Settings)'
+  title: 'Frontend scaffold: React+TS+Vite in frontend/, builds to backend/static/app (served at /), no CDN, typed client from /openapi.json; space theme tokens; tab shell (Overview, Breathing, Heart, Sleep,
+    Psyche, Settings)'
   owner: 7a
   branch: feat/frontend
   state: todo
-  blockers: [GATE-1]
+  blockers:
+  - GATE-1
   done_when: npm run build offline; FastAPI serves it; generated client compiles
   sha: null

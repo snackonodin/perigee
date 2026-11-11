@@ -491,3 +491,95 @@ def weekly_indices(db: Any, user_id: str, week_start: date) -> dict[str, dict]:
             "direction": directions[name],
         }
     return out
+
+
+# --------------------------------------------------------------------------- API entry points
+
+
+def list_instruments(db: Any) -> list[dict]:
+    """Summaries of the latest version of each instrument in the catalog."""
+    from sqlalchemy import select
+
+    m = _models()
+    rows = db.scalars(select(m.Instrument).order_by(m.Instrument.updated_at)).all()
+    latest = {r.instrument_id: r for r in rows}  # ordered: the most recent wins
+    return [
+        {
+            "id": r.instrument_id,
+            "name": r.name,
+            "version": r.version,
+            "timeframe": r.timeframe,
+            "license_note": r.license_note,
+            "source_url": r.source_url,
+            "items": len(r.definition.get("items", [])),
+        }
+        for _, r in sorted(latest.items())
+    ]
+
+
+def _coerce_for_safety(answers: Any) -> dict[str, Any]:
+    """Best effort: ints where possible, raw values otherwise (safety_check treats
+    an uncomparable value on a safety item as a trigger)."""
+    if not isinstance(answers, dict):
+        return {}
+    out: dict[str, Any] = {}
+    for k, v in answers.items():
+        try:
+            out[str(k)] = int(v) if not isinstance(v, bool) and float(v) == int(v) else v
+        except (TypeError, ValueError):
+            out[str(k)] = v
+    return out
+
+
+def submit_payload(
+    db: Any,
+    user_id: str,
+    instrument_id: str,
+    instrument_version: str | None,
+    administered_at: datetime | None,
+    answers: Any,
+) -> dict:
+    """Route entry point. Never raises for bad input: always returns a body with
+    ``safety``. ok=False carries ``error`` (code) and ``errors`` (keys only).
+    Raises SubmissionError only for kind "storage" (caller returns 500 + safety)."""
+    from pydantic import ValidationError
+
+    try:
+        data = SurveyResponse(
+            user_id=user_id,
+            instrument_id=instrument_id,
+            instrument_version=instrument_version or "",
+            administered_at=administered_at or datetime.now(UTC),
+            answers=answers,
+        )
+    except ValidationError as e:
+        # The payload fails the contract before submit_response can run: do the
+        # safety step here so it is never skipped.
+        inst = _instrument_for_safety(db, instrument_id)
+        safety = (
+            safety_check(inst, _coerce_for_safety(answers)) if inst else SafetyResult(show=False)
+        )
+        if safety.show:
+            _record_safety_event(db, user_id, instrument_id)
+        fields = sorted({".".join(str(p) for p in err["loc"]) for err in e.errors()})
+        return _result(safety, error="invalid", errors=[f"invalid field: {f}" for f in fields])
+    try:
+        out = submit_response(db, user_id, data)
+    except SubmissionError as e:
+        if e.kind == "storage":
+            raise
+        return _result(e.safety, error=e.kind, errors=e.errors)
+    return {"ok": True, "error": None, "errors": [], **out}
+
+
+def _result(safety: SafetyResult, *, error: str, errors: list[str]) -> dict:
+    return {
+        "ok": False,
+        "id": None,
+        "stored": False,
+        "total": None,
+        "scores": None,
+        "safety": safety.model_dump(),
+        "error": error,
+        "errors": errors,
+    }

@@ -110,6 +110,12 @@ def create_app(*, with_lifespan: bool = True) -> FastAPI:
         return {"api": "v1", "app": app.version, "code_version": _git_sha()}
 
     app.state.mounted = mount_routers(app)
+
+    demo_dir = ROOT / "backend" / "static" / "demo"
+    if demo_dir.is_dir():  # offline demo page (same origin as the API)
+        from fastapi.staticfiles import StaticFiles
+
+        app.mount("/demo", StaticFiles(directory=demo_dir, html=True), name="demo")
     return app
 
 

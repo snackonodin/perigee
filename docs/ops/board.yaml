@@ -309,25 +309,27 @@ tasks:
   title: '`seeds/guidance_cards.json` (5 cards) + `select_guidance`'
   owner: cf
   branch: feat/surveys
-  state: review
+  state: done
   blockers:
   - DB-3
   done_when: each card has source_note; `reviewed_by` null
-  sha: null
+  sha: 4f26ffc
   times:
     review: '2026-11-11T11:05:42Z'
+    done: '2026-11-11T11:06:55Z'
 - id: SUR-7
   title: '`api/v1/responses.py` router (not mounted)'
   owner: cf
   branch: feat/surveys
-  state: review
+  state: done
   blockers:
   - SUR-4
   - ACC-4
   done_when: 'TestClient: safety path returns `{show, reason, resources}`'
-  sha: null
+  sha: 4f26ffc
   times:
     review: '2026-11-11T11:05:42Z'
+    done: '2026-11-11T11:06:55Z'
 - id: CA-1
   title: Integrate routers in `backend/main.py`
   owner: ca

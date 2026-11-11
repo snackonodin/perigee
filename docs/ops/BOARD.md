@@ -28,16 +28,14 @@ Owners: `ca` build-astronaut-health-backend (main) · `f4` pankajkashyap-f4 (fea
 |----|------|-------|--------|-----------|----------|-----|
 | CORE-7 | `fusion.score_night` → `FlagDraft` | f4 | csi-core | components dict explains priority; thresholds only from config.yaml | CORE-6 |  |
 
-## review (4)
+## review (2)
 
 | ID | Task | Owner | Branch | Done when | Blockers | sha |
 |----|------|-------|--------|-----------|----------|-----|
 | PIPE-1 | `services/pipeline.py`: process_session / run_nightly glue (csi_core → DB rows with run_id) | f4 | pipeline | synth night → window_estimates + night_features rows for one user, isolated by user_id | DB-4, CORE-6 |  |
 | PIPE-2 | `services/fusion.py`: score_night → flags rows (+ guidance hook) | f4 | pipeline | flags carry components; thresholds only from config.yaml | PIPE-1, CORE-7 |  |
-| SUR-6 | `seeds/guidance_cards.json` (5 cards) + `select_guidance` | cf | surveys | each card has source_note; `reviewed_by` null | DB-3 |  |
-| SUR-7 | `api/v1/responses.py` router (not mounted) | cf | surveys | TestClient: safety path returns `{show, reason, resources}` | SUR-4, ACC-4 |  |
 
-## done (35)
+## done (37)
 
 | ID | Task | Owner | Branch | Done when | Blockers | sha |
 |----|------|-------|--------|-----------|----------|-----|
@@ -61,6 +59,8 @@ Owners: `ca` build-astronaut-health-backend (main) · `f4` pankajkashyap-f4 (fea
 | SUR-3 | `load_catalog` (idempotent), `get_instrument` | cf | surveys | 2nd load is a no-op | DB-3, SUR-1 | 72732e5 |
 | SUR-4 | `submit_response` (answers encrypted, safety first) | cf | surveys | safety object in response; answers never logged | SUR-2, SUR-3, ACC-3 | 72732e5 |
 | SUR-5 | `weekly_indices` | cf | surveys | ranges from seed scoring only | SUR-4 | 72732e5 |
+| SUR-6 | `seeds/guidance_cards.json` (5 cards) + `select_guidance` | cf | surveys | each card has source_note; `reviewed_by` null | DB-3 | 4f26ffc |
+| SUR-7 | `api/v1/responses.py` router (not mounted) | cf | surveys | TestClient: safety path returns `{show, reason, resources}` | SUR-4, ACC-4 | 4f26ffc |
 | OPS-1 | BOARD.md | ops | ops | seeded from interfaces.md | — | 7a88fdf |
 | OPS-2 | Role prompts `docs/ops/prompts/` | ops | ops | 6 files, each < 60 lines | — | 7a88fdf |
 | OPS-3 | PROTOCOL.md | ops | ops | loop, escalation, merge order, rebase rule, daily stop | — | 7a88fdf |

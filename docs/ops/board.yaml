@@ -558,14 +558,15 @@ tasks:
   title: '`api/v1/nights.py` (nights, flags, indices, checkins) + `api/v1/today.py`'
   owner: cf
   branch: feat/surveys
-  state: review
+  state: done
   blockers:
   - SUR-7
   done_when: TestClient for every route; /today returns latest night, top-3 flags with guidance, pending check-ins, maturity; isolation A/B
-  sha: a08f660
+  sha: 0d23b00
   times:
     review: '2026-11-11T15:29:14Z'
     doing: '2026-11-11T15:13:15Z'
+    done: '2026-11-11T15:37:25Z'
 - id: PIPE-3
   title: runs.py lazy builtin registration (one-off ownership exception) + slow marker
   owner: f4

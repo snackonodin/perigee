@@ -54,16 +54,24 @@ def test_current_user_ok(client, db) -> None:
 
 def _expired(user_id: str) -> str:
     now = datetime.now(UTC)
-    claims = {"sub": user_id, "iat": now - timedelta(hours=1), "exp": now - timedelta(minutes=1),
-              "typ": "access"}
+    claims = {
+        "sub": user_id,
+        "iat": now - timedelta(hours=1),
+        "exp": now - timedelta(minutes=1),
+        "typ": "access",
+    }
     return jwt.encode(claims, get_settings().secret_key, algorithm="HS256")
 
 
-@pytest.mark.parametrize("headers", [
-    {},
-    {"Authorization": "Basic YTpi"},
-    _bearer("not.a.jwt"),
-], ids=["missing", "basic", "garbage"])
+@pytest.mark.parametrize(
+    "headers",
+    [
+        {},
+        {"Authorization": "Basic YTpi"},
+        _bearer("not.a.jwt"),
+    ],
+    ids=["missing", "basic", "garbage"],
+)
 def test_current_user_rejects(client, headers) -> None:
     res = client.get("/whoami", headers=headers)
     assert res.status_code == 401

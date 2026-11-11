@@ -7,8 +7,14 @@ import pytest
 
 from backend.logging import REDACTED, RedactionFilter, configure_logging
 
-SECRETS = ["hunter2-very-secret", "eyJhbGciOi.tok.sig", "Sertraline", "50mg", "Jane Doe",
-           "felt anxious today"]
+SECRETS = [
+    "hunter2-very-secret",
+    "eyJhbGciOi.tok.sig",
+    "Sertraline",
+    "50mg",
+    "Jane Doe",
+    "felt anxious today",
+]
 
 
 @pytest.fixture

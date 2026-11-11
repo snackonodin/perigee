@@ -31,20 +31,32 @@ def test_access_token_roundtrip() -> None:
         lambda t: t + "x",
         lambda t: "garbage",
         lambda t: jwt.encode(
-            {"sub": "u", "iat": datetime.now(UTC), "exp": datetime.now(UTC) + timedelta(minutes=5),
-             "typ": "access"},
+            {
+                "sub": "u",
+                "iat": datetime.now(UTC),
+                "exp": datetime.now(UTC) + timedelta(minutes=5),
+                "typ": "access",
+            },
             "another-secret-key-that-is-long-enough-for-hs256",
             algorithm="HS256",
         ),
         lambda t: jwt.encode(
-            {"sub": "u", "iat": datetime.now(UTC) - timedelta(hours=2),
-             "exp": datetime.now(UTC) - timedelta(hours=1), "typ": "access"},
+            {
+                "sub": "u",
+                "iat": datetime.now(UTC) - timedelta(hours=2),
+                "exp": datetime.now(UTC) - timedelta(hours=1),
+                "typ": "access",
+            },
             get_settings().secret_key,
             algorithm="HS256",
         ),
         lambda t: jwt.encode(
-            {"sub": "u", "iat": datetime.now(UTC), "exp": datetime.now(UTC) + timedelta(minutes=5),
-             "typ": "refresh"},
+            {
+                "sub": "u",
+                "iat": datetime.now(UTC),
+                "exp": datetime.now(UTC) + timedelta(minutes=5),
+                "typ": "refresh",
+            },
             get_settings().secret_key,
             algorithm="HS256",
         ),
@@ -96,8 +108,9 @@ def test_configured_field_key_is_used(monkeypatch) -> None:
 
 def test_encrypted_json_column() -> None:
     md = MetaData()
-    t = Table("t", md, Column("id", Integer, primary_key=True),
-              Column("v", security.EncryptedJSON()))
+    t = Table(
+        "t", md, Column("id", Integer, primary_key=True), Column("v", security.EncryptedJSON())
+    )
     eng = create_engine("sqlite://")
     md.create_all(eng)
     payload = {"q1": 3, "note": "felt dizzy"}

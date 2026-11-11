@@ -668,10 +668,12 @@ tasks:
     format'
   owner: f4
   branch: feat/pipeline
-  state: todo
+  state: review
   blockers: []
   done_when: report of formats + entry points; plugins.* specs pass the golden swap test on a real capture CSV (no data committed)
-  sha: null
+  sha: b8d7cb1
+  times:
+    review: '2026-11-11T20:20:21Z'
 - id: INJ-1
   title: 'Data injection (Path B): POST /api/v1/ingest/estimates (batch windows/heart/motion from the team scripts, idempotent by batch hash, run provenance with client code_version) + cli ingest-estimates
     (CSV/JSON); hypothesis tests on random batches'

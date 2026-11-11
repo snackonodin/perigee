@@ -310,3 +310,6 @@ def run_nightly_handler(db: Session, run: PipelineRun) -> str:
         f"run_nightly night={out['night']} windows={out['windows']} "
         f"valid={out.get('valid')} flags={out['flags']}"
     )
+
+
+RUN_KINDS = {"run_nightly": run_nightly_handler}

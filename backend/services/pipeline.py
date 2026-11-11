@@ -159,3 +159,6 @@ def process_session(db: Session, run: PipelineRun) -> str:
         f"process_session windows={out['windows']} valid={out['valid_windows']} "
         f"heart={out['heart_windows']} nights={','.join(out['nights'])}"
     )
+
+
+RUN_KINDS = {"process_session": process_session}

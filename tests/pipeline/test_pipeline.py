@@ -76,6 +76,7 @@ def processed(db, data_dir, synth_dir):
     return uid, sid, rec
 
 
+@pytest.mark.slow
 def test_process_session_writes_windows(db, processed) -> None:
     uid, sid, rec = processed
     rows = db.scalars(select(WindowEstimateRow).where(WindowEstimateRow.session_id == sid)).all()
@@ -89,6 +90,7 @@ def test_process_session_writes_windows(db, processed) -> None:
     assert f"nights={NIGHT.isoformat()}" in rec.log
 
 
+@pytest.mark.slow
 def test_end_to_end_flag_and_idempotent_rerun(db, processed) -> None:
     uid, sid, _ = processed
     rec = _run(db, "run_nightly", {"user_id": uid, "day": NIGHT.isoformat()})
@@ -120,6 +122,7 @@ def test_end_to_end_flag_and_idempotent_rerun(db, processed) -> None:
     assert db.scalar(select(func.count()).select_from(PipelineRun)) == 4
 
 
+@pytest.mark.slow
 def test_band_alert_and_direction_from_indices(db, processed) -> None:
     uid, _, _ = processed
 
@@ -142,6 +145,7 @@ def test_band_alert_and_direction_from_indices(db, processed) -> None:
     assert m["daily_pm.stress"]["skipped"] == "no_direction"
 
 
+@pytest.mark.slow
 def test_other_user_cannot_see_or_process(db, processed, data_dir) -> None:
     uid, sid, _ = processed
     other = make_user(db)
@@ -157,6 +161,7 @@ def test_other_user_cannot_see_or_process(db, processed, data_dir) -> None:
     )
 
 
+@pytest.mark.slow
 def test_tampered_raw_file_fails_run(db, processed, data_dir) -> None:
     _, sid, _ = processed
     f = next((data_dir / "raw" / sid).glob("csi_*.csv.gz"))
@@ -168,6 +173,7 @@ def test_tampered_raw_file_fails_run(db, processed, data_dir) -> None:
     assert _counts(db) == before  # rolled back, old estimates kept
 
 
+@pytest.mark.slow
 def test_unusable_session_is_refused(db, processed) -> None:
     from backend.models import CaptureSession
 
@@ -180,6 +186,7 @@ def test_unusable_session_is_refused(db, processed) -> None:
     assert _counts(db) == before
 
 
+@pytest.mark.slow
 def test_latest_indices_looks_back_to_most_recent_week(db, processed) -> None:
     from csi_core.config import get_config
 

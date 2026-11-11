@@ -582,8 +582,42 @@ tasks:
   title: Wire worker start/stop into main.py lifespan; persona seeding command once OPS-6 lands
   owner: ca
   branch: main
-  state: todo
+  state: review
   blockers:
   - DB-7
   done_when: app starts worker; seed-personas produces 3 synthetic users with expected flags
+  sha: f3cd03f
+  times:
+    review: '2026-11-11T15:18:19Z'
+- id: ACC-8
+  title: delete_user deletes the user's pipeline_runs (not anonymise); login rate limiting / lockout
+  owner: 7a
+  branch: feat/accounts
+  state: todo
+  blockers: []
+  done_when: delete leaves 0 pipeline_runs for the user; N failed logins -> 429 with Retry-After; limits in config.yaml (placeholder)
+  sha: null
+- id: PIPE-4
+  title: services/personas.py + cli seed-personas per docs/ops/personas.md (option C)
+  owner: f4
+  branch: feat/pipeline
+  state: todo
+  blockers: []
+  done_when: seed creates 3 is_synthetic users; expected states per personas.md asserted; reseed idempotent; synth cache under DATA_DIR
+  sha: null
+- id: DB-8
+  title: 'cli backup / restore: encrypted SQLite snapshot + raw manifest; restore test'
+  owner: b0
+  branch: feat/db-ingest
+  state: todo
+  blockers: []
+  done_when: backup -> wipe -> restore gives identical row counts and decryptable fields; key never in the archive
+  sha: null
+- id: OPS-14
+  title: 'Offline demo page backend/static/demo/ (vanilla JS, no CDN): login, Today, trend chart, check-in form from instrument JSON, safety screen'
+  owner: ops
+  branch: feat/ops
+  state: todo
+  blockers: []
+  done_when: E2E flow drivable from the page; safety screen shown before scores; works with no internet
   sha: null

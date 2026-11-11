@@ -47,10 +47,14 @@ Folder ownership (parallel sessions, one branch each):
   services/accounts.py, api/v1/auth.py, api/v1/me.py
                                              -> branch feat/accounts
 - docs/ops/, tools/ops/                      -> branch feat/ops
-- services/pipeline.py, services/fusion.py   -> branch feat/pipeline (f4, after csi_core)
+- services/pipeline.py, services/fusion.py, services/personas.py
+                                             -> branch feat/pipeline (f4)
+- api/v1/{sessions,jobs}.py, backend/worker.py -> branch feat/db-ingest
+- backend/static/                            -> branch feat/ops
 - Coordinator (main): backend/main.py, backend/schemas/, config.yaml, CLAUDE.md,
   docs/*.md, scripts/, plugins/, csi_core/config.py
-- seeds/, services/surveys.py, services/guidance.py, api/v1/responses.py
+- seeds/, services/surveys.py, services/guidance.py, services/readouts.py,
+  api/v1/{instruments,responses,guidance,nights,today}.py
                                              -> branch feat/surveys
 Change files outside your folder only through the coordinator session.
 

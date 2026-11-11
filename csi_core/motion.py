@@ -52,10 +52,29 @@ def reference_core(x: np.ndarray, fs: float, cfg: CoreConfig) -> tuple[bool, flo
     return False, float(np.log(np.var(x) + EPS)) if x.size else float(np.log(EPS))
 
 
-def detect(windows: list[np.ndarray], fs: float, cfg: CoreConfig) -> MotionResult:
-    """Run the configured motion core per window, then the session-level check."""
+def detect(
+    windows: list[np.ndarray],
+    fs: float,
+    cfg: CoreConfig,
+    *,
+    mats: list[np.ndarray] | None = None,
+    active: np.ndarray | None = None,
+    rr_hints: list[float | None] | None = None,
+) -> MotionResult:
+    """Run the configured motion core per window, then the session-level check.
+
+    With ``estimators.motion_input: matrix`` the core is
+    ``motion_core_matrix(amps, active, fs, cfg, rr_hint) -> (motion, score)`` on
+    each window's bin-averaged amplitude matrix. Presence always uses ``windows``.
+    """
     core = resolve_estimator(cfg.estimators.motion)
-    res = [core(w, fs, cfg) for w in windows]
+    if cfg.estimators.motion_input == "matrix":
+        if mats is None or active is None:
+            raise ValueError("motion_input=matrix needs the amplitude matrix (CleanSignal.amps)")
+        hints = rr_hints or [None] * len(mats)
+        res = [core(m, active, fs, cfg, h) for m, h in zip(mats, hints, strict=True)]
+    else:
+        res = [core(w, fs, cfg) for w in windows]
     core_motion = np.array([bool(m) for m, _ in res], dtype=bool)
     score = np.array([float(s) for _, s in res], dtype=float)
     z = robust_z_series(score)

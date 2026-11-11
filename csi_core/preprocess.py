@@ -34,6 +34,10 @@ class CleanSignal:
     fs: float
     t0_utc: datetime
     quality_notes: list[str] = field(default_factory=list)
+    # Only when a core takes matrix input: bin-averaged amplitudes on the same
+    # grid as x (rows aligned with t_s) and the active-subcarrier mask.
+    amps: np.ndarray | None = None
+    active: np.ndarray | None = None
 
 
 def amplitude_columns(df: pd.DataFrame) -> list[str]:
@@ -110,6 +114,44 @@ def reference_project(
     return x, notes
 
 
+def bin_average(df: pd.DataFrame, cfg: CoreConfig) -> tuple[np.ndarray, np.ndarray]:
+    """(n, n_sub) amplitudes averaged in 1/fs bins of device time, plus active mask.
+
+    Same steps as the team's resample_packets: drop non-increasing device
+    timestamps, divide each packet by its mean over active subcarriers, average
+    per bin, linearly interpolate empty bins. Bin 0 starts at the first packet.
+    """
+    fs = float(cfg.preprocess.resample_hz)
+    t_us = unwrap_us(df["ts_us"].to_numpy(dtype=np.int64), bits=cfg.capture.timestamp_bits)
+    amps = df[amplitude_columns(df)].to_numpy(dtype=float)
+    keep = np.ones(t_us.size, dtype=bool)
+    last = t_us[0]
+    for i in range(1, t_us.size):  # strictly increasing against the last kept packet
+        if t_us[i] <= last:
+            keep[i] = False
+        else:
+            last = t_us[i]
+    t = (t_us[keep] - t_us[keep][0]) / 1e6
+    amps = amps[keep]
+    active = (amps > 0).mean(axis=0) >= 0.99
+    row_mean = amps[:, active].mean(axis=1)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        norm = np.where(row_mean[:, None] > 0, amps / row_mean[:, None], 0.0)
+    n = int(np.floor(t[-1] * fs)) + 1
+    idx = np.floor(t * fs).astype(int)
+    totals = np.zeros((n, amps.shape[1]))
+    counts = np.zeros(n, dtype=int)
+    np.add.at(totals, idx, norm)
+    np.add.at(counts, idx, 1)
+    observed = np.flatnonzero(counts > 0)
+    out = np.zeros_like(totals)
+    out[observed] = totals[observed] / counts[observed, None]
+    grid = np.arange(n)
+    for k in range(amps.shape[1]):
+        out[:, k] = np.interp(grid, observed, out[observed, k])
+    return out, active
+
+
 def clean_band(
     df: pd.DataFrame,
     cfg: CoreConfig,
@@ -126,9 +168,15 @@ def clean_band(
     if t.size < min_len:
         raise ValueError("capture too short to filter")
     x, more = (projector or reference_project)(amps, fs, tuple(band_hz), cfg)
+    x = np.asarray(x, dtype=float)
     t0 = pd.Timestamp(df["host_time_utc"].iloc[0]).to_pydatetime()
+    mat = active = None
+    if "matrix" in (cfg.estimators.breath_input, cfg.estimators.motion_input):
+        mat, active = bin_average(df, cfg)
+        n = min(mat.shape[0], x.size)  # both grids start at the first packet
+        t, x, mat = t[:n], x[:n], mat[:n]
     return CleanSignal(
-        t_s=t, x=np.asarray(x, dtype=float), fs=fs, t0_utc=t0, quality_notes=notes + list(more)
+        t_s=t, x=x, fs=fs, t0_utc=t0, quality_notes=notes + list(more), amps=mat, active=active
     )
 
 

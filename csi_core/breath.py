@@ -2,7 +2,9 @@
 
 Plug-in seam: ``config.yaml estimators.breath`` names a
 ``breath_core(x, fs, cfg) -> (rr_a, rr_b, pnr_db)`` for one window of the clean
-signal (None = no estimate). Windowing, gating, quality, presence and the
+signal (None = no estimate), or, with ``estimators.breath_input: matrix``, a
+``breath_core_matrix(amps, active, fs, cfg) -> (rr_a, rr_b, pnr_db)`` on the
+window's bin-averaged amplitude matrix. Windowing, gating, quality, presence and the
 WindowEstimate output stay here, so a swapped core changes numbers only.
 
 Reference core: rr_a = Welch spectral peak in the breathing band, rr_b = peak
@@ -57,12 +59,22 @@ def estimate_windows(sig: CleanSignal, session_id: str, cfg: CoreConfig) -> list
     core = resolve_estimator(cfg.estimators.breath)
     slices = window_slices(sig, cfg.breath.window_s, cfg.breath.step_s)
     segs = [sig.x[s] for s in slices]
-    mr = motion.detect(segs, sig.fs, cfg)
+    needs_matrix = "matrix" in (cfg.estimators.breath_input, cfg.estimators.motion_input)
+    if needs_matrix and (sig.amps is None or sig.active is None):
+        raise ValueError("a matrix-input core needs CleanSignal.amps (clean with that config)")
+    mats = [sig.amps[s] for s in slices] if needs_matrix else None
+    if cfg.estimators.breath_input == "matrix":
+        raw = [core(m, sig.active, sig.fs, cfg) for m in mats]
+    else:
+        raw = [core(seg, sig.fs, cfg) for seg in segs]
+    mr = motion.detect(
+        segs, sig.fs, cfg, mats=mats, active=sig.active, rr_hints=[_bpm(r[0]) for r in raw]
+    )
     out: list[WindowEstimate] = []
-    for k, (s, seg) in enumerate(zip(slices, segs, strict=True)):
+    for k, s in enumerate(slices):
         t_a, t_b = window_times(sig, s)
         present, moving = bool(mr.presence[k]), bool(mr.motion[k])
-        rr_a, rr_b, pnr = core(seg, sig.fs, cfg)
+        rr_a, rr_b, pnr = raw[k]
         rr_a, rr_b = _bpm(rr_a), _bpm(rr_b)
         pnr = None if pnr is None or not np.isfinite(pnr) else float(pnr)
         pnr_ok = pnr is not None and pnr >= cfg.breath.min_pnr_db

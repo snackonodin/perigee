@@ -14,6 +14,16 @@ from backend.config import get_settings
 from backend.models import Base
 
 
+@pytest.fixture(autouse=True)
+def _fresh_login_limiter() -> Iterator[None]:
+    """Login failure counts live in process memory: never let them leak between tests."""
+    from backend.security import reset_login_limiter
+
+    reset_login_limiter()
+    yield
+    reset_login_limiter()
+
+
 @pytest.fixture
 def data_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[Path]:
     d = tmp_path / "astro-data"

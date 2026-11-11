@@ -14,10 +14,10 @@ import uuid
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
-from typing import Any
+from typing import Any, NoReturn
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from sqlalchemy import Table, delete, select, update
+from sqlalchemy import Table, Text, delete, or_, select, type_coerce, update
 from sqlalchemy.orm import Session
 
 from backend import security
@@ -60,6 +60,14 @@ class InvalidRefreshToken(AccountError):
 
 class UserNotFound(AccountError):
     code = "not_found"
+
+
+class TooManyAttempts(AccountError):
+    code = "too_many_attempts"
+
+    def __init__(self, retry_after: int) -> None:
+        super().__init__("too many failed logins; try again later")
+        self.retry_after = retry_after
 
 
 # --------------------------------------------------------------------------- helpers
@@ -156,25 +164,53 @@ def signup(db: Session, email: str, password: str) -> AuthResult:
     return result
 
 
-def login(db: Session, email: str, password: str) -> AuthResult:
+def login(
+    db: Session,
+    email: str,
+    password: str,
+    client_ip: str = "unknown",
+    limiter: security.LoginLimiter | None = None,
+) -> AuthResult:
+    """Throttled per (email, client_ip) and per email (config.yaml auth:).
+
+    A locked key is refused before any password check, so a locked attempt reveals nothing.
+    Unknown and known emails are counted the same way, so throttling cannot be used to find
+    out which emails exist.
+    """
+    limiter = limiter or security.get_login_limiter()
+    key = email.strip().lower()
+    wait = limiter.retry_after(key, client_ip)
+    if wait is not None:
+        raise TooManyAttempts(wait)
     try:
         email = normalize_email(email)
+        user = db.scalar(select(User).where(User.email == email))
     except InvalidInput:
-        security.burn_verify(password)
-        raise InvalidCredentials("invalid email or password") from None
-    user = db.scalar(select(User).where(User.email == email))
+        user = None
     if user is None:
         security.burn_verify(password)
-        raise InvalidCredentials("invalid email or password")
-    if not security.verify_password(user.password_hash, password) or user.status != "active":
+        _login_failed(db, None, key, client_ip, limiter)
+    elif not security.verify_password(user.password_hash, password) or user.status != "active":
         audit(db, user.id, "auth.login_failed")
-        db.commit()
-        raise InvalidCredentials("invalid email or password")
+        _login_failed(db, user.id, key, client_ip, limiter)
+    limiter.record_success(key, client_ip)
     result = _issue_tokens(db, user.id)
     audit(db, user.id, "auth.login")
     db.commit()
     log.info("login user_id=%s", user.id)
     return result
+
+
+def _login_failed(
+    db: Session, user_id: str | None, key: str, client_ip: str, limiter: security.LoginLimiter
+) -> NoReturn:
+    """Count the failure, audit a lockout when one starts, then refuse with the usual 401."""
+    for scope in limiter.record_failure(key, client_ip):
+        # Never the attempted email or the IP: the scope and window are enough to investigate.
+        audit(db, user_id, "auth.lockout", scope=scope, window_s=limiter.window_s)
+        log.warning("login lockout scope=%s user_id=%s", scope, user_id)
+    db.commit()
+    raise InvalidCredentials("invalid email or password")
 
 
 def refresh(db: Session, refresh_token: str) -> AuthResult:
@@ -313,13 +349,44 @@ def set_consents(
 # --------------------------------------------------------------------------- export / delete
 
 
-def _user_tables() -> list[Table]:
-    """Every table with a user_id column, parents before children.
+# Tables whose rows outlive the user with user_id set to NULL. Every other table with a
+# user_id column is deleted with the user, whether its user_id is nullable or not.
+ANONYMISED_TABLES = frozenset({"audit_log"})
 
-    NOT NULL user_id = user-owned rows (deleted with the user). Nullable user_id
-    (audit_log) = rows that outlive the user with user_id set to NULL.
-    """
+
+def _user_tables() -> list[Table]:
+    """Every table with a user_id column, parents before children."""
     return [t for t in Base.metadata.sorted_tables if "user_id" in t.c]
+
+
+def _identifiers(db: Session, user_id: str) -> set[str]:
+    """UUIDs that identify the user's data: the user id and their session ids.
+
+    Content hashes are deliberately not used: identical files (an empty markers.csv, the
+    same meta.json) hash the same for different users, so a hash would match their runs too.
+    """
+    ids = {user_id}
+    if (s := Base.metadata.tables.get("sessions")) is not None:
+        ids.update(db.scalars(select(s.c.id).where(s.c.user_id == user_id)))
+    return ids
+
+
+def _delete_runs_mentioning(db: Session, identifiers: set[str]) -> int:
+    """Delete pipeline_runs whose parameters or log mention any identifier.
+
+    Runs created by runs.create_run() carry no user_id; the user appears only inside
+    parameters ({"session_id"} or {"user_id", "day"}). Every run kind is single-user, so a
+    run that mentions the user is the user's run. Identifiers are UUIDs, which contain no
+    LIKE wildcards.
+    """
+    runs = Base.metadata.tables.get("pipeline_runs")
+    if runs is None or not identifiers:
+        return 0
+    cols = [type_coerce(runs.c[n], Text) for n in ("parameters", "log") if n in runs.c]
+    for ident in identifiers:
+        uuid.UUID(ident)  # raises ValueError for anything that is not a UUID
+    cond = or_(*(c.like(f"%{ident}%") for c in cols for ident in sorted(identifiers)))
+    return db.execute(delete(runs).where(cond)).rowcount or 0
 
 
 def _jsonable(v: Any) -> Any:
@@ -408,7 +475,8 @@ def delete_user(db: Session, user_id: str, data_dir: Path | None = None) -> None
 
     data_dir defaults to settings.data_dir (from .env). Files go first: if anything fails,
     the transaction rolls back, the rows remain and the delete can be retried. Audit rows
-    stay with user_id NULL, plus one anonymous "account.delete" row.
+    stay with user_id NULL, plus one anonymous "account.delete" row; pipeline_runs that
+    mention the user (by user_id column or inside parameters/log) are deleted.
     """
     _active_user(db, user_id)
     data_dir = Path(data_dir if data_dir is not None else get_settings().data_dir)
@@ -419,12 +487,14 @@ def delete_user(db: Session, user_id: str, data_dir: Path | None = None) -> None
                 shutil.rmtree(p)
             elif p.exists():
                 p.unlink()
+        identifiers = _identifiers(db, user_id)
         _revoke_all(db, user_id)
         for t in reversed(_user_tables()):
-            if t.c.user_id.nullable:
+            if t.name in ANONYMISED_TABLES:
                 db.execute(update(t).where(t.c.user_id == user_id).values(user_id=None))
             else:
                 db.execute(delete(t).where(t.c.user_id == user_id))
+        _delete_runs_mentioning(db, identifiers)
         db.execute(delete(User).where(User.id == user_id))
         audit(db, None, "account.delete")
         db.commit()

@@ -67,3 +67,54 @@ def test_delete_after_real_ingest(db, data_dir, tmp_path) -> None:
     # B untouched; the capture source folder is read-only input and stays as it was
     assert dir_b.is_dir() and sum(_user_rows(db, b.user_id).values()) > 0
     assert _hashes(src_a) == src_a_before
+
+
+def test_delete_removes_users_pipeline_runs(db, data_dir, tmp_path) -> None:
+    """ACC-8: runs are deleted, not anonymised, whether they reference the user through the
+    user_id column or only inside parameters (create_run rows without user_id).
+
+    The two synth captures share byte-identical files, so matching on content hashes would
+    wrongly take B's runs too: B's runs (whose input_hashes overlap A's) must survive."""
+    from sqlalchemy import Text, or_, type_coerce
+
+    from backend.models import PipelineRun
+    from backend.services import runs
+
+    a = acc.signup(db, "a@b.co", PW)
+    b = acc.signup(db, "b@b.co", PW)
+    rec_a = ingest_session(db, a.user_id, _night(tmp_path / "src_a", 1))
+    rec_b = ingest_session(db, b.user_id, _night(tmp_path / "src_b", 2))
+    a_hashes = [f.sha256 for f in rec_a.files]
+
+    a_runs = [
+        runs.create_run(db, "process_session", {"session_id": rec_a.id}, a_hashes).id,
+        runs.create_run(db, "run_nightly", {"user_id": a.user_id, "day": "2026-11-01"}, []).id,
+    ]
+    by_column = runs.create_run(db, "run_nightly", {"user_id": "x", "day": "2026-11-03"}, []).id
+    db.get(PipelineRun, by_column).user_id = a.user_id  # the new user_id column (0003)
+    db.commit()
+    a_runs.append(by_column)
+    b_runs = [
+        runs.create_run(
+            db, "process_session", {"session_id": rec_b.id}, [f.sha256 for f in rec_b.files]
+        ).id,
+        runs.create_run(db, "run_nightly", {"user_id": b.user_id, "day": "2026-11-01"}, []).id,
+    ]
+
+    acc.delete_user(db, a.user_id)
+    db.expire_all()
+
+    assert all(db.get(PipelineRun, rid) is None for rid in a_runs)
+    assert all(db.get(PipelineRun, rid) is not None for rid in b_runs)
+    needles = [a.user_id, rec_a.id]
+    cols = [type_coerce(c, Text) for c in (PipelineRun.parameters, PipelineRun.log)]
+    mentions = db.scalar(
+        select(func.count())
+        .select_from(PipelineRun)
+        .where(
+            or_(
+                PipelineRun.user_id == a.user_id, *(c.like(f"%{n}%") for c in cols for n in needles)
+            )
+        )
+    )
+    assert mentions == 0

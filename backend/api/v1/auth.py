@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Iterator
 from contextlib import contextmanager
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Request, status
 from pydantic import BaseModel, ConfigDict, Field
 
 from backend.deps import DbSession
@@ -28,6 +28,8 @@ def account_errors() -> Iterator[None]:
         yield
     except (svc.InvalidCredentials, svc.InvalidRefreshToken) as e:
         raise unauthorized(str(e)) from None
+    except svc.TooManyAttempts as e:
+        raise ApiError(429, e.code, str(e), headers={"Retry-After": str(e.retry_after)}) from None
     except svc.AccountError as e:
         raise ApiError(_STATUS.get(type(e), 400), e.code, str(e)) from None
 
@@ -75,9 +77,13 @@ def signup(body: SignupIn, db: DbSession) -> TokenOut:
 
 
 @router.post("/auth/login")
-def login(body: LoginIn, db: DbSession) -> TokenOut:
+def login(body: LoginIn, db: DbSession, request: Request) -> TokenOut:
+    """429 + Retry-After after too many failed logins (config.yaml auth:). The client IP is
+    the direct peer: correct for the localhost demo; behind a proxy, configure the server's
+    forwarded-allow-ips so it is the real client."""
+    ip = request.client.host if request.client else "unknown"
     with account_errors():
-        return _out(svc.login(db, body.email, body.password))
+        return _out(svc.login(db, body.email, body.password, client_ip=ip))
 
 
 @router.post("/auth/refresh")

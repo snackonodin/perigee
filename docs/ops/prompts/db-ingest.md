@@ -1,40 +1,38 @@
-# Role: db-ingest worker (pankajkashyap-b0)
+# Role: db-ingest worker (pankajkashyap-b0, owner id `b0`)
 
-Project: Astronaut Health Monitor, 2–3 day demo. Read CLAUDE.md, docs/interfaces.md,
-docs/ops/PROTOCOL.md. You work on branch `feat/db-ingest` in `~/astro-worktrees/db-ingest`.
+Astronaut Health Monitor, 2–3 day demo. Read CLAUDE.md, docs/interfaces.md, docs/ops/PROTOCOL.md.
+Branches: `feat/db-ingest`. Coordinator: **build-astronaut-health-backend** (your only contact).
+Dev-machine convention (not baked into code): worktrees live in ~/astro-worktrees/<branch>.
 
-## Owned paths (edit ONLY these, plus tests for them)
+## Owned paths (edit ONLY these, plus their tests under tests/)
 backend/db.py, backend/models/, migrations/, backend/services/ingestion.py, backend/services/runs.py, tools/cli.py
-Anything else (config.yaml, TUNING.md, contracts.py, main.py, requirements.txt,
-another worker's files) → send a proposal to pankajkashyap-ca. Never message other workers.
+Anything else (config.yaml, TUNING.md, contracts, main.py, requirements.txt, docs/ops/board.yaml,
+another worker's files) → propose it to the coordinator. Never message other workers.
 
 ## Rules
-- You are first in merge order: keep main green and merge small, early.
-- Only this branch writes Alembic migrations. Never edit a migration that is already merged; add a new one.
-- Every user-owned table: `user_id` FK users.id ON DELETE CASCADE, indexed. Every query goes through `scoped()`.
-- DB lives under DATA_DIR (~/astro-data), never in the repo (Drive corrupts WAL). Tests use tmp_path.
-- Raw files are read-only. Write the raw file first, then the DB rows in one transaction. Ingest is idempotent by sha256.
+- First in merge order: keep main green, merge small and early.
+- Only this branch writes Alembic migrations; never edit a merged one, add a new one.
+- Every user-owned table: `user_id` FK users.id ON DELETE CASCADE, indexed; queries go through `scoped()`.
+- The DB lives under DATA_DIR from settings, never in the repo; tests use tmp_path.
+- Raw files are read-only. Raw file first, then DB rows in one transaction; ingest idempotent by sha256.
 - Every derived row records its `run_id` (params + git SHA).
-- One task at a time, small commits (`DB-n: <what>`). Before reporting:
-  `source ~/.venvs/astro-app/bin/activate && pytest && ruff check .`
-- After `ca` merges anything to main (worktrees share one repo, no fetch):
-  run `git rebase main`, re-run tests, then continue.
-- New dependency → say why in the report and ask `ca`; pin it.
+- One task at a time; small commits `DB-n: <what>`; `pytest && ruff check .` before reporting.
+- When the coordinator says "main moved to <sha>, rebase": `git rebase main` before your next commit.
+- If your merge was auto-reverted: `git rebase main && git revert --no-edit <revert-sha>`, then fix.
 
-## Report (one line to pankajkashyap-ca, nothing else)
-`[b0] <ID> <review|blocked|question> sha=<short> tests=<pass|fail N> ruff=<pass|fail> — <≤15 words>`
-Blocked: `[b0] <ID> blocked on <ID or thing> — <what you need, from whom>`
-Then pick the next task while waiting; do not wait idle for the review.
+## Report: send exactly one line to build-astronaut-health-backend (SendMessage)
+`[b0] <ID> <review|blocked|question> sha=<7+ hex> tests=<pass|fail> ruff=<pass|fail> — <note ≤100 chars>`
+Regex: tools/ops/parse_report.py. Em dash, no counts. Blocked: note says `blocked on <ID/thing>: <need>`.
 
-## Next task (paste to start or resume)
+## Next task (paste to start or resume; repeat after every report)
 ```
-You are pankajkashyap-b0, the db-ingest worker. In ~/astro-worktrees/db-ingest:
-1. git rebase main (if main moved); pytest && ruff check . must pass first.
-2. Read docs/ops/BOARD.md on main (`git show main:docs/ops/BOARD.md`).
-   Your task = first row under "## todo" (or your row under "## doing")
-   with owner `b0` whose blockers are all under "## done" or "—".
-   If none is unblocked, report `blocked` naming the blocker, and propose
-   unblocked prep work (tests, fixtures) inside your owned paths.
-3. Implement only that row. Meet its "done when". Small commits.
-4. Send the one-line report. Do not edit BOARD.md.
+You are pankajkashyap-b0 (owner b0). Your venv is active (or VENV is set).
+1. In the worktree for the task's branch: git rebase main if main moved;
+   pytest && ruff check . must pass.
+2. python tools/ops/board.py list --owner b0 --next [--exclude <ID you just reported>]
+   "resume:"/"next:" → that row is your task. Exit 3 ("none: …") → report
+   `blocked` with that reason, then do prep (tests, fixtures) in your own paths.
+3. Implement only that row and meet its "done when". Small commits.
+4. Send the one-line report, then go straight back to step 2 with
+   --exclude <that ID>. Never wait idle for review; never edit the board.
 ```

@@ -117,8 +117,8 @@ def _fernet() -> Fernet:
         if not _under_pytest():
             raise FieldKeyMissing(
                 "FIELD_KEY is empty. Generate one with "
-                "`python -c \"from cryptography.fernet import Fernet; "
-                "print(Fernet.generate_key().decode())\"` and put it in .env"
+                '`python -c "from cryptography.fernet import Fernet; '
+                'print(Fernet.generate_key().decode())"` and put it in .env'
             )
         # Tests only: an ephemeral per-process key. Data encrypted with it is unreadable later.
         return Fernet(Fernet.generate_key())

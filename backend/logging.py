@@ -63,8 +63,10 @@ def redact(obj: Any) -> Any:
     if isinstance(obj, Mapping):
         return {k: (REDACTED if is_sensitive_key(k) else redact(v)) for k, v in obj.items()}
     if isinstance(obj, list | tuple | set | frozenset):
-        return type(obj)(redact(v) for v in obj) if not isinstance(obj, tuple) else tuple(
-            redact(v) for v in obj
+        return (
+            type(obj)(redact(v) for v in obj)
+            if not isinstance(obj, tuple)
+            else tuple(redact(v) for v in obj)
         )
     if isinstance(obj, str):
         return scrub_text(obj)

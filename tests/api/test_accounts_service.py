@@ -15,8 +15,12 @@ T0 = datetime(2026, 11, 1, 22, 0, tzinfo=UTC)
 
 def add_session(db, user_id: str, raw_path: str = "", sid: str | None = None) -> str:
     s = CaptureSession(
-        id=sid or str(uuid.uuid4()), user_id=user_id, start_utc=T0,
-        end_utc=T0 + timedelta(hours=1), raw_path=raw_path, raw_sha256=uuid.uuid4().hex * 2,
+        id=sid or str(uuid.uuid4()),
+        user_id=user_id,
+        start_utc=T0,
+        end_utc=T0 + timedelta(hours=1),
+        raw_path=raw_path,
+        raw_sha256=uuid.uuid4().hex * 2,
     )
     db.add(s)
     db.commit()
@@ -52,8 +56,9 @@ def test_signup_duplicate_email(db) -> None:
         acc.signup(db, "A@B.CO", PW)
 
 
-@pytest.mark.parametrize("email,pw", [("a@b.co", "wrong password"), ("nobody@b.co", PW),
-                                      ("not-an-email", PW)])
+@pytest.mark.parametrize(
+    "email,pw", [("a@b.co", "wrong password"), ("nobody@b.co", PW), ("not-an-email", PW)]
+)
 def test_login_failures_look_the_same(db, email, pw) -> None:
     acc.signup(db, "a@b.co", PW)
     with pytest.raises(acc.InvalidCredentials) as e:

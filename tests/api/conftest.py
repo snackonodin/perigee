@@ -38,3 +38,25 @@ def engine(data_dir: Path) -> Iterator[Engine]:
 def db(engine: Engine) -> Iterator[Session]:
     with db_mod.SessionLocal() as s:
         yield s
+
+
+def build_app():
+    """The accounts routers on a bare app, wired the way main.py will wire them."""
+    from fastapi import FastAPI
+
+    from backend.api.v1 import auth, me
+    from backend.errors import install_error_handlers
+
+    app = FastAPI()
+    install_error_handlers(app)
+    app.include_router(auth.router)
+    app.include_router(me.router)
+    return app
+
+
+@pytest.fixture
+def api(engine):
+    from fastapi.testclient import TestClient
+
+    with TestClient(build_app(), raise_server_exceptions=False) as c:
+        yield c

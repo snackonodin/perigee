@@ -630,3 +630,11 @@ tasks:
   sha: 07ab4ae
   times:
     review: '2026-11-11T15:44:45Z'
+- id: OPS-15
+  title: 'Chrome walkthrough of /demo (3 personas + live PHQ-9 safety); fix UI bugs; demo_walkthrough.gif'
+  owner: 7a
+  branch: feat/accounts
+  state: review
+  blockers: []
+  done_when: all 3 personas render; safety screen verified live; GIF exported (user approval)
+  sha: fbed201

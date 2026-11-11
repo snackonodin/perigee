@@ -24,13 +24,14 @@ Owners: `ca` build-astronaut-health-backend (main) · `f4` pankajkashyap-f4 (fea
 |----|------|-------|--------|-----------|----------|-----|
 | CORE-7 | `fusion.score_night` → `FlagDraft` | f4 | csi-core | components dict explains priority; thresholds only from config.yaml | CORE-6 |  |
 
-## review (3)
+## review (4)
 
 | ID | Task | Owner | Branch | Done when | Blockers | sha |
 |----|------|-------|--------|-----------|----------|-----|
 | CA-2 | `/api/v1/today` (night features, flags, guidance, due check-ins) | ca | main | e2e test with seeded user | CA-1, DB-5, SUR-6 | a08f660 |
 | CA-5 | Wire worker start/stop into main.py lifespan; persona seeding command once OPS-6 lands | ca | main | app starts worker; seed-personas produces 3 synthetic users with expected flags | DB-7 | f3cd03f |
 | OPS-14 | Offline demo page backend/static/demo/ (vanilla JS, no CDN): login, Today, trend chart, check-in form from instrument JSON, safety screen | 7a | accounts | E2E flow drivable from the page; safety screen shown before scores; works with no internet | — | 07ab4ae |
+| OPS-15 | Chrome walkthrough of /demo (3 personas + live PHQ-9 safety); fix UI bugs; demo_walkthrough.gif | 7a | accounts | all 3 personas render; safety screen verified live; GIF exported (user approval) | — | fbed201 |
 
 ## done (48)
 

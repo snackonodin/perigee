@@ -27,14 +27,12 @@ Owners: `ca` build-astronaut-health-backend (main) · `f4` pankajkashyap-f4 (fea
 | DB-7 | `api/v1/sessions.py` (POST from DATA_DIR/inbox, list, get, /windows) + `api/v1/jobs.py` + `backend/worker.py` | b0 | db-ingest | TestClient covers register/list/get/windows/jobs; path traversal rejected; worker start/stop safe; isolation A/B | DB-6 |  |
 | SUR-8 | `api/v1/nights.py` (nights, flags, indices, checkins) + `api/v1/today.py` | cf | surveys | TestClient for every route; /today returns latest night, top-3 flags with guidance, pending check-ins, maturity; isolation A/B | SUR-7 |  |
 
-## review (2)
+## review (0)
 
 | ID | Task | Owner | Branch | Done when | Blockers | sha |
 |----|------|-------|--------|-----------|----------|-----|
-| OPS-6 | Persona data spec `docs/ops/personas.md` (steady; breathing/sleep drift; mental dip + safety) | ops | ops | per persona: synth params, seeds, survey schedule, expected /today derived from config placeholders | — | 9f816a0 |
-| OPS-7 | `tests/e2e/curl_flow.sh` demo flow against BASE_URL (default http://127.0.0.1:8000) | ops | ops | signup→login→check-in→safety→/today→logout→token rejected, pass/fail per step | CA-2 | 94d71d2 |
 
-## done (42)
+## done (44)
 
 | ID | Task | Owner | Branch | Done when | Blockers | sha |
 |----|------|-------|--------|-----------|----------|-----|
@@ -71,6 +69,8 @@ Owners: `ca` build-astronaut-health-backend (main) · `f4` pankajkashyap-f4 (fea
 | OPS-3 | PROTOCOL.md | ops | ops | loop, escalation, merge order, rebase rule, daily stop | — | 7a88fdf |
 | OPS-4 | `tools/ops/status.sh` | ops | ops | read-only; ≤ 1 line per worktree | — | 7a88fdf |
 | OPS-5 | `tools/ops/check_merge.sh <branch>` | ops | ops | dry-run merge + tests in scratch worktree, cleaned up | — | 7a88fdf |
+| OPS-6 | Persona data spec `docs/ops/personas.md` (steady; breathing/sleep drift; mental dip + safety) | ops | ops | per persona: synth params, seeds, survey schedule, expected /today derived from config placeholders | — | f083ca9 |
+| OPS-7 | `tests/e2e/curl_flow.sh` demo flow against BASE_URL (default http://127.0.0.1:8000) | ops | ops | signup→login→check-in→safety→/today→logout→token rejected, pass/fail per step | CA-2 | f083ca9 |
 | CA-0 | Ownership for db.py, deps.py, logging.py, errors.py, ops in CLAUDE.md | ca | main | CLAUDE.md ownership updated | — | db5f64e |
 | OPS-8 | Portability: scripts resolve repo, venv from VENV/.venv/python3; check_merge no-summary fix + regression test | ops | ops | tests/test_portability.py passes | — | 7a88fdf |
 | OPS-9 | `docs/ops/board.yaml` + `tools/ops/board.py` (list --next, move, render, validate) | ops | ops | unit tests in tests/unit/test_ops_board.py | — | 7a88fdf |

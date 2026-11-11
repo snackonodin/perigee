@@ -439,24 +439,24 @@ tasks:
   title: Persona data spec `docs/ops/personas.md` (steady; breathing/sleep drift; mental dip + safety)
   owner: ops
   branch: feat/ops
-  state: review
+  state: done
   blockers: []
   done_when: 'per persona: synth params, seeds, survey schedule, expected /today derived from config placeholders'
-  sha: 9f816a0
+  sha: f083ca9
   times:
-    done: '2026-11-11T11:05:25Z'
+    done: '2026-11-11T15:08:20Z'
     review: '2026-11-11T15:01:13Z'
 - id: OPS-7
   title: '`tests/e2e/curl_flow.sh` demo flow against BASE_URL (default http://127.0.0.1:8000)'
   owner: ops
   branch: feat/ops
-  state: review
+  state: done
   blockers:
   - CA-2
   done_when: signup→login→check-in→safety→/today→logout→token rejected, pass/fail per step
-  sha: 94d71d2
+  sha: f083ca9
   times:
-    done: '2026-11-11T11:05:25Z'
+    done: '2026-11-11T15:08:20Z'
     review: '2026-11-11T15:01:13Z'
 - id: CA-0
   title: Ownership for db.py, deps.py, logging.py, errors.py, ops in CLAUDE.md

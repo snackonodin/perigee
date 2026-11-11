@@ -39,7 +39,7 @@ class Instrument(Base):
     instrument_id: Mapped[str] = mapped_column(String(32), nullable=False)
     version: Mapped[str] = mapped_column(String(32), nullable=False)
     name: Mapped[str] = mapped_column(String(128), nullable=False)
-    timeframe: Mapped[str | None] = mapped_column(String(64))
+    timeframe: Mapped[str | None] = mapped_column(Text)
     license_note: Mapped[str | None] = mapped_column(Text)
     source_url: Mapped[str | None] = mapped_column(Text)
     definition: Mapped[dict[str, Any]] = mapped_column(JSONText, nullable=False)
@@ -59,7 +59,12 @@ class SurveyResponseRow(UserOwned, Base):
     instrument_id: Mapped[str] = mapped_column(String(32), nullable=False)
     instrument_version: Mapped[str] = mapped_column(String(32), nullable=False)
     administered_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, index=True)
-    answers: Mapped[dict[str, int]] = mapped_column("answers_enc", EncryptedJSON, nullable=False)
+    # NULL when the "survey_answers" consent is off: scores are kept, answers are not.
+    answers: Mapped[dict[str, int] | None] = mapped_column(
+        "answers_enc", EncryptedJSON, nullable=True
+    )
+    # Keyed HMAC of the answers (set by the surveys branch); never the answers themselves.
+    answers_hmac: Mapped[str | None] = mapped_column(String(64))
     total: Mapped[float | None] = mapped_column(Float)
     scores: Mapped[dict[str, Any] | None] = mapped_column(JSONText)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow, nullable=False)

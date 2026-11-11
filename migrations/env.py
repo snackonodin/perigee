@@ -14,6 +14,7 @@ from logging.config import fileConfig
 from typing import Any
 
 from alembic import context
+from sqlalchemy.types import TypeDecorator
 
 import backend.models  # noqa: F401  (registers all tables)
 from backend.db import default_url, get_engine
@@ -35,6 +36,9 @@ def render_item(type_: str, obj: Any, autogen_context: Any) -> str | bool:
         return "sa.String(length=27)"
     if type_ == "type" and isinstance(obj, JSONText):
         return "sa.Text()"
+    if type_ == "type" and isinstance(obj, TypeDecorator):
+        # e.g. backend.security.EncryptedJSON: store its plain impl (LargeBinary -> BLOB)
+        return f"sa.{obj.impl_instance!r}"
     return False
 
 

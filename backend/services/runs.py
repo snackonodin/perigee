@@ -21,7 +21,7 @@ from functools import lru_cache
 
 from sqlalchemy.orm import Session
 
-from backend.models import PipelineRun, utcnow
+from backend.models import PipelineRun, User, utcnow
 from backend.schemas.contracts import RunRecord, RunStatus
 from csi_core.config import ROOT
 
@@ -110,7 +110,10 @@ def create_run(
         raise ValueError(f"unknown run kind {kind!r}; known: {registered_kinds()}")
     p_uid = params.get("user_id") if isinstance(params, dict) else None
     if user_id is None and isinstance(p_uid, str):
-        user_id = p_uid
+        # Fallback for callers that only put the owner in params. Best effort: an id that
+        # is not a user must never break run creation, so the column stays NULL then.
+        if db.get(User, p_uid) is not None:
+            user_id = p_uid
     elif user_id is not None and p_uid is not None and p_uid != user_id:
         raise ValueError("user_id argument and params['user_id'] disagree")
     # Validate through the contract first (sha256 format, JSON-able params).

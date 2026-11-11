@@ -143,3 +143,9 @@ def test_user_id_must_reference_a_user(schema: Engine, db: Session, fake_kinds) 
         runs.create_run(db, "ok", {"n": 1}, [], user_id="00000000-0000-0000-0000-000000000000")
     db.rollback()
     assert db.scalar(select(func.count()).select_from(PipelineRun)) == 0
+
+
+def test_bogus_params_user_id_leaves_owner_null(schema: Engine, db: Session, fake_kinds) -> None:
+    rec = runs.create_run(db, "ok", {"n": 1, "user_id": "x"}, [])  # "x" is not a user
+    assert db.get(PipelineRun, rec.id).user_id is None
+    assert rec.parameters["user_id"] == "x"  # params kept as given

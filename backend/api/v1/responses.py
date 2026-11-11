@@ -7,7 +7,6 @@ safety.show=true whatever else happened.
 
 from __future__ import annotations
 
-from datetime import datetime
 from typing import Any
 
 from fastapi import APIRouter
@@ -29,8 +28,11 @@ class ResponseIn(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     instrument_id: str = Field(min_length=1, max_length=32)
-    instrument_version: str | None = None
-    administered_at: datetime | None = None  # defaults to now (UTC); must be tz-aware
+    # Any: a wrong type must reach the service (and its safety step), not fail here.
+    instrument_version: Any = Field(default=None, json_schema_extra={"type": "string"})
+    administered_at: Any = Field(  # ISO-8601 with timezone; defaults to now (UTC)
+        default=None, json_schema_extra={"type": "string", "format": "date-time"}
+    )
     answers: dict[str, Any]
 
     def __repr__(self) -> str:  # answers are red-class

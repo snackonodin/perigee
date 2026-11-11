@@ -562,8 +562,8 @@ def submit_payload(
     db: Any,
     user_id: str,
     instrument_id: str,
-    instrument_version: str | None,
-    administered_at: datetime | None,
+    instrument_version: Any,
+    administered_at: Any,
     answers: Any,
 ) -> dict:
     """Route entry point. Never raises for bad input: always returns a body with
@@ -575,8 +575,9 @@ def submit_payload(
         data = SurveyResponse(
             user_id=user_id,
             instrument_id=instrument_id,
-            instrument_version=instrument_version or "",  # "" -> catalog current
-            administered_at=administered_at or datetime.now(UTC),
+            # None/"" -> catalog current; a wrong type fails validation below (after safety)
+            instrument_version="" if instrument_version is None else instrument_version,
+            administered_at=datetime.now(UTC) if administered_at is None else administered_at,
             answers=answers,
         )
     except ValidationError as e:

@@ -784,7 +784,9 @@ tasks:
   title: 'SQL logging defence in depth: hide_parameters=True + sentinel test'
   owner: b0
   branch: feat/db-ingest
-  state: review
+  state: done
   blockers: []
   done_when: sentinel absent from logs and exception text; control test leaks
-  sha: eaaf857
+  sha: 3bf4d0e
+  times:
+    done: '2026-11-11T20:50:32Z'

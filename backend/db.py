@@ -63,7 +63,9 @@ def get_engine(url: str | None = None) -> Engine:
     if path is not None:
         _assert_outside_repo(path)
         path.parent.mkdir(parents=True, exist_ok=True)
-    engine = create_engine(url, connect_args=connect_args)
+    # hide_parameters: bound values (check-in answers, emails, tokens) never appear in SQL
+    # logs (echo / sqlalchemy.engine INFO) or in exception text. Lesson L13.
+    engine = create_engine(url, connect_args=connect_args, hide_parameters=True)
     if engine.dialect.name == "sqlite":
         event.listen(engine, "connect", _set_sqlite_pragmas)
     return engine

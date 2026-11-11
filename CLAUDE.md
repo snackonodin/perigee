@@ -5,13 +5,21 @@ Contactless breathing and sleep sensing from Wi-Fi CSI, weekly mental
 check-ins, and a personalization engine that flags what is unusual
 for each person. It is a screening and awareness tool, not a diagnostic.
 
-Stack: Python 3.11+ (venv at ~/.venvs/astro-app, Python 3.13), FastAPI,
+Stack: Python 3.11+, FastAPI,
 Pydantic v2, SQLAlchemy 2.x, Alembic, SQLite (WAL), pytest, ruff.
 Signal code lives in csi_core (numpy, scipy, pandas).
 
-Location: this repo sits in Google Drive. The venv (~/.venvs/astro-app) and
-DATA_DIR (~/astro-data: raw CSI and the SQLite DB) live OUTSIDE Drive, because
-Drive sync corrupts SQLite WAL files. Never put the DB or venv inside the repo.
+Portability: the app will run on a DIFFERENT device than the one it is developed on.
+- Never hard-code machine paths in code, config or tests. Use backend.config
+  settings (DATA_DIR, DATABASE_URL from .env), csi_core.config.ROOT, or tmp_path.
+  tests/test_portability.py fails on /Users/, /home/, Drive or worktree paths.
+- New device setup: `bash scripts/bootstrap.sh` (venv, deps, .env with fresh keys,
+  data dir, migrations, tests).
+- Team estimator scripts plug in via config.yaml `estimators:` as "module:function"
+  specs (put code in plugins/), never by file path.
+- Dev-machine conventions only (not baked into the app): venv ~/.venvs/astro-app,
+  DATA_DIR ~/astro-data, worktrees ~/astro-worktrees/<branch>. The DB never lives
+  inside the repo (Drive sync corrupts SQLite WAL files).
 
 Rules:
 - Read docs/backend-plan.md before changing the data model or the API.

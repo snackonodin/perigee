@@ -43,6 +43,19 @@ gzip CSV with header `host_time_utc,ts_us,rate,a0,…,a51`. `host_time_utc` is I
 amplitude of subcarrier K. `meta.json` holds the SessionRecord metadata fields (no id/user_id).
 `markers.csv` columns: `host_time_utc,label`.
 
+## Estimator plug-ins (portable seam for the team's own scripts)
+`config.yaml` `estimators:` maps breath / heart / motion to a `"module:function"` spec,
+resolved with `csi_core.config.resolve_estimator`. The team's scripts go in `plugins/`
+inside the repo. No file paths anywhere. Core signatures (csi_core owns the exact types):
+```python
+def breath_core(x: np.ndarray, fs: float, cfg: CoreConfig) -> tuple[float | None, float | None, float | None]:
+    """One window of cleaned signal -> (rr_a_bpm, rr_b_bpm, pnr_db). None = no estimate."""
+def heart_core(x: np.ndarray, fs: float, cfg: CoreConfig) -> tuple[float | None, float]:   # (hr_bpm, quality)
+def motion_core(x: np.ndarray, fs: float, cfg: CoreConfig) -> tuple[bool, float]:           # (motion, score)
+```
+The windowing, quality, presence and contract wrapping stay in csi_core, so a swapped
+core changes numbers only, never shapes. A golden test on the synth fixture checks each swap.
+
 ## DB + ingestion (branch feat/db-ingest)
 ```python
 # backend/db.py

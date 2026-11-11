@@ -40,3 +40,13 @@ safety:
 
 retention:
   raw_days: 14
+
+# Pluggable estimator cores, as "module:function". The defaults are the
+# reference implementations in csi_core. To use your own scripts, put them in
+# plugins/ (a package inside this repo, so no absolute paths are needed) and
+# point here, e.g. breath: "plugins.my_breath:estimate". The function signature
+# is documented in docs/interfaces.md (Estimator plug-ins).
+estimators:
+  breath: "csi_core.breath:reference_core"
+  heart: "csi_core.heart:reference_core"
+  motion: "csi_core.motion:reference_core"

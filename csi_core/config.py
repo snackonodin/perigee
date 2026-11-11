@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import importlib
+from collections.abc import Callable
 from functools import lru_cache
 from pathlib import Path
+from typing import Any
 
 import yaml
 from pydantic import BaseModel, ConfigDict
@@ -62,6 +65,14 @@ class RetentionCfg(_Section):
     raw_days: int
 
 
+class EstimatorsCfg(_Section):
+    """Pluggable estimator cores as "module:function" specs (see resolve_estimator)."""
+
+    breath: str = "csi_core.breath:reference_core"
+    heart: str = "csi_core.heart:reference_core"
+    motion: str = "csi_core.motion:reference_core"
+
+
 class CoreConfig(_Section):
     capture: CaptureCfg
     preprocess: PreprocessCfg
@@ -70,6 +81,21 @@ class CoreConfig(_Section):
     baseline: BaselineCfg
     safety: SafetyCfg
     retention: RetentionCfg
+    estimators: EstimatorsCfg = EstimatorsCfg()
+
+
+def resolve_estimator(spec: str) -> Callable[..., Any]:
+    """Import "package.module:function" and return the function.
+
+    Specs are dotted module names, never file paths, so the app stays portable.
+    """
+    module_name, sep, func_name = spec.partition(":")
+    if not sep or not module_name or not func_name:
+        raise ValueError(f"estimator spec must look like 'module:function', got {spec!r}")
+    fn = getattr(importlib.import_module(module_name), func_name, None)
+    if not callable(fn):
+        raise ValueError(f"estimator {spec!r} is not a callable")
+    return fn
 
 
 def load_config(path: Path | str | None = None) -> CoreConfig:

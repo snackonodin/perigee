@@ -616,9 +616,9 @@ tasks:
   state: review
   blockers: []
   done_when: backup -> wipe -> restore gives identical row counts and decryptable fields; key never in the archive
-  sha: 2c37fa0
+  sha: ab4e738
   times:
-    review: '2026-11-11T15:44:45Z'
+    review: '2026-11-11T15:51:34Z'
 - id: OPS-14
   title: 'Offline demo page backend/static/demo/ (vanilla JS, no CDN): login, Today, trend chart, check-in form from instrument JSON, safety screen'
   owner: 7a

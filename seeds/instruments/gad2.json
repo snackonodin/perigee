@@ -1,0 +1,74 @@
+{
+  "id": "gad2",
+  "name": "Generalized Anxiety Disorder-2 (GAD-2)",
+  "version": "1.0",
+  "timeframe": "Over the last 2 weeks, how often have you been bothered by any of the following problems?",
+  "license_note": "PHQ and GAD-7 screeners developed by Drs. Robert L. Spitzer, Janet B.W. Williams, Kurt Kroenke and colleagues, with an educational grant from Pfizer Inc. phqscreeners.com states 'no permission is required to reproduce, translate, display or distribute them'. TODO-VERIFY: that page names PHQ-9 and GAD-7 explicitly; confirm the statement covers the 2-item short forms.",
+  "source_url": "https://www.phqscreeners.com/select-screener",
+  "verification": "TODO-VERIFY: item wording written from the published instrument; compare character-by-character against the official PDF before release.",
+  "notes": "First two GAD-7 items. Screening and awareness only, not a diagnosis.",
+  "items": [
+    {
+      "key": "gad2_1",
+      "text": "Feeling nervous, anxious, or on edge",
+      "options": [
+        {
+          "value": 0,
+          "label": "Not at all"
+        },
+        {
+          "value": 1,
+          "label": "Several days"
+        },
+        {
+          "value": 2,
+          "label": "More than half the days"
+        },
+        {
+          "value": 3,
+          "label": "Nearly every day"
+        }
+      ]
+    },
+    {
+      "key": "gad2_2",
+      "text": "Not being able to stop or control worrying",
+      "options": [
+        {
+          "value": 0,
+          "label": "Not at all"
+        },
+        {
+          "value": 1,
+          "label": "Several days"
+        },
+        {
+          "value": 2,
+          "label": "More than half the days"
+        },
+        {
+          "value": 3,
+          "label": "Nearly every day"
+        }
+      ]
+    }
+  ],
+  "scoring": {
+    "method": "sum",
+    "min": 0,
+    "max": 6,
+    "ranges_source": "Kroenke K, Spitzer RL, Williams JBW, Monahan PO, Lowe B. Anxiety disorders in primary care: prevalence, impairment, comorbidity, and detection. Ann Intern Med. 2007;146(5):317-325. Screening cutoff >=3.",
+    "ranges": [
+      {
+        "min": 0,
+        "max": 2,
+        "label": "below screening cutoff"
+      },
+      {
+        "min": 3,
+        "max": 6,
+        "label": "at or above screening cutoff"
+      }
+    ]
+  }
+}

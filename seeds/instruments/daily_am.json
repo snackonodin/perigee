@@ -1,0 +1,95 @@
+{
+  "id": "daily_am",
+  "name": "Morning check-in",
+  "version": "1.0",
+  "timeframe": "This morning",
+  "license_note": "Project-authored daily check-in. Not a validated instrument; no clinical interpretation.",
+  "source_url": null,
+  "verification": "Project wording; not a published instrument.",
+  "items": [
+    {
+      "key": "sleep_quality",
+      "text": "How well did you sleep last night?",
+      "options": [
+        {
+          "value": 0,
+          "label": "Very poorly"
+        },
+        {
+          "value": 1,
+          "label": "Poorly"
+        },
+        {
+          "value": 2,
+          "label": "Okay"
+        },
+        {
+          "value": 3,
+          "label": "Well"
+        },
+        {
+          "value": 4,
+          "label": "Very well"
+        }
+      ]
+    },
+    {
+      "key": "energy",
+      "text": "How much energy do you have right now?",
+      "options": [
+        {
+          "value": 0,
+          "label": "None"
+        },
+        {
+          "value": 1,
+          "label": "A little"
+        },
+        {
+          "value": 2,
+          "label": "Some"
+        },
+        {
+          "value": 3,
+          "label": "Quite a lot"
+        },
+        {
+          "value": 4,
+          "label": "A lot"
+        }
+      ]
+    },
+    {
+      "key": "mood",
+      "text": "How is your mood right now?",
+      "options": [
+        {
+          "value": 0,
+          "label": "Very low"
+        },
+        {
+          "value": 1,
+          "label": "Low"
+        },
+        {
+          "value": 2,
+          "label": "Neutral"
+        },
+        {
+          "value": 3,
+          "label": "Good"
+        },
+        {
+          "value": 4,
+          "label": "Very good"
+        }
+      ]
+    }
+  ],
+  "scoring": {
+    "method": "sum",
+    "per_item": true,
+    "ranges": [],
+    "ranges_source": "PLACEHOLDER: no bands. The total is not interpreted; items are reported individually."
+  }
+}

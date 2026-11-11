@@ -1,0 +1,74 @@
+{
+  "id": "phq2",
+  "name": "Patient Health Questionnaire-2 (PHQ-2)",
+  "version": "1.0",
+  "timeframe": "Over the last 2 weeks, how often have you been bothered by any of the following problems?",
+  "license_note": "PHQ and GAD-7 screeners developed by Drs. Robert L. Spitzer, Janet B.W. Williams, Kurt Kroenke and colleagues, with an educational grant from Pfizer Inc. phqscreeners.com states 'no permission is required to reproduce, translate, display or distribute them'. TODO-VERIFY: that page names PHQ-9 and GAD-7 explicitly; confirm the statement covers the 2-item short forms.",
+  "source_url": "https://www.phqscreeners.com/select-screener",
+  "verification": "TODO-VERIFY: item wording written from the published instrument; compare character-by-character against the official PDF before release.",
+  "notes": "First two PHQ-9 items. Screening and awareness only, not a diagnosis.",
+  "items": [
+    {
+      "key": "phq2_1",
+      "text": "Little interest or pleasure in doing things",
+      "options": [
+        {
+          "value": 0,
+          "label": "Not at all"
+        },
+        {
+          "value": 1,
+          "label": "Several days"
+        },
+        {
+          "value": 2,
+          "label": "More than half the days"
+        },
+        {
+          "value": 3,
+          "label": "Nearly every day"
+        }
+      ]
+    },
+    {
+      "key": "phq2_2",
+      "text": "Feeling down, depressed, or hopeless",
+      "options": [
+        {
+          "value": 0,
+          "label": "Not at all"
+        },
+        {
+          "value": 1,
+          "label": "Several days"
+        },
+        {
+          "value": 2,
+          "label": "More than half the days"
+        },
+        {
+          "value": 3,
+          "label": "Nearly every day"
+        }
+      ]
+    }
+  ],
+  "scoring": {
+    "method": "sum",
+    "min": 0,
+    "max": 6,
+    "ranges_source": "Kroenke K, Spitzer RL, Williams JBW. The Patient Health Questionnaire-2: validity of a two-item depression screener. Med Care. 2003;41(11):1284-1292. Screening cutoff >=3.",
+    "ranges": [
+      {
+        "min": 0,
+        "max": 2,
+        "label": "below screening cutoff"
+      },
+      {
+        "min": 3,
+        "max": 6,
+        "label": "at or above screening cutoff"
+      }
+    ]
+  }
+}

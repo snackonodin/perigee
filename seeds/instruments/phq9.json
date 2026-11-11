@@ -1,0 +1,243 @@
+{
+  "id": "phq9",
+  "name": "Patient Health Questionnaire-9 (PHQ-9)",
+  "version": "1.0",
+  "timeframe": "Over the last 2 weeks, how often have you been bothered by any of the following problems?",
+  "license_note": "PHQ and GAD-7 screeners developed by Drs. Robert L. Spitzer, Janet B.W. Williams, Kurt Kroenke and colleagues, with an educational grant from Pfizer Inc. phqscreeners.com states 'no permission is required to reproduce, translate, display or distribute them'. TODO-VERIFY: that page names PHQ-9 and GAD-7 explicitly; confirm the statement covers the 2-item short forms.",
+  "source_url": "https://www.phqscreeners.com/select-screener",
+  "verification": "TODO-VERIFY: item wording written from the published instrument; compare character-by-character against the official PDF before release.",
+  "notes": "The unscored 10th 'difficulty' question is omitted. Screening and awareness only, not a diagnosis.",
+  "items": [
+    {
+      "key": "phq9_1",
+      "text": "Little interest or pleasure in doing things",
+      "options": [
+        {
+          "value": 0,
+          "label": "Not at all"
+        },
+        {
+          "value": 1,
+          "label": "Several days"
+        },
+        {
+          "value": 2,
+          "label": "More than half the days"
+        },
+        {
+          "value": 3,
+          "label": "Nearly every day"
+        }
+      ]
+    },
+    {
+      "key": "phq9_2",
+      "text": "Feeling down, depressed, or hopeless",
+      "options": [
+        {
+          "value": 0,
+          "label": "Not at all"
+        },
+        {
+          "value": 1,
+          "label": "Several days"
+        },
+        {
+          "value": 2,
+          "label": "More than half the days"
+        },
+        {
+          "value": 3,
+          "label": "Nearly every day"
+        }
+      ]
+    },
+    {
+      "key": "phq9_3",
+      "text": "Trouble falling or staying asleep, or sleeping too much",
+      "options": [
+        {
+          "value": 0,
+          "label": "Not at all"
+        },
+        {
+          "value": 1,
+          "label": "Several days"
+        },
+        {
+          "value": 2,
+          "label": "More than half the days"
+        },
+        {
+          "value": 3,
+          "label": "Nearly every day"
+        }
+      ]
+    },
+    {
+      "key": "phq9_4",
+      "text": "Feeling tired or having little energy",
+      "options": [
+        {
+          "value": 0,
+          "label": "Not at all"
+        },
+        {
+          "value": 1,
+          "label": "Several days"
+        },
+        {
+          "value": 2,
+          "label": "More than half the days"
+        },
+        {
+          "value": 3,
+          "label": "Nearly every day"
+        }
+      ]
+    },
+    {
+      "key": "phq9_5",
+      "text": "Poor appetite or overeating",
+      "options": [
+        {
+          "value": 0,
+          "label": "Not at all"
+        },
+        {
+          "value": 1,
+          "label": "Several days"
+        },
+        {
+          "value": 2,
+          "label": "More than half the days"
+        },
+        {
+          "value": 3,
+          "label": "Nearly every day"
+        }
+      ]
+    },
+    {
+      "key": "phq9_6",
+      "text": "Feeling bad about yourself — or that you are a failure or have let yourself or your family down",
+      "options": [
+        {
+          "value": 0,
+          "label": "Not at all"
+        },
+        {
+          "value": 1,
+          "label": "Several days"
+        },
+        {
+          "value": 2,
+          "label": "More than half the days"
+        },
+        {
+          "value": 3,
+          "label": "Nearly every day"
+        }
+      ]
+    },
+    {
+      "key": "phq9_7",
+      "text": "Trouble concentrating on things, such as reading the newspaper or watching television",
+      "options": [
+        {
+          "value": 0,
+          "label": "Not at all"
+        },
+        {
+          "value": 1,
+          "label": "Several days"
+        },
+        {
+          "value": 2,
+          "label": "More than half the days"
+        },
+        {
+          "value": 3,
+          "label": "Nearly every day"
+        }
+      ]
+    },
+    {
+      "key": "phq9_8",
+      "text": "Moving or speaking so slowly that other people could have noticed? Or the opposite — being so fidgety or restless that you have been moving around a lot more than usual",
+      "options": [
+        {
+          "value": 0,
+          "label": "Not at all"
+        },
+        {
+          "value": 1,
+          "label": "Several days"
+        },
+        {
+          "value": 2,
+          "label": "More than half the days"
+        },
+        {
+          "value": 3,
+          "label": "Nearly every day"
+        }
+      ]
+    },
+    {
+      "key": "phq9_9",
+      "text": "Thoughts that you would be better off dead or of hurting yourself in some way",
+      "options": [
+        {
+          "value": 0,
+          "label": "Not at all"
+        },
+        {
+          "value": 1,
+          "label": "Several days"
+        },
+        {
+          "value": 2,
+          "label": "More than half the days"
+        },
+        {
+          "value": 3,
+          "label": "Nearly every day"
+        }
+      ]
+    }
+  ],
+  "scoring": {
+    "method": "sum",
+    "min": 0,
+    "max": 27,
+    "ranges_source": "Kroenke K, Spitzer RL, Williams JBW. The PHQ-9: validity of a brief depression severity measure. J Gen Intern Med. 2001;16(9):606-613. doi:10.1046/j.1525-1497.2001.016009606.x",
+    "ranges": [
+      {
+        "min": 0,
+        "max": 4,
+        "label": "minimal"
+      },
+      {
+        "min": 5,
+        "max": 9,
+        "label": "mild"
+      },
+      {
+        "min": 10,
+        "max": 14,
+        "label": "moderate"
+      },
+      {
+        "min": 15,
+        "max": 19,
+        "label": "moderately severe"
+      },
+      {
+        "min": 20,
+        "max": 27,
+        "label": "severe"
+      }
+    ]
+  }
+}

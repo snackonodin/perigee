@@ -22,7 +22,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 
 from backend.main import create_app
-from backend.models import Base, Flag, SafetyEvent
+from backend.models import Base, Flag, SafetyEvent, UserOwned, scoped
 from backend.services import accounts as acc
 from backend.services import surveys
 from backend.services.ingestion import ingest_session
@@ -216,6 +216,42 @@ def test_b_cannot_read_or_change_a(case: IsolationCase, app_client, db, world) -
     assert _snapshot(db, world["a_user_id"]) == before, f"{case.id} changed A's rows"
     me = app_client.get("/api/v1/me", headers=_h(world["a"]))  # A still works as before
     assert me.status_code == 200 and me.json()["display_name"] == A_NAME
+
+
+def _user_owned_models() -> list[type]:
+    return sorted(
+        (m.class_ for m in Base.registry.mappers if issubclass(m.class_, UserOwned)),
+        key=lambda c: c.__tablename__,
+    )
+
+
+def test_scoped_isolates_every_user_owned_table(db, world) -> None:
+    """ACC-7: for every UserOwned model, scoped() for B returns none of A's rows and
+    scoped() for A returns exactly A's rows."""
+    a_id, b_id = world["a_user_id"], world["b"]["user_id"]
+    models = _user_owned_models()
+    assert len(models) >= 15  # every user-owned table in backend.models, not a hand-picked few
+    tables_with_a_rows = []
+    for m in models:
+        a_rows = db.scalars(scoped(select(m), m, a_id)).all()
+        b_rows = db.scalars(scoped(select(m), m, b_id)).all()
+        assert all(r.user_id == a_id for r in a_rows), m.__tablename__
+        assert all(r.user_id == b_id for r in b_rows), m.__tablename__
+        raw_a = db.execute(select(m.__table__).where(m.__table__.c.user_id == a_id)).all()
+        assert len(a_rows) == len(raw_a), m.__tablename__
+        if a_rows:
+            tables_with_a_rows.append(m.__tablename__)
+    # The check is only meaningful where A has data: make sure the seed reaches these.
+    assert {
+        "consents",
+        "profiles",
+        "raw_files",
+        "refresh_tokens",
+        "safety_events",
+        "sessions",
+        "survey_responses",
+        "flags",
+    } <= set(tables_with_a_rows), tables_with_a_rows
 
 
 def test_export_service_is_scoped(db, world) -> None:

@@ -23,6 +23,7 @@ BREATH_AMP = 1.0
 NOISE_STD = 0.4
 MOTION_AMP = 8.0
 MOTION_DUR_S = (5.0, 20.0)
+MOTION_BURSTS_PER_H = 0.75  # default density: 6 bursts per 8 h night
 BASE_AMP = (10.0, 30.0)
 
 
@@ -57,7 +58,7 @@ def synth_night(
     rr_bpm: float | Callable[[float], float],
     fs: float = 100.0,
     n_sub: int = 52,
-    motion_bursts: int = 6,
+    motion_bursts: int | None = None,
     absent_spans: list[tuple[float, float]] = (),
     seed: int = 0,
 ) -> list[Path]:
@@ -65,6 +66,8 @@ def synth_night(
 
     ``rr_bpm`` is a constant or a function of elapsed seconds. ``absent_spans``
     are (start_s, end_s) offsets with nobody in the room (no breathing).
+    ``motion_bursts`` defaults to ``MOTION_BURSTS_PER_H * hours`` (rounded), so a
+    short capture is not dominated by motion; pass an int to set it exactly.
     """
     rng = np.random.default_rng(seed)
     out_dir = Path(out_dir)
@@ -91,6 +94,8 @@ def synth_night(
     breath[absent] = 0.0
 
     # Motion bursts at random non-overlapping-ish times outside absent spans.
+    if motion_bursts is None:
+        motion_bursts = int(round(MOTION_BURSTS_PER_H * float(hours)))
     motion_spans: list[tuple[float, float]] = []
     for _ in range(motion_bursts):
         dur = rng.uniform(*MOTION_DUR_S)

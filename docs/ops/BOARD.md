@@ -31,15 +31,14 @@ Owners: `ca` build-astronaut-health-backend (main) · `f4` pankajkashyap-f4 (fea
 | SUR-8 | `api/v1/nights.py` (nights, flags, indices, checkins) + `api/v1/today.py` | cf | surveys | TestClient for every route; /today returns latest night, top-3 flags with guidance, pending check-ins, maturity; isolation A/B | SUR-7 |  |
 | PIPE-3 | runs.py lazy builtin registration (one-off ownership exception) + slow marker | f4 | pipeline | test_builtin_kinds_registered passes; full suite green | PIPE-2 |  |
 
-## review (3)
+## review (2)
 
 | ID | Task | Owner | Branch | Done when | Blockers | sha |
 |----|------|-------|--------|-----------|----------|-----|
-| DB-6 | `tools/cli.py` ingest / process / reset-demo / seed-personas / export | b0 | db-ingest | each subcommand has a test on tmp DATA_DIR | DB-5 | 824bafc |
 | PIPE-1 | `services/pipeline.py`: process_session / run_nightly glue (csi_core → DB rows with run_id) | f4 | pipeline | synth night → window_estimates + night_features rows for one user, isolated by user_id | DB-4, CORE-6 |  |
 | PIPE-2 | `services/fusion.py`: score_night → flags rows (+ guidance hook) | f4 | pipeline | flags carry components; thresholds only from config.yaml | PIPE-1, CORE-7 |  |
 
-## done (37)
+## done (38)
 
 | ID | Task | Owner | Branch | Done when | Blockers | sha |
 |----|------|-------|--------|-----------|----------|-----|
@@ -48,6 +47,7 @@ Owners: `ca` build-astronaut-health-backend (main) · `f4` pankajkashyap-f4 (fea
 | DB-3 | First Alembic migration | b0 | db-ingest | `alembic upgrade head` on empty tmp DB; downgrade works | DB-2 | 2fed093 |
 | DB-4 | `services/ingestion.py` `ingest_session` | b0 | db-ingest | re-ingest of same dir is a no-op (sha256); stats stored; `usable` honors threshold | DB-3, CORE-3 | 2fed093 |
 | DB-5 | `services/runs.py` `create_run`, `execute` (process_session, run_nightly) | b0 | db-ingest | output rows carry `run_id`; params + git SHA stored | DB-4, CORE-7 | ba9c61a |
+| DB-6 | `tools/cli.py` ingest / process / reset-demo / seed-personas / export | b0 | db-ingest | each subcommand has a test on tmp DATA_DIR | DB-5 | f661582 |
 | CORE-1 | `timebase.unwrap_us` | f4 | csi-core | wrap at 2^32 handled; monotonic; test over 3 wraps | — | 947de1e |
 | CORE-2 | `synth.synth_night` (seeded) | f4 | csi-core | writes hourly `csi_HH.csv.gz` + meta.json + markers.csv in interfaces.md format; same seed → same bytes | CORE-1 | 947de1e |
 | CORE-3 | `load.read_rotating`, `capture_stats` | f4 | csi-core | reads synth output; stats match known rate/gaps | CORE-2 | 947de1e |

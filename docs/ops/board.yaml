@@ -82,13 +82,14 @@ tasks:
   title: '`tools/cli.py` ingest / process / reset-demo / seed-personas / export'
   owner: b0
   branch: feat/db-ingest
-  state: review
+  state: done
   blockers:
   - DB-5
   done_when: each subcommand has a test on tmp DATA_DIR
-  sha: 824bafc
+  sha: f661582
   times:
     review: '2026-11-11T11:10:26Z'
+    done: '2026-11-11T11:12:02Z'
 - id: CORE-1
   title: '`timebase.unwrap_us`'
   owner: f4

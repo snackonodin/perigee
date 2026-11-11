@@ -92,3 +92,69 @@ def safety_check(instrument: dict, answers: dict[str, int]) -> SafetyResult:
             reason, resources = _safety_resources()
             return SafetyResult(show=True, reason=reason, resources=list(resources))
     return SafetyResult(show=False)
+
+
+# --------------------------------------------------------------------------- scoring (pure)
+
+
+class InvalidAnswers(ValueError):
+    """Answers do not match the instrument. ``errors`` name item keys only, never values."""
+
+    def __init__(self, errors: list[str]) -> None:
+        super().__init__(f"{len(errors)} invalid answer(s)")
+        self.errors = errors
+
+
+def validate_answers(instrument: dict, answers: dict[str, int]) -> None:
+    """Every item answered exactly once with one of its option values; no extra keys."""
+    errors: list[str] = []
+    items = {it["key"]: it for it in instrument["items"]}
+    for key in answers:
+        if key not in items:
+            errors.append(f"unknown item: {key}")
+    for key, item in items.items():
+        if key not in answers:
+            errors.append(f"missing item: {key}")
+            continue
+        value = answers[key]
+        allowed = {o["value"] for o in item["options"]}
+        if isinstance(value, bool) or not isinstance(value, int) or value not in allowed:
+            errors.append(f"value not an allowed option: {key}")
+    if errors:
+        raise InvalidAnswers(errors)
+
+
+def _band(ranges: list[dict], score: float) -> str | None:
+    for r in ranges:
+        if r["min"] <= score <= r["max"]:
+            return r["label"]
+    return None
+
+
+def score_answers(instrument: dict, answers: dict[str, int]) -> dict:
+    """Validate, then score from the catalog entry alone.
+
+    Returns {"total": raw sum, "score": scaled score, "band": label | None,
+    "method": ..., "items": {...} only for per-item check-ins}.
+    ``sum`` -> score = total; ``sum_x4`` -> score = total * 4 (WHO-5 percentage).
+    Bands come only from the instrument JSON (cited or empty).
+    """
+    validate_answers(instrument, answers)
+    scoring = instrument["scoring"]
+    method = scoring["method"]
+    total = sum(answers[it["key"]] for it in instrument["items"])
+    if method == "sum":
+        score = total
+    elif method == "sum_x4":
+        score = total * 4
+    else:
+        raise ValueError(f"unknown scoring method for {instrument['id']}: {method}")
+    result: dict = {
+        "total": total,
+        "score": score,
+        "band": _band(scoring.get("ranges", []), score),
+        "method": method,
+    }
+    if scoring.get("per_item"):
+        result["items"] = {it["key"]: answers[it["key"]] for it in instrument["items"]}
+    return result

@@ -120,3 +120,43 @@ def test_0002_keeps_data_and_relaxes_answers(url: str) -> None:
         c["name"] for c in inspect(engine).get_columns("survey_responses")
     }
     engine.dispose()
+
+
+def test_0003_keeps_runs_and_child_references(url: str) -> None:
+    cfg = _cfg(url)
+    engine = get_engine(url)
+    command.upgrade(cfg, "0002")
+    ts = "2026-11-01T00:00:00.000000Z"
+    with engine.begin() as c:
+        c.execute(
+            text(
+                "INSERT INTO users (id, email, status, created_at, is_synthetic) "
+                f"VALUES ('u1', 'a@x', 'active', '{ts}', 0)"
+            )
+        )
+        c.execute(
+            text(
+                "INSERT INTO pipeline_runs (id, kind, parameters, code_version, input_hashes, "
+                "status, log, created_at) VALUES "
+                f"('r1', 'k', '{{}}', 'v', '[]', 'queued', '', '{ts}')"
+            )
+        )
+        c.execute(text(
+            "INSERT INTO sessions (id, user_id, start_utc, end_utc, source_kind, raw_path, "
+            "raw_sha256, rows, duration_s, mean_rows_per_s, max_gap_s, gaps_over_50ms, "
+            "rate_changes, timestamp_wraps, usable, run_id, created_at) VALUES "
+            f"('s1', 'u1', '{ts}', '{ts}', 'csi', 'raw/s1', '{'a' * 64}', 0, 0, 0, 0, 0, 0, 0, 0, "
+            f"'r1', '{ts}')"
+        ))  # fmt: skip
+    command.upgrade(cfg, "0003")
+    engine.dispose()
+    with engine.connect() as c:
+        assert c.execute(text("SELECT run_id FROM sessions")).scalar() == "r1"
+        assert c.execute(text("SELECT user_id FROM pipeline_runs")).scalar() is None
+        assert c.execute(text("PRAGMA foreign_key_check")).all() == []
+    command.downgrade(cfg, "0002")
+    engine.dispose()
+    with engine.connect() as c:
+        assert c.execute(text("SELECT run_id FROM sessions")).scalar() == "r1"
+        assert c.execute(text("PRAGMA foreign_key_check")).all() == []
+    engine.dispose()

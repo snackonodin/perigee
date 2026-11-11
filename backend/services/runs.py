@@ -31,11 +31,7 @@ Handler = Callable[[Session, PipelineRun], str]
 _HANDLERS: dict[str, Handler] = {}
 # Modules that define the built-in kinds (each exposes RUN_KINDS = {kind: handler}).
 # Imported lazily, because they import this module.
-_BUILTIN_MODULES = (
-    "backend.services.pipeline",
-    "backend.services.fusion",
-    "backend.services.personas",
-)
+_BUILTIN_MODULES = ("backend.services.pipeline", "backend.services.fusion")
 _MAX_LOG = 20_000
 
 

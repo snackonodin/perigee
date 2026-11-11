@@ -1,0 +1,42 @@
+# Single configuration file for thresholds, windows, bands and paths.
+# Every numeric value marked PLACEHOLDER is listed in TUNING.md and must be
+# validated on real data before it is trusted.
+
+capture:
+  nominal_rows_per_s: 100          # PLACEHOLDER
+  min_rows_per_s: 50               # PLACEHOLDER: session marked unusable below this
+  gap_threshold_s: 0.05            # gaps over 50 ms are counted (from plan FR4)
+  timestamp_bits: 32               # ESP32 microsecond counter width (wraps ~71.6 min)
+  rotate_minutes: 60
+
+preprocess:
+  resample_hz: 20                  # PLACEHOLDER: breathing needs << 20 Hz
+  breath_band_hz: [0.1, 0.7]       # PLACEHOLDER: 6 to 42 breaths per minute
+  heart_band_hz: [0.8, 2.0]        # PLACEHOLDER: experimental
+  butter_order: 4
+  pca_components: 1
+  n_subcarriers_keep: 20           # PLACEHOLDER: top-variance subcarriers
+
+breath:
+  window_s: 60                     # PLACEHOLDER
+  step_s: 30                       # PLACEHOLDER
+  min_pnr_db: 3.0                  # PLACEHOLDER: peak-to-noise floor for a valid estimate
+  max_estimator_disagreement_bpm: 3.0   # PLACEHOLDER
+  motion_z: 4.0                    # PLACEHOLDER: robust z of window variance => motion
+  presence_min_var: 1.0e-4         # PLACEHOLDER
+
+night:
+  min_valid_hours: 3.0             # PLACEHOLDER: below this the night is not valid
+  min_quality: 0.5                 # PLACEHOLDER
+
+baseline:
+  window_days: 28                  # PLACEHOLDER
+  warmup_nights: 5                 # PLACEHOLDER: maturity = warm-up below this
+  mature_nights: 14                # PLACEHOLDER: maturity = mature at/above this
+  alert_robust_z: 2.5              # PLACEHOLDER: |x - median| / (1.4826*MAD)
+
+safety:
+  severe_symptom_codes: [chest_pain_sudden, fainting, severe_breathlessness]
+
+retention:
+  raw_days: 14

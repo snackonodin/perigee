@@ -1,0 +1,17 @@
+# secrets
+.env
+# data (raw CSI, DB) - lives in DATA_DIR outside Drive anyway
+data/
+*.db
+*.db-wal
+*.db-shm
+# python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+# os
+.DS_Store

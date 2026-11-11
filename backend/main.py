@@ -67,12 +67,10 @@ def mount_routers(app: FastAPI) -> list[str]:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    from backend.db import init_db
-
     from sqlalchemy import inspect
 
     from backend import worker
-    from backend.db import SessionLocal
+    from backend.db import SessionLocal, init_db
     from backend.services.guidance import load_guidance_cards
     from backend.services.surveys import load_catalog
 

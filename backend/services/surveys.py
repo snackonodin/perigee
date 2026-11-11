@@ -10,7 +10,7 @@ import hashlib
 import hmac
 import json
 import logging
-from collections.abc import Callable
+import sys
 from datetime import UTC, date, datetime, time, timedelta
 from functools import lru_cache
 from typing import Any
@@ -171,21 +171,14 @@ def score_answers(instrument: dict, answers: dict[str, int]) -> dict:
 
 # --------------------------------------------------------------------------- DB-backed
 #
-# Models come from backend.models (merged from feat/db-ingest) and encrypt() from
-# backend.security (feat/accounts). Both are imported lazily, so that
-# safety_check keeps working with no DB. Tests swap the encoder with
-# set_encryptor() until EncryptedJSON / encrypt() is merged.
+# Models come from backend.models; SurveyResponseRow.answers is an EncryptedJSON
+# attribute (backend.security, FIELD_KEY), so a plain dict assigned to it is
+# encrypted on write. Imports are lazy so that safety_check works with no DB.
 
 CHECKIN_SLOTS = {"daily_am": "am", "daily_pm": "pm"}  # amber: stored in checkins_daily
 CONSENT_CHECKINS = "checkins"
 CONSENT_SURVEY_ANSWERS = "survey_answers"
-
-_ENCRYPT: Callable[[bytes], bytes] | None = None
-
-
-def set_encryptor(fn: Callable[[bytes], bytes] | None) -> None:
-    global _ENCRYPT
-    _ENCRYPT = fn
+_HMAC_INFO = b"astro:answers-hmac:v1"
 
 
 def _models() -> Any:
@@ -194,21 +187,28 @@ def _models() -> Any:
     return m
 
 
-def _encrypt(data: bytes) -> bytes:
-    if _ENCRYPT is not None:
-        return _ENCRYPT(data)
-    from backend.security import encrypt  # MERGE: arrives with feat/accounts
-
-    return encrypt(data)
-
-
 def _canonical(answers: dict[str, int]) -> bytes:
     return json.dumps(answers, sort_keys=True, separators=(",", ":")).encode()
 
 
-def encode_answers(answers: dict[str, int]) -> bytes:
-    """Answers -> ciphertext for SurveyResponseRow.answers (never stored in plaintext)."""
-    return _encrypt(_canonical(answers))
+@lru_cache(maxsize=1)
+def _answers_hmac_key() -> bytes:
+    """HKDF-SHA256 from FIELD_KEY (separate from SECRET_KEY, so rotating the
+    signing key never touches data keys). Same no-key rules as backend.security."""
+    import os
+
+    from cryptography.hazmat.primitives import hashes
+    from cryptography.hazmat.primitives.kdf.hkdf import HKDF
+
+    from backend.config import get_settings
+    from backend.security import FieldKeyMissing
+
+    ikm = get_settings().field_key.encode()
+    if not ikm:
+        if "pytest" not in sys.modules:
+            raise FieldKeyMissing("FIELD_KEY is empty; it is required for answer digests")
+        ikm = os.urandom(32)  # tests only: per-process key
+    return HKDF(algorithm=hashes.SHA256(), length=32, salt=None, info=_HMAC_INFO).derive(ikm)
 
 
 def answers_digest(answers: dict[str, int]) -> str:
@@ -217,10 +217,7 @@ def answers_digest(answers: dict[str, int]) -> str:
     Keyed, not a plain hash: the answer space is tiny (PHQ-9 has 4**9 combinations),
     so an unkeyed hash could be reversed by enumeration.
     """
-    from backend.config import get_settings
-
-    key = hashlib.sha256(b"survey-answers-digest-v1|" + get_settings().secret_key.encode()).digest()
-    return hmac.new(key, _canonical(answers), hashlib.sha256).hexdigest()
+    return hmac.new(_answers_hmac_key(), _canonical(answers), hashlib.sha256).hexdigest()
 
 
 def has_consent(db: Any, user_id: str, scope: str) -> bool:
@@ -370,9 +367,11 @@ def _store_survey(
     m = _models()
     scores = {k: v for k, v in scored.items() if k != "total"}
     if has_consent(db, user_id, CONSENT_SURVEY_ANSWERS):
-        answers = encode_answers(data.answers)
+        answers: dict[str, int] = dict(data.answers)  # EncryptedJSON encrypts on write
     else:
-        answers = b""  # answers_enc is NOT NULL; empty means "not retained"
+        # MERGE(0002): answers=None once answers_enc is nullable, HMAC -> answers_hmac column.
+        # Until then answers_enc is NOT NULL: store an encrypted empty dict (no answer data).
+        answers = {}
         scores = {
             "score": scored["score"],
             "band": scored["band"],
@@ -449,14 +448,19 @@ def weekly_indices(db: Any, user_id: str, week_start: date) -> dict[str, dict]:
         return catalog[instrument_id, version]
 
     stmt = m.scoped(
-        select(m.SurveyResponseRow)
+        # Columns only: loading the entity would decrypt answers, which we never need here.
+        select(
+            m.SurveyResponseRow.instrument_id,
+            m.SurveyResponseRow.instrument_version,
+            m.SurveyResponseRow.scores,
+        )
         .where(m.SurveyResponseRow.administered_at >= start)
         .where(m.SurveyResponseRow.administered_at < end)
         .order_by(m.SurveyResponseRow.administered_at),
         m.SurveyResponseRow,
         user_id,
     )
-    for row in db.scalars(stmt):  # ordered by time: the last one wins
+    for row in db.execute(stmt):  # ordered by time: the last one wins
         score = (row.scores or {}).get("score")
         if score is None:
             continue

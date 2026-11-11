@@ -1,13 +1,12 @@
 """DB-backed survey functions against the real backend.models (merged from
 feat/db-ingest) on an in-memory SQLite engine from backend.db (foreign keys on).
 
-encrypt() comes from feat/accounts later; until then a placeholder bytes encoder
-is swapped in through surveys.set_encryptor (NOT real crypto).
+Answers are encrypted by the real EncryptedJSON type (backend.security); under
+pytest FIELD_KEY falls back to a per-process key.
 """
 
 from __future__ import annotations
 
-import base64
 import json
 import logging
 import sys
@@ -17,6 +16,7 @@ import pytest
 from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
+from backend import security
 from backend.db import get_engine
 from backend.models import (
     Base,
@@ -34,15 +34,6 @@ from backend.services.surveys import SubmissionError, submit_response
 USERS = ("u1", "u2", "userA", "userB")
 
 
-def placeholder_encrypt(b: bytes) -> bytes:
-    return b"ENC:" + base64.b64encode(b[::-1])
-
-
-def placeholder_decrypt(b: bytes) -> bytes:
-    assert b.startswith(b"ENC:")
-    return base64.b64decode(b[4:])[::-1]
-
-
 def _now() -> datetime:
     return datetime.now(UTC)
 
@@ -51,7 +42,6 @@ def _now() -> datetime:
 def db():
     engine = get_engine("sqlite://")
     Base.metadata.create_all(engine)
-    surveys.set_encryptor(placeholder_encrypt)
     with Session(engine) as s:
         s.add_all(User(id=u, email=f"{u}@example.test", is_synthetic=True) for u in USERS)
         s.flush()
@@ -61,7 +51,6 @@ def db():
         s.commit()
         surveys.load_catalog(s)
         yield s
-    surveys.set_encryptor(None)
     engine.dispose()
 
 
@@ -109,7 +98,7 @@ def test_submit_scores_and_stores(db) -> None:
     assert out["safety"] == {"show": False, "reason": None, "resources": []}
     row = db.get(SurveyResponseRow, out["id"])
     assert row.user_id == "u1" and row.total == 8
-    assert json.loads(placeholder_decrypt(row.answers)) == _phq9(0)
+    assert row.answers == _phq9(0)  # decrypted transparently by EncryptedJSON
     assert row.scores["band"] == "mild"
     assert db.query(SafetyEvent).count() == 0
 
@@ -128,7 +117,6 @@ def test_item9_positive_returns_safety_and_minimal_event(db) -> None:
 
 def test_safety_is_synchronous_no_job_or_queue(db, monkeypatch) -> None:
     # Any attempt to reach a runner/queue would fail the test.
-    import sys
 
     monkeypatch.setitem(sys.modules, "backend.services.runs", None)
     out = submit_response(db, "u1", _resp("u1", "phq9", _phq9(2)))
@@ -194,7 +182,8 @@ def test_answers_encrypted_at_rest(db) -> None:
     raw = db.execute(
         text("SELECT answers_enc FROM survey_responses WHERE id = :id"), {"id": out["id"]}
     ).scalar_one()
-    assert raw.startswith(b"ENC:")
+    assert raw.startswith(b"gAAAAA")  # Fernet token
+    assert json.loads(security.decrypt(raw)) == _phq9(0, rest=2)
     assert b"phq9_" not in raw
 
 
@@ -249,7 +238,7 @@ def test_survey_without_answers_consent_keeps_no_answers(db, state) -> None:
     out = submit_response(db, "u1", _resp("u1", "phq9", answers))
     assert out["stored"] is True and out["safety"]["show"] is True
     row = db.get(SurveyResponseRow, out["id"])
-    assert row.answers == b""
+    assert row.answers == {}  # no answer data retained (NULL once 0002 lands)
     assert row.total == 17
     assert row.scores["band"] == "moderately severe"
     assert row.scores["answers_retained"] is False
@@ -405,6 +394,31 @@ def test_weekly_indices_never_decrypts_answers(db, monkeypatch) -> None:
     def boom(*a, **k):
         raise AssertionError("weekly_indices must not touch answers")
 
-    monkeypatch.setattr(surveys, "_encrypt", boom)
-    monkeypatch.setattr(sys.modules[__name__], "placeholder_decrypt", boom)
+    monkeypatch.setattr(security, "decrypt", boom)
+    db.expire_all()
     assert surveys.weekly_indices(db, "u1", WEEK)["who5"]["value"] == 60.0
+
+
+def test_answers_hmac_key_derives_from_field_key_not_secret_key(monkeypatch) -> None:
+    from cryptography.fernet import Fernet
+
+    from backend.config import get_settings
+
+    a = {"phq2_1": 1, "phq2_2": 0}
+
+    def digest_with(**env: str) -> str:
+        for k, v in env.items():
+            monkeypatch.setenv(k, v)
+        get_settings.cache_clear()
+        surveys._answers_hmac_key.cache_clear()
+        return surveys.answers_digest(a)
+
+    try:
+        fk1, fk2 = Fernet.generate_key().decode(), Fernet.generate_key().decode()
+        base = digest_with(FIELD_KEY=fk1, SECRET_KEY="s" * 40)
+        assert digest_with(FIELD_KEY=fk1, SECRET_KEY="t" * 40) == base  # signing key rotation
+        assert digest_with(FIELD_KEY=fk2, SECRET_KEY="s" * 40) != base  # data key change
+    finally:
+        monkeypatch.undo()
+        get_settings.cache_clear()
+        surveys._answers_hmac_key.cache_clear()

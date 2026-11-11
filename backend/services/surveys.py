@@ -6,6 +6,8 @@ messages. Log only instrument ids, response ids and counts.
 
 from __future__ import annotations
 
+import hashlib
+import hmac
 import json
 import logging
 from collections.abc import Callable
@@ -165,19 +167,16 @@ def score_answers(instrument: dict, answers: dict[str, int]) -> dict:
 
 # --------------------------------------------------------------------------- DB-backed
 #
-# Models come from feat/db-ingest (backend.models: Instrument, SurveyResponseRow,
-# SafetyEvent, scoped) and encrypt() from feat/accounts (backend.security). Both
-# are resolved lazily, so that safety_check keeps working with no DB and so that
-# tests can inject stand-ins with set_models() / set_encryptor().
+# Models come from backend.models (merged from feat/db-ingest) and encrypt() from
+# backend.security (feat/accounts). Both are imported lazily, so that
+# safety_check keeps working with no DB. Tests swap the encoder with
+# set_encryptor() until EncryptedJSON / encrypt() is merged.
 
+CHECKIN_SLOTS = {"daily_am": "am", "daily_pm": "pm"}  # amber: stored in checkins_daily
+CONSENT_CHECKINS = "checkins"
+CONSENT_SURVEY_ANSWERS = "survey_answers"
 
-_MODELS: Any = None
 _ENCRYPT: Callable[[bytes], bytes] | None = None
-
-
-def set_models(models: Any) -> None:
-    global _MODELS
-    _MODELS = models
 
 
 def set_encryptor(fn: Callable[[bytes], bytes] | None) -> None:
@@ -186,24 +185,47 @@ def set_encryptor(fn: Callable[[bytes], bytes] | None) -> None:
 
 
 def _models() -> Any:
-    if _MODELS is None:
-        import backend.models as m
+    import backend.models as m
 
-        return m
-    return _MODELS
+    return m
 
 
 def _encrypt(data: bytes) -> bytes:
     if _ENCRYPT is not None:
         return _ENCRYPT(data)
-    from backend.security import encrypt
+    from backend.security import encrypt  # MERGE: arrives with feat/accounts
 
     return encrypt(data)
 
 
+def _canonical(answers: dict[str, int]) -> bytes:
+    return json.dumps(answers, sort_keys=True, separators=(",", ":")).encode()
+
+
 def encode_answers(answers: dict[str, int]) -> bytes:
     """Answers -> ciphertext for SurveyResponseRow.answers (never stored in plaintext)."""
-    return _encrypt(json.dumps(answers, sort_keys=True, separators=(",", ":")).encode())
+    return _encrypt(_canonical(answers))
+
+
+def answers_digest(answers: dict[str, int]) -> str:
+    """Keyed HMAC-SHA256 of the answers, for when survey_answers consent is off.
+
+    Keyed, not a plain hash: the answer space is tiny (PHQ-9 has 4**9 combinations),
+    so an unkeyed hash could be reversed by enumeration.
+    """
+    from backend.config import get_settings
+
+    key = hashlib.sha256(b"survey-answers-digest-v1|" + get_settings().secret_key.encode()).digest()
+    return hmac.new(key, _canonical(answers), hashlib.sha256).hexdigest()
+
+
+def has_consent(db: Any, user_id: str, scope: str) -> bool:
+    """True only if a consent row exists and is granted. No row means no consent."""
+    from sqlalchemy import select
+
+    m = _models()
+    stmt = m.scoped(select(m.Consent.granted).where(m.Consent.scope == scope), m.Consent, user_id)
+    return bool(db.scalars(stmt).first())
 
 
 class SubmissionError(Exception):
@@ -311,24 +333,84 @@ def submit_response(db: Any, user_id: str, data: SurveyResponse) -> dict:
     except InvalidAnswers as e:
         raise SubmissionError("invalid", safety, e.errors) from None
 
-    # 3. Store. answers become ciphertext here; never log them.
-    m = _models()
-    scores = {k: v for k, v in scored.items() if k != "total"}
+    # 3. Store, gated on consent. Answers are never logged.
     try:
-        row = m.SurveyResponseRow(
-            user_id=user_id,
-            instrument_id=instrument["id"],
-            instrument_version=instrument["version"],
-            administered_at=data.administered_at.astimezone(UTC),
-            answers=encode_answers(data.answers),
-            total=scored["total"],
-            scores=scores,
-        )
-        db.add(row)
-        db.commit()
+        if instrument["id"] in CHECKIN_SLOTS:
+            row_id = _store_checkin(db, user_id, instrument, data)
+        else:
+            row_id = _store_survey(db, user_id, instrument, data, scored)
     except Exception:
         db.rollback()
-        log.error("survey response could not be stored (instrument=%s)", instrument["id"])
+        log.error("response could not be stored (instrument=%s)", instrument["id"])
         raise SubmissionError("storage", safety) from None
-    log.info("survey response stored id=%s instrument=%s", row.id, instrument["id"])
-    return {"id": row.id, "total": scored["total"], "scores": scores, "safety": safety.model_dump()}
+    log.info(
+        "response handled id=%s instrument=%s stored=%s",
+        row_id,
+        instrument["id"],
+        row_id is not None,
+    )
+    return {
+        "id": row_id,
+        "stored": row_id is not None,
+        "total": scored["total"],
+        "scores": {k: v for k, v in scored.items() if k != "total"},
+        "safety": safety.model_dump(),
+    }
+
+
+def _store_survey(
+    db: Any, user_id: str, instrument: dict, data: SurveyResponse, scored: dict
+) -> str:
+    """survey_responses. With survey_answers consent: encrypted answers + scores.
+    Without: no answers; only total, score/band and a keyed digest."""
+    m = _models()
+    scores = {k: v for k, v in scored.items() if k != "total"}
+    if has_consent(db, user_id, CONSENT_SURVEY_ANSWERS):
+        answers = encode_answers(data.answers)
+    else:
+        answers = b""  # answers_enc is NOT NULL; empty means "not retained"
+        scores = {
+            "score": scored["score"],
+            "band": scored["band"],
+            "method": scored["method"],
+            "answers_hmac": answers_digest(data.answers),
+            "answers_retained": False,
+        }
+    row = m.SurveyResponseRow(
+        user_id=user_id,
+        instrument_id=instrument["id"],
+        instrument_version=instrument["version"],
+        administered_at=data.administered_at.astimezone(UTC),
+        answers=answers,
+        total=scored["total"],
+        scores=scores,
+    )
+    db.add(row)
+    db.commit()
+    return row.id
+
+
+def _store_checkin(db: Any, user_id: str, instrument: dict, data: SurveyResponse) -> str | None:
+    """checkins_daily (amber, plain JSON). Upsert on (user_id, date, slot).
+    Nothing is stored without checkins consent."""
+    from sqlalchemy import select
+
+    if not has_consent(db, user_id, CONSENT_CHECKINS):
+        return None
+    m = _models()
+    slot = CHECKIN_SLOTS[instrument["id"]]
+    day = data.administered_at.astimezone(UTC).date()
+    stmt = m.scoped(
+        select(m.CheckinDaily).where(m.CheckinDaily.date == day, m.CheckinDaily.slot == slot),
+        m.CheckinDaily,
+        user_id,
+    )
+    row = db.scalars(stmt).first()
+    if row is None:
+        row = m.CheckinDaily(user_id=user_id, date=day, slot=slot)
+        db.add(row)
+    row.instrument_id = instrument["id"]
+    row.instrument_version = instrument["version"]
+    row.answers = dict(data.answers)
+    db.commit()
+    return row.id

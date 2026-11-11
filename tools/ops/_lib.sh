@@ -27,26 +27,43 @@ pick_python() {
     if [[ -n "$c" && -x "$c/bin/python" ]]; then PY="$c/bin/python"; break; fi
   done
   [[ -n "${PY:-}" ]] || PY="$(command -v python3 || true)"
-  [[ -n "$PY" ]] || { echo "no python found: set VENV" >&2; exit 2; }
+  [[ -n "$PY" ]] || { echo "ERROR: no python found; set VENV=<your venv>" >&2; exit 2; }
+  if ! "$PY" -c 'import pytest' >/dev/null 2>&1; then
+    echo "ERROR: $PY has no pytest: it is not the project venv." >&2
+    echo "  Set VENV=<venv dir> (or activate it, or create <repo>/.venv with scripts/bootstrap.sh)." >&2
+    exit 2
+  fi
   if "$PY" -m ruff --version >/dev/null 2>&1; then RUFF=("$PY" -m ruff)
   elif command -v ruff >/dev/null 2>&1; then RUFF=(ruff)
   else RUFF=(); fi
 }
 
-# run_checks DIR → sets T_RES (pass(N)|none|FAIL(...)), T_OUT, R_RES (pass|FAIL(N)|n/a), R_OUT
+# run_checks DIR → sets T_RES (pass(N)|none|FAIL(...)|ERROR(no summary)), T_OUT, T_SUMMARY,
+#                    R_RES (pass|FAIL(N)|n/a), R_OUT
+# show_test_failure: prints FAILED/ERROR lines, or the last 20 lines when there is no summary.
 run_checks() {
   local dir="$1" rc summary p f e
   T_OUT="$(cd "$dir" && "$PY" -m pytest -p no:cacheprovider --no-header 2>&1)"; rc=$?
-  summary="$(printf '%s\n' "$T_OUT" | grep -E '[0-9]+ (passed|failed|error)' | tail -1)"
+  summary="$(printf '%s\n' "$T_OUT" | grep -E '[0-9]+ (passed|failed|error)' | tail -1 | sed -E 's/^=+ //; s/ =+$//')"
   T_SUMMARY="$summary"
   p="$(grep -oE '[0-9]+ passed' <<<"$summary" | grep -oE '[0-9]+' || true)"
   f="$(grep -oE '[0-9]+ failed' <<<"$summary" | grep -oE '[0-9]+' || true)"
   e="$(grep -oE '[0-9]+ errors?' <<<"$summary" | grep -oE '[0-9]+' || true)"
   if [[ $rc -eq 0 ]]; then T_RES="pass(${p:-0})"
   elif [[ $rc -eq 5 ]]; then T_RES="none"
+  elif [[ -z "$summary" ]]; then T_RES="ERROR(no summary)"
   else T_RES="FAIL(${f:-0}f/${e:-0}e/${p:-0}p)"; fi
   if [[ ${#RUFF[@]} -eq 0 ]]; then R_RES="n/a"; R_OUT=""; return; fi
   R_OUT="$(cd "$dir" && "${RUFF[@]}" check . --no-cache --output-format concise 2>&1)"; rc=$?
   if [[ $rc -eq 0 ]]; then R_RES="pass"
   else R_RES="FAIL($(printf '%s\n' "$R_OUT" | grep -cE '^[^ ].*:[0-9]+:[0-9]+:'))"; fi
+}
+
+show_test_failure() {
+  if [[ -z "${T_SUMMARY:-}" ]]; then
+    echo "  pytest printed no summary; last 20 lines (python: $PY):"
+    printf '%s\n' "$T_OUT" | tail -20 | sed 's/^/  | /'
+  else
+    printf '%s\n' "$T_OUT" | grep -E '^(FAILED|ERROR) ' | head -15 | sed 's/^/  /'
+  fi
 }

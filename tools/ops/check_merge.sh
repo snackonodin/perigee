@@ -38,6 +38,7 @@ case "${BR#feat/}" in
   db-ingest) own='^(backend/db\.py|backend/models/|migrations/|alembic\.ini|backend/services/(ingestion|runs)\.py|tools/cli\.py)' ;;
   accounts)  own='^(backend/(security|deps|logging|errors)\.py|backend/services/accounts\.py|backend/api/v1/(auth|me)\.py)' ;;
   surveys)   own='^(seeds/|backend/services/(surveys|guidance)\.py|backend/api/v1/responses\.py)' ;;
+  pipeline)  own='^(backend/services/(pipeline|fusion)\.py)' ;;
   ops)       own='^(docs/ops/|tools/ops/)' ;;
   *)         own='' ;;
 esac
@@ -66,11 +67,10 @@ git -C "$WT" read-tree -u --reset "$tree" || { echo "MERGE FAIL: cannot check ou
 
 run_checks "$WT"
 ok=1
-if [[ "$T_RES" != pass* && "$T_RES" != none ]]; then ok=0
-  printf '%s\n' "$T_OUT" | grep -E '^(FAILED|ERROR) ' | head -10 | sed 's/^/  /'; fi
+if [[ "$T_RES" != pass* && "$T_RES" != none ]]; then ok=0; show_test_failure; fi
 if [[ "$R_RES" == FAIL* ]]; then ok=0
   printf '%s\n' "$R_OUT" | grep -E ':[0-9]+:[0-9]+:' | head -10 | sed 's/^/  /'; fi
 
-echo "tests=$T_RES (${T_SUMMARY:-no summary}) ruff=$R_RES"
+echo "tests=$T_RES (${T_SUMMARY:-no summary}) ruff=$R_RES python=$PY"
 if [[ $ok -eq 1 ]]; then echo "MERGE OK $BR tree=${tree:0:7}"; exit 0
 else echo "MERGE FAIL $BR: checks fail on the merged tree"; exit 1; fi

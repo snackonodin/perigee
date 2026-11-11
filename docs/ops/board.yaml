@@ -692,22 +692,24 @@ tasks:
   title: 'Hypothesis API invariants: safety object on every survey/symptom response, isolation for random users/data, consent gating, no answer values in logs'
   owner: cf
   branch: feat/surveys
-  state: review
+  state: done
   blockers: []
   done_when: property tests with >=200 examples each, deterministic seed
-  sha: 2a90097
+  sha: e57843c
   times:
     review: '2026-11-11T20:38:45Z'
+    done: '2026-11-11T20:44:28Z'
 - id: LEAK-1
   title: 'weekly_indices(..., until: datetime | None) upper time bound; run_nightly passes the night end (L6)'
   owner: cf
   branch: feat/surveys
-  state: review
+  state: done
   blockers: []
   done_when: backfill test proves answers after the night never affect it
-  sha: 690cdf6
+  sha: e57843c
   times:
     review: '2026-11-11T20:38:46Z'
+    done: '2026-11-11T20:44:28Z'
 - id: LOOP-1
   title: 'Failure-learning loop: tools/ops/lessons.py (add/list/close), merge_ready + stress.sh auto-record failures as lesson stubs, prompts read LESSONS.md, check_merge lints tracked files only (L1) and
     warns on broad reformat (L3), metrics.sh shows recurrence'

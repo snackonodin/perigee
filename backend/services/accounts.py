@@ -14,7 +14,7 @@ import uuid
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
-from typing import Any
+from typing import Any, NoReturn
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from sqlalchemy import Table, Text, delete, or_, select, type_coerce, update
@@ -60,6 +60,14 @@ class InvalidRefreshToken(AccountError):
 
 class UserNotFound(AccountError):
     code = "not_found"
+
+
+class TooManyAttempts(AccountError):
+    code = "too_many_attempts"
+
+    def __init__(self, retry_after: int) -> None:
+        super().__init__("too many failed logins; try again later")
+        self.retry_after = retry_after
 
 
 # --------------------------------------------------------------------------- helpers
@@ -156,25 +164,53 @@ def signup(db: Session, email: str, password: str) -> AuthResult:
     return result
 
 
-def login(db: Session, email: str, password: str) -> AuthResult:
+def login(
+    db: Session,
+    email: str,
+    password: str,
+    client_ip: str = "unknown",
+    limiter: security.LoginLimiter | None = None,
+) -> AuthResult:
+    """Throttled per (email, client_ip) and per email (config.yaml auth:).
+
+    A locked key is refused before any password check, so a locked attempt reveals nothing.
+    Unknown and known emails are counted the same way, so throttling cannot be used to find
+    out which emails exist.
+    """
+    limiter = limiter or security.get_login_limiter()
+    key = email.strip().lower()
+    wait = limiter.retry_after(key, client_ip)
+    if wait is not None:
+        raise TooManyAttempts(wait)
     try:
         email = normalize_email(email)
+        user = db.scalar(select(User).where(User.email == email))
     except InvalidInput:
-        security.burn_verify(password)
-        raise InvalidCredentials("invalid email or password") from None
-    user = db.scalar(select(User).where(User.email == email))
+        user = None
     if user is None:
         security.burn_verify(password)
-        raise InvalidCredentials("invalid email or password")
-    if not security.verify_password(user.password_hash, password) or user.status != "active":
+        _login_failed(db, None, key, client_ip, limiter)
+    elif not security.verify_password(user.password_hash, password) or user.status != "active":
         audit(db, user.id, "auth.login_failed")
-        db.commit()
-        raise InvalidCredentials("invalid email or password")
+        _login_failed(db, user.id, key, client_ip, limiter)
+    limiter.record_success(key, client_ip)
     result = _issue_tokens(db, user.id)
     audit(db, user.id, "auth.login")
     db.commit()
     log.info("login user_id=%s", user.id)
     return result
+
+
+def _login_failed(
+    db: Session, user_id: str | None, key: str, client_ip: str, limiter: security.LoginLimiter
+) -> NoReturn:
+    """Count the failure, audit a lockout when one starts, then refuse with the usual 401."""
+    for scope in limiter.record_failure(key, client_ip):
+        # Never the attempted email or the IP: the scope and window are enough to investigate.
+        audit(db, user_id, "auth.lockout", scope=scope, window_s=limiter.window_s)
+        log.warning("login lockout scope=%s user_id=%s", scope, user_id)
+    db.commit()
+    raise InvalidCredentials("invalid email or password")
 
 
 def refresh(db: Session, refresh_token: str) -> AuthResult:

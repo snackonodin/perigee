@@ -10,8 +10,12 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import secrets
 import sys
+import threading
+import time
+from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
 from functools import lru_cache
 from typing import Any
@@ -101,6 +105,102 @@ def new_refresh_token() -> tuple[str, str]:
     """Return (plaintext, sha256). Store only the sha256."""
     plaintext = secrets.token_urlsafe(32)
     return plaintext, hash_refresh_token(plaintext)
+
+
+# --------------------------------------------------------------------------- login throttling
+
+
+class LoginLimiter:
+    """In-process fixed-window counters of FAILED logins, per (email, ip) and per email.
+
+    A window starts at a key's first failure and lasts ``window_s``. Once a key has reached its
+    maximum inside the window, ``retry_after`` reports the seconds left until the window ends.
+    A success clears only the (email, ip) key, so a legitimate login cannot reset the
+    per-email count that an attacker on other IPs is building. Single process only: counts
+    are lost on restart and not shared between workers (fine for the offline demo).
+    """
+
+    _PRUNE_AT = 10_000  # entries; expired windows are dropped when the table grows past this
+
+    def __init__(
+        self,
+        window_s: int,
+        max_per_email_ip: int,
+        max_per_email: int,
+        clock: Callable[[], float] = time.monotonic,
+    ) -> None:
+        self.window_s = window_s
+        self._limits = {"email_ip": max_per_email_ip, "email": max_per_email}
+        self._clock = clock
+        self._lock = threading.Lock()
+        self._windows: dict[tuple[str, ...], tuple[float, int]] = {}  # key -> (start, count)
+
+    @staticmethod
+    def _keys(email: str, ip: str) -> dict[str, tuple[str, ...]]:
+        e = email.strip().lower()
+        return {"email_ip": ("email_ip", e, ip), "email": ("email", e)}
+
+    def _live(self, key: tuple[str, ...], now: float) -> tuple[float, int] | None:
+        w = self._windows.get(key)
+        if w is None or now >= w[0] + self.window_s:
+            self._windows.pop(key, None)
+            return None
+        return w
+
+    def retry_after(self, email: str, ip: str) -> int | None:
+        """Seconds until a locked key's window ends, or None when login may proceed."""
+        now = self._clock()
+        with self._lock:
+            waits = [
+                w[0] + self.window_s - now
+                for scope, key in self._keys(email, ip).items()
+                if (w := self._live(key, now)) is not None and w[1] >= self._limits[scope]
+            ]
+        return max(1, math.ceil(max(waits))) if waits else None
+
+    def record_failure(self, email: str, ip: str) -> list[str]:
+        """Count one failure. Returns the scopes that became locked by this failure."""
+        now = self._clock()
+        newly_locked = []
+        with self._lock:
+            if len(self._windows) > self._PRUNE_AT:
+                for key in list(self._windows):
+                    self._live(key, now)
+            for scope, key in self._keys(email, ip).items():
+                start, count = self._live(key, now) or (now, 0)
+                self._windows[key] = (start, count + 1)
+                if count + 1 == self._limits[scope]:
+                    newly_locked.append(scope)
+        return newly_locked
+
+    def record_success(self, email: str, ip: str) -> None:
+        with self._lock:
+            self._windows.pop(self._keys(email, ip)["email_ip"], None)
+
+
+_limiter: LoginLimiter | None = None
+_limiter_lock = threading.Lock()
+
+
+def get_login_limiter() -> LoginLimiter:
+    """The process-wide limiter, built from config.yaml ``auth:`` on first use."""
+    global _limiter
+    with _limiter_lock:
+        if _limiter is None:
+            from csi_core.config import get_config
+
+            a = get_config().auth
+            _limiter = LoginLimiter(
+                a.login_window_s, a.max_failures_per_email_ip, a.max_failures_per_email
+            )
+        return _limiter
+
+
+def reset_login_limiter(limiter: LoginLimiter | None = None) -> None:
+    """Replace (tests) or forget (rebuilt from config on next use) the process limiter."""
+    global _limiter
+    with _limiter_lock:
+        _limiter = limiter
 
 
 # --------------------------------------------------------------------------- field encryption

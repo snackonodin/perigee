@@ -42,7 +42,7 @@ def unauthorized(message: str = "not authenticated") -> ApiError:
 
 # Responses block for route decorators so OpenAPI documents the error shape.
 ERROR_RESPONSES: dict[int | str, dict] = {
-    code: {"model": ErrorOut} for code in (400, 401, 404, 409, 422, 500)
+    code: {"model": ErrorOut} for code in (400, 401, 404, 409, 422, 429, 500)
 }
 
 

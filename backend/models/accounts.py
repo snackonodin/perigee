@@ -10,7 +10,6 @@ from sqlalchemy import (
     Boolean,
     ForeignKey,
     Index,
-    LargeBinary,
     String,
     Text,
     UniqueConstraint,
@@ -19,6 +18,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column
 
 from backend.models.base import Base, JSONText, UserOwned, UTCDateTime, utcnow, uuid_pk
+from backend.security import EncryptedJSON
 
 
 class User(Base):
@@ -57,8 +57,8 @@ class Profile(UserOwned, Base):
     __table_args__ = (Index("uq_profiles_user_id", "user_id", unique=True),)
 
     id: Mapped[str] = uuid_pk()
-    # Encrypted by the accounts branch (EncryptedJSON); stored as ciphertext bytes.
-    display_name: Mapped[bytes | None] = mapped_column("display_name_enc", LargeBinary)
+    # Red class: Fernet ciphertext in display_name_enc (BLOB); plaintext str on the attribute.
+    display_name: Mapped[str | None] = mapped_column("display_name_enc", EncryptedJSON)
     timezone: Mapped[str] = mapped_column(String(64), default="UTC", nullable=False)
     settings: Mapped[dict[str, Any]] = mapped_column(JSONText, default=dict, nullable=False)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow, nullable=False)

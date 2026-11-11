@@ -4,12 +4,23 @@ import uuid
 from datetime import UTC, datetime, timedelta
 
 import pytest
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 
+from backend.models import AuditLog, Base, CaptureSession, RefreshToken, User
 from backend.services import accounts as acc
-from tests.api._tmp_models import AuditLog, Base, RefreshToken, SessionRow, User
 
 PW = "long enough password"
+T0 = datetime(2026, 11, 1, 22, 0, tzinfo=UTC)
+
+
+def add_session(db, user_id: str, raw_path: str = "", sid: str | None = None) -> str:
+    s = CaptureSession(
+        id=sid or str(uuid.uuid4()), user_id=user_id, start_utc=T0,
+        end_utc=T0 + timedelta(hours=1), raw_path=raw_path, raw_sha256=uuid.uuid4().hex * 2,
+    )
+    db.add(s)
+    db.commit()
+    return s.id
 
 
 def _actions(db, user_id=None):
@@ -132,22 +143,20 @@ def test_export_has_all_rows_no_secrets(db) -> None:
     assert r.refresh_token not in blob
 
 
-def test_delete_user_removes_rows_files_tokens(db, tmp_path) -> None:
+def test_delete_user_removes_rows_files_tokens(db, data_dir) -> None:
     a = acc.signup(db, "a@b.co", PW)
     b = acc.signup(db, "b@b.co", PW)
     acc.update_profile(db, a.user_id, {"display_name": "Ada"})
     acc.set_consents(db, a.user_id, {"raw_csi": True}, "v1")
     dirs = {}
     for uid in (a.user_id, b.user_id):
-        sid = str(uuid.uuid4())
-        db.add(SessionRow(id=sid, user_id=uid))
-        d = tmp_path / "raw" / sid
+        sid = add_session(db, uid)
+        d = data_dir / "raw" / sid
         d.mkdir(parents=True)
         (d / "csi_00.csv.gz").write_bytes(b"x")
         dirs[uid] = d
-    db.commit()
 
-    acc.delete_user(db, a.user_id, tmp_path)
+    acc.delete_user(db, a.user_id)  # data_dir from settings (.env / DATA_DIR)
 
     for t in Base.metadata.sorted_tables:
         if "user_id" in t.c:
@@ -167,43 +176,43 @@ def test_delete_user_removes_rows_files_tokens(db, tmp_path) -> None:
     assert acc.refresh(db, b.refresh_token).user_id == b.user_id
 
 
-def test_delete_removes_raw_path_inside_data_dir(db, tmp_path) -> None:
+def test_delete_removes_raw_path_inside_data_dir(db, data_dir) -> None:
     a = acc.signup(db, "a@b.co", PW)
-    f = tmp_path / "raw" / "2026-11-10" / "csi_00.csv.gz"
+    f = data_dir / "raw" / "2026-11-10" / "csi_00.csv.gz"
     f.parent.mkdir(parents=True)
     f.write_bytes(b"x")
-    db.add(SessionRow(id=str(uuid.uuid4()), user_id=a.user_id, raw_path="raw/2026-11-10"))
-    db.commit()
-    acc.delete_user(db, a.user_id, tmp_path)
+    add_session(db, a.user_id, raw_path="raw/2026-11-10")
+    acc.delete_user(db, a.user_id)
     assert not f.parent.exists()
 
 
-def test_delete_defaults_to_settings_data_dir(db, tmp_path, monkeypatch) -> None:
-    from backend.config import get_settings
-
-    monkeypatch.setattr(get_settings(), "data_dir", tmp_path)
+def test_delete_with_explicit_data_dir(db, tmp_path) -> None:
     a = acc.signup(db, "a@b.co", PW)
-    sid = str(uuid.uuid4())
-    (tmp_path / "raw" / sid).mkdir(parents=True)
-    db.add(SessionRow(id=sid, user_id=a.user_id))
-    db.commit()
-    acc.delete_user(db, a.user_id)
-    assert not (tmp_path / "raw" / sid).exists()
+    sid = add_session(db, a.user_id)
+    (tmp_path / "elsewhere" / "raw" / sid).mkdir(parents=True)
+    acc.delete_user(db, a.user_id, tmp_path / "elsewhere")
+    assert not (tmp_path / "elsewhere" / "raw" / sid).exists()
 
 
-@pytest.mark.parametrize("sid,raw_path", [
-    ("../../etc", ""),
-    (str(uuid.uuid4()), "../outside"),
-    (str(uuid.uuid4()), "raw"),
-])
-def test_delete_refuses_path_escape(db, tmp_path, sid, raw_path) -> None:
+@pytest.mark.parametrize("raw_path", ["../outside", "raw", "/"])
+def test_delete_refuses_raw_path_escape(db, data_dir, raw_path) -> None:
     a = acc.signup(db, "a@b.co", PW)
-    victim = tmp_path / "outside" / "keep.txt"
+    victim = data_dir / "outside" / "keep.txt"
     victim.parent.mkdir()
     victim.write_text("x")
-    db.add(SessionRow(id=sid, user_id=a.user_id, raw_path=raw_path))
-    db.commit()
+    add_session(db, a.user_id, raw_path=raw_path)
     with pytest.raises(ValueError):
-        acc.delete_user(db, a.user_id, tmp_path)
+        acc.delete_user(db, a.user_id)
     assert db.get(User, a.user_id) is not None  # rolled back, retryable
     assert victim.exists()
+
+
+def test_delete_refuses_non_uuid_session_id(db, data_dir) -> None:
+    # The model validator already rejects this; the service must not trust that alone.
+    a = acc.signup(db, "a@b.co", PW)
+    sid = add_session(db, a.user_id)
+    db.execute(text("UPDATE sessions SET id = '../../etc' WHERE id = :s"), {"s": sid})
+    db.commit()
+    with pytest.raises(ValueError):
+        acc.delete_user(db, a.user_id)
+    assert db.get(User, a.user_id) is not None

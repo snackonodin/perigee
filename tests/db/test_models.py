@@ -153,14 +153,16 @@ def test_survey_answers_stored_as_bytes_in_answers_enc(schema: Engine, db: Sessi
             instrument_id="phq2",
             instrument_version="1",
             administered_at=T0,
-            answers=b"\x00ciphertext",
+            answers={"q1": 3, "q2": 2},
         )
     )
     db.commit()
     cols = {c["name"] for c in inspect(db.get_bind()).get_columns("survey_responses")}
     assert "answers_enc" in cols and "answers" not in cols
     stored = db.execute(text("SELECT answers_enc FROM survey_responses")).scalar()
-    assert stored == b"\x00ciphertext"
+    assert isinstance(stored, bytes) and b"q1" not in stored  # ciphertext only
+    db.expire_all()
+    assert db.scalars(select(SurveyResponseRow.answers)).one() == {"q1": 3, "q2": 2}
 
 
 def test_v_real_users_excludes_synthetic(schema: Engine, db: Session) -> None:
@@ -220,10 +222,12 @@ def test_consents_one_row_per_scope(schema: Engine, db: Session) -> None:
 
 def test_profile_display_name_stored_as_bytes(schema: Engine, db: Session) -> None:
     u = _user(db, "a@x")
-    db.add(Profile(user_id=u.id, display_name=b"\x01cipher"))
+    db.add(Profile(user_id=u.id, display_name="Ada"))
     db.commit()
     cols = {c["name"] for c in inspect(db.get_bind()).get_columns("profiles")}
     assert "display_name_enc" in cols and "display_name" not in cols
+    stored = db.execute(text("SELECT display_name_enc FROM profiles")).scalar()
+    assert isinstance(stored, bytes) and b"Ada" not in stored  # ciphertext only
 
 
 @pytest.mark.parametrize("bad", ["../etc", "not-a-uuid", "A" * 36, ""])

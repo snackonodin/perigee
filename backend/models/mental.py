@@ -26,6 +26,7 @@ from backend.models.base import (
     uuid_pk,
 )
 from backend.schemas.contracts import CheckinSlot
+from backend.security import EncryptedJSON
 
 
 class Instrument(Base):
@@ -48,10 +49,8 @@ class Instrument(Base):
 
 
 class SurveyResponseRow(UserOwned, Base):
-    """Red class. `answers` maps to column answers_enc and holds ciphertext bytes only.
-
-    Encryption lives in the accounts branch (backend.security.encrypt / EncryptedJSON);
-    this model never sees plaintext.
+    """Red class. `answers` is a plain dict on the attribute; column answers_enc (BLOB)
+    holds only Fernet ciphertext (backend.security.EncryptedJSON, key = FIELD_KEY).
     """
 
     __tablename__ = "survey_responses"
@@ -60,7 +59,7 @@ class SurveyResponseRow(UserOwned, Base):
     instrument_id: Mapped[str] = mapped_column(String(32), nullable=False)
     instrument_version: Mapped[str] = mapped_column(String(32), nullable=False)
     administered_at: Mapped[datetime] = mapped_column(UTCDateTime, nullable=False, index=True)
-    answers: Mapped[bytes] = mapped_column("answers_enc", LargeBinary, nullable=False)
+    answers: Mapped[dict[str, int]] = mapped_column("answers_enc", EncryptedJSON, nullable=False)
     total: Mapped[float | None] = mapped_column(Float)
     scores: Mapped[dict[str, Any] | None] = mapped_column(JSONText)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow, nullable=False)

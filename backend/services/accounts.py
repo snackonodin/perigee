@@ -22,9 +22,7 @@ from sqlalchemy.orm import Session
 
 from backend import security
 from backend.config import get_settings
-
-# TEMPORARY: repointed to backend.models at merge (see tests/api/_tmp_models.py).
-from tests.api._tmp_models import AuditLog, Base, Consent, Profile, RefreshToken, User
+from backend.models import AuditLog, Base, Consent, Profile, RefreshToken, User
 
 log = logging.getLogger(__name__)
 

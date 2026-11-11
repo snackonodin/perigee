@@ -1,34 +1,40 @@
+"""Fixtures: a throwaway DATA_DIR and SQLite DB (schema via create_all) per test."""
+
 from __future__ import annotations
 
-import secrets
+from collections.abc import Iterator
+from pathlib import Path
 
 import pytest
+from sqlalchemy import Engine
+from sqlalchemy.orm import Session
 
+from backend import db as db_mod
 from backend.config import get_settings
-
-
-@pytest.fixture(autouse=True)
-def _strong_secret_key(monkeypatch: pytest.MonkeyPatch) -> None:
-    """HS256 wants >= 32 bytes; the settings default is a short dev key."""
-    monkeypatch.setattr(get_settings(), "secret_key", secrets.token_urlsafe(48))
+from backend.models import Base
 
 
 @pytest.fixture
-def engine(tmp_path):
-    # TEMPORARY imports: backend.db / backend.models at merge.
-    from tests.api._tmp_db import init_db
-    from tests.api._tmp_models import Base
+def data_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[Path]:
+    d = tmp_path / "astro-data"
+    d.mkdir()
+    monkeypatch.setenv("DATA_DIR", str(d))
+    monkeypatch.setenv("DATABASE_URL", f"sqlite:///{d / 'db' / 'astro.db'}")
+    get_settings.cache_clear()
+    yield d
+    get_settings.cache_clear()
 
-    eng = init_db(f"sqlite:///{tmp_path}/t.db")
+
+@pytest.fixture
+def engine(data_dir: Path) -> Iterator[Engine]:
+    eng = db_mod.init_db()
     Base.metadata.create_all(eng)
     yield eng
     eng.dispose()
+    db_mod.SessionLocal.configure(bind=None)
 
 
 @pytest.fixture
-def db(engine):
-    from tests.api._tmp_db import SessionLocal
-
-    s = SessionLocal()
-    yield s
-    s.close()
+def db(engine: Engine) -> Iterator[Session]:
+    with db_mod.SessionLocal() as s:
+        yield s

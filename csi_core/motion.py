@@ -4,8 +4,11 @@ Plug-in seam: ``config.yaml estimators.motion`` names a ``motion_core(x, fs, cfg
 -> (motion, score)`` for one window. ``score`` is a per-window motion score where
 higher means more movement. csi_core then also flags a window whose score is a
 session-level robust outlier (robust z > ``breath.motion_z``), so a core that only
-returns a score still works. Presence stays here: window variance at or above
-``breath.presence_min_var``.
+returns a score still works.
+
+Presence stays here and is scale-free: a window is absent when its variance over
+the session median window variance is below ``breath.presence_rel_var``. Known
+limit: a room empty all night makes the median itself "absent".
 
 Reference core: score = log window variance, motion = False. Detection is the
 session-level robust z of that score, so a burst raises its window's variance far
@@ -58,5 +61,9 @@ def detect(windows: list[np.ndarray], fs: float, cfg: CoreConfig) -> MotionResul
     z = robust_z_series(score)
     motion = core_motion | (np.nan_to_num(z, nan=0.0) > cfg.breath.motion_z)
     var = np.array([float(np.var(w)) if w.size else 0.0 for w in windows])
-    presence = var >= cfg.breath.presence_min_var
+    med = float(np.median(var)) if var.size else 0.0
+    if med > 0:
+        presence = var / med >= cfg.breath.presence_rel_var
+    else:
+        presence = var > 0
     return MotionResult(motion=motion, presence=presence, score=score, z=z)

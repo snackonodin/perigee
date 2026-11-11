@@ -4,13 +4,15 @@
 #     first commit → merge, cycle time. First commit = earliest commit in the merge's
 #     branch side (sha^1..sha^2) whose subject starts with "<ID>:", else the earliest one.
 #   merges per day on main (first-parent), reverts on main, median cycle time.
+#   lessons (docs/ops/lessons.yaml on main): count, open/closed, recurrences, how many
+#   lessons recurred, mean time from a lesson's creation to its guard.
 # Usage: tools/ops/metrics.sh [--days N]   (default: all history)
 set -uo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
 SINCE=()
 if [[ "${1:-}" == "--days" ]]; then SINCE=(--since="${2:-7} days ago")
-elif [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then sed -n 2,7p "$0"; exit 0; fi
+elif [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then sed -n 2,9p "$0"; exit 0; fi
 pick_python
 
 fmt_dur() { local s=$1; printf '%dh%02dm' $((s / 3600)) $(((s % 3600) / 60)); }
@@ -48,4 +50,15 @@ if [[ ${#cycles[@]} -gt 0 ]]; then
   sorted=($(printf '%s\n' "${cycles[@]}" | sort -n))
   n=${#sorted[@]}
   echo "cycle: median=$(fmt_dur "${sorted[$((n / 2))]}") min=$(fmt_dur "${sorted[0]}") max=$(fmt_dur "${sorted[$((n - 1))]}")"
+fi
+
+echo
+if g cat-file -e "$BASE:docs/ops/lessons.yaml" 2>/dev/null; then
+  ltmp="$(mktemp -d "${TMPDIR:-/tmp}/astro-lessons.XXXXXX")"
+  mkdir -p "$ltmp/docs/ops"
+  g show "$BASE:docs/ops/lessons.yaml" >"$ltmp/docs/ops/lessons.yaml"
+  echo "lessons: $("$PY" "$OPS_DIR/lessons.py" --file "$ltmp/docs/ops/lessons.yaml" stats)"
+  rm -rf "$ltmp"
+else
+  echo "lessons: none on $BASE yet"
 fi

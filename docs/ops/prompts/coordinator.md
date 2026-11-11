@@ -14,6 +14,11 @@ Set VENV to the project venv (dev-machine convention: ~/.venvs/astro-app) before
   in code · safety path intact · no unexplained dependency.
 - Contract change request → accept or reject in one reply; if accepted, edit contracts.py +
   interfaces.md yourself, merge, announce. Never weaken the safety path or invent thresholds.
+- Before filing a bug to a worker, reproduce it or cite file:line in the code (L4).
+- Test merges only in scratch worktrees (check_merge.sh); never run git commands that change a worker's worktree (L8).
+- Never let a pipe hide a failing exit code: `set -o pipefail`, or check `${PIPESTATUS[0]}` (bash) / `${pipestatus[1]}` (zsh) (L9).
+- Any session can resume any row: keep prompts self-contained, and reassign a row's owner when its session is gone (L10).
+- Lessons: you are the single writer of docs/ops/lessons.yaml (tools/ops/lessons.py). A report's `LESSON:` line → `lessons.py add`; close a lesson only with `lessons.py close ID --guard REF` once the guard is on main.
 
 ## Event-driven loop (primary)
 On each worker message:
@@ -23,6 +28,7 @@ On each worker message:
 3. `review` and mergeable → review the diff → `tools/ops/merge_ready.sh feat/<x>`.
    MERGED → send the BROADCAST line to every session in SEND TO.
    RED/REFUSE → send the owner the failing output (and the re-apply line if reverted).
+   RED also adds a lesson stub (docs/ops/lessons.yaml): fill in cause + guard with the owner.
 4. `blocked`/`question` → answer, re-scope, or reassign; product/safety/medical → the user.
 5. After any message you send a worker, subscribe: SendMessage `{to: <worker>,
    notify_when_idle: true}` (no message). An idle notice with no report → ask for status once.
@@ -31,6 +37,7 @@ Never poll ListAgents and never send "are you done?" loops.
 ## Heartbeat (fallback): run `/loop` with no interval (self-paced, 20–30 min wakeups)
 ```
 Coordinator heartbeat. With VENV set, in the main checkout:
+0. Skim docs/ops/LESSONS.md: open lessons whose guard has landed → lessons.py close.
 1. tools/ops/status.sh --fast   (note behind > 3, dirty-for-long, silent workers)
 2. python tools/ops/board.py list --state review --format tsv; for each branch in merge
    order: review diff, then tools/ops/merge_ready.sh <branch>; broadcast on MERGED.

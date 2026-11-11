@@ -114,11 +114,27 @@ without (a), the coordinator re-plans the board before stopping.
 | Tool | Who | Writes? | What |
 |---|---|---|---|
 | `status.sh [--fast]` | anyone | no | one line per worktree: branch, sha, age, ±main, dirty, tests, ruff |
-| `check_merge.sh <br>` | anyone | no | merge-tree conflicts, ownership warning, tests on the merged tree in a scratch worktree |
-| `merge_ready.sh <br> [ID…]` | coordinator | main + board | check → merge → test → auto-revert or board done + broadcast |
+| `check_merge.sh <br>` | anyone | no | merge-tree conflicts, ownership + reformat-only warnings (L3), tests on the merged tree in a scratch worktree (tracked files only, L1) |
+| `merge_ready.sh <br> [ID…]` | coordinator | main + board + lessons | check → merge → test the merge commit in a scratch checkout → auto-revert + lesson stub, or board done + broadcast |
+| `lessons.py add/list/close/render/stats` | coordinator (stubs: merge_ready, stress) | lessons | source of truth for lessons; `close` refuses unless the guard exists |
 | `board.py list/move/render/validate/owners` | list: anyone; move/render: coordinator | board | source of truth for tasks |
 | `parse_report.py [--board] "<line>"` | coordinator | no | validates a report, prints the board command |
-| `metrics.sh [--days N]` | anyone | no | cycle time per task, merges/day, reverts |
+| `metrics.sh [--days N]` | anyone | no | cycle time per task, merges/day, reverts, lesson counts / recurrences / mean time to guard |
 
 All tools exit 2 with a clear message when the chosen Python lacks pytest; this is never
 reported as a test failure.
+
+## 8. Lessons: the loop learns from every failure
+`docs/ops/lessons.yaml` is the source of truth; `LESSONS.md` is rendered from it by
+`tools/ops/lessons.py` (single writer: the coordinator, like the board).
+- **Read first.** Every task starts by reading `docs/ops/LESSONS.md` (step 0 of every prompt).
+- **Every failure becomes a lesson.** RED merge / revert → `merge_ready.sh` adds a stub (failing
+  tests, branch, sha). A flaky seed → `stress.sh` calls `add_lesson_stub` (`_lib.sh`) with
+  `SOURCE=stress KEY=flaky:<test id>`. A bug fix, review rejection or coordination mistake →
+  the worker adds a `LESSON: <symptom> | <cause> | guard=<ref>` line under its report.
+- **Same failure again = recurrence, not a new lesson.** Lessons carry a `key` (first failing
+  test id, `flaky:<test>`, …); a recurrence reopens a closed lesson: its guard did not hold.
+- **Closed means guarded.** `lessons.py close ID --guard REF` refuses unless REF exists:
+  `test:<path>[::name]`, `config:<file>:<dotted.key>` or `rule:<prompt file>:<text>`.
+  `tests/unit/test_ops_lessons.py` re-checks every closed guard and that LESSONS.md is current.
+- **Measured.** `metrics.sh` prints lessons, open, closed, recurrences and mean time to guard.

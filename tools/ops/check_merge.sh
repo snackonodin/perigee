@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 # check_merge.sh <branch>: read-only merge dry run against main.
 #   1. git merge-tree --write-tree: conflict detection (no refs, no index touched)
-#   2. warn on files changed outside the branch's owned paths (CLAUDE.md)
-#   3. check out the merged tree in a detached scratch worktree, run pytest + ruff
+#   2. warn on files changed outside the branch's owned paths (CLAUDE.md), and flag
+#      changes there that are ONLY reformatting (L3: broad `ruff format <dir>`)
+#   3. check out the merged tree in a detached scratch worktree, run pytest + ruff.
+#      The scratch tree holds tracked files only, so untracked files never count (L1).
 #   4. remove the scratch worktree (trap, also on Ctrl-C / failure)
 # Exit: 0 MERGE OK · 1 conflict or checks failed · 2 usage error.
 # Creates no commits and moves no branch. No network, no secrets.
@@ -11,7 +13,7 @@ set -uo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
 BR="${1:-}"
-[[ -z "$BR" || "$BR" == "-h" || "$BR" == "--help" ]] && { sed -n 2,9p "$0"; exit 2; }
+[[ -z "$BR" || "$BR" == "-h" || "$BR" == "--help" ]] && { sed -n 2,11p "$0"; exit 2; }
 g rev-parse --verify -q "$BR^{commit}" >/dev/null || { echo "no such branch: $BR" >&2; exit 2; }
 g rev-parse --verify -q "$BASE^{commit}" >/dev/null || { echo "no such base: $BASE" >&2; exit 2; }
 pick_python
@@ -32,20 +34,42 @@ if [[ $rc -ne 0 ]]; then
 fi
 tree="$(printf '%s\n' "$mt" | head -1)"
 
-# 2. ownership (warning only; tests/ is shared). Mirrors CLAUDE.md "Folder ownership".
+# 2. ownership (warning only; tests/ is shared). Mirrors CLAUDE.md "Folder ownership":
+#    keep the two in step when ownership changes.
 case "${BR#feat/}" in
   csi-core)  own='^(csi_core/)' ;;
-  db-ingest) own='^(backend/db\.py|backend/models/|migrations/|alembic\.ini|backend/services/(ingestion|runs)\.py|tools/cli\.py)' ;;
-  accounts)  own='^(backend/(security|deps|logging|errors)\.py|backend/services/accounts\.py|backend/api/v1/(auth|me)\.py)' ;;
-  surveys)   own='^(seeds/|backend/services/(surveys|guidance)\.py|backend/api/v1/responses\.py)' ;;
-  pipeline)  own='^(backend/services/(pipeline|fusion)\.py)' ;;
+  db-ingest) own='^(backend/db\.py|backend/models/|migrations/|alembic\.ini|backend/services/(ingestion|runs)\.py|tools/cli\.py|backend/api/v1/(sessions|jobs)\.py|backend/worker\.py)' ;;
+  accounts)  own='^(backend/(security|deps|logging|errors)\.py|backend/services/accounts\.py|backend/api/v1/(auth|me)\.py|backend/static/|docs/ops/|tools/ops/)' ;;
+  surveys)   own='^(seeds/|backend/services/(surveys|guidance|readouts)\.py|backend/api/v1/(instruments|responses|guidance|nights|today)\.py)' ;;
+  pipeline)  own='^(backend/services/(pipeline|fusion|personas)\.py)' ;;
   ops)       own='^(docs/ops/|tools/ops/)' ;;
   *)         own='' ;;
 esac
 files="$(g diff --name-only "$BASE...$BR")"
 echo "files: $(printf '%s\n' "$files" | sed '/^$/d' | wc -l | tr -d ' ') changed"
+# reformat_only FILE: 0 when BR's version of FILE differs from BASE's only by formatting:
+# whitespace for any file; for .py, BR's version equals `ruff format` of BASE's version.
+reformat_only() {
+  local f="$1" formatted
+  g cat-file -e "$BASE:$f" 2>/dev/null && g cat-file -e "$BR:$f" 2>/dev/null || return 1
+  if g diff --quiet -w --ignore-blank-lines "$BASE...$BR" -- "$f"; then return 0; fi
+  [[ "$f" == *.py && ${#RUFF[@]} -gt 0 ]] || return 1
+  formatted="$(cd "$REPO" && g show "$BASE:$f" | "${RUFF[@]}" format --stdin-filename "$f" - 2>/dev/null)" \
+    || return 1
+  [[ "$formatted" == "$(g show "$BR:$f")" ]]
+}
+
 if [[ -n "$own" ]]; then
-  outside="$(printf '%s\n' "$files" | grep -vE "$own" | grep -vE '^tests/' || true)"
+  outside="$(printf '%s\n' "$files" | grep -vE "$own" || true)"
+  reformatted=()
+  while IFS= read -r f; do
+    [[ -n "$f" ]] && reformat_only "$f" && reformatted+=("$f")
+  done <<<"$outside"
+  if [[ ${#reformatted[@]} -gt 0 ]]; then
+    echo "WARN  reformat-only changes outside owned paths (L3: format only files you changed):"
+    printf '%s\n' "${reformatted[@]}" | sed 's/^/  /'
+  fi
+  outside="$(printf '%s\n' "$outside" | grep -vE '^tests/' || true)"
   if [[ -n "$outside" ]]; then
     echo "WARN  outside owned paths (coordinator approval needed):"
     printf '%s\n' "$outside" | sed 's/^/  /'

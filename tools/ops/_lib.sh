@@ -67,3 +67,50 @@ show_test_failure() {
     printf '%s\n' "$T_OUT" | grep -E '^(FAILED|ERROR) ' | head -15 | sed 's/^/  /'
   fi
 }
+
+# checks_in_scratch REF: run_checks on a detached scratch worktree of REF, so only TRACKED
+# files are tested and linted (L1: an untracked folder in main once failed ruff and
+# auto-reverted a good merge). Sets the same variables as run_checks. Returns 1 when no
+# scratch worktree could be made (T_RES=ERROR(...)).
+checks_in_scratch() {
+  local ref="$1" scratch wt
+  scratch="$(mktemp -d "${TMPDIR:-/tmp}/astro-check.XXXXXX")"; wt="$scratch/wt"
+  if ! g worktree add --quiet --detach "$wt" "$ref" >/dev/null 2>&1; then
+    rm -rf "$scratch"
+    T_RES="ERROR(no scratch worktree)"; T_SUMMARY=""; T_OUT=""; R_RES="n/a"; R_OUT=""
+    return 1
+  fi
+  run_checks "$wt"
+  g worktree remove --force "$wt" >/dev/null 2>&1
+  rm -rf "$scratch"
+  g worktree prune >/dev/null 2>&1
+  return 0
+}
+
+# failing_lines: FAILED/ERROR test lines and ruff findings from the last run_checks.
+failing_lines() {
+  { printf '%s\n' "${T_OUT:-}" | grep -E '^(FAILED|ERROR) ' | head -15
+    printf '%s\n' "${R_OUT:-}" | grep -E ':[0-9]+:[0-9]+:' | head -10; } | sed 's/ - .*//'
+}
+
+# add_lesson_stub FILE SOURCE SURFACED SYMPTOM BRANCH SHA KEY [FAILING LINE ...]
+# Adds an open lesson to FILE (docs/ops/lessons.yaml) and renders LESSONS.md; a lesson with
+# the same KEY gets a recurrence instead. No-op when FILE does not exist. stress.sh (QA-1)
+# calls this for a flaky seed: SOURCE=stress, KEY=flaky:<test node id>.
+add_lesson_stub() {
+  local file="$1" src="$2" surfaced="$3" symptom="$4" br="$5" sha="$6" key="$7"
+  shift 7
+  [[ -f "$file" ]] || return 0
+  "$PY" "$OPS_DIR/lessons.py" --file "$file" add --source "$src" --surfaced "$surfaced" \
+    --symptom "$symptom" ${br:+--branch "$br"} ${sha:+--sha "$sha"} ${key:+--key "$key"} \
+    --failing "$@"
+}
+
+# lesson_key: stable key for the last failure (first failing test id, else first ruff file).
+lesson_key() {
+  local t r
+  t="$(printf '%s\n' "${T_OUT:-}" | grep -E '^(FAILED|ERROR) ' | head -1 | awk '{print $2}')"
+  if [[ -n "$t" ]]; then echo "red:$t"; return; fi
+  r="$(printf '%s\n' "${R_OUT:-}" | grep -E ':[0-9]+:[0-9]+:' | head -1 | cut -d: -f1)"
+  [[ -n "$r" ]] && echo "red:ruff:$r" || echo ""
+}

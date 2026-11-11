@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+# merge_ready.sh <branch> [ID ...]: COORDINATOR ONLY. Writes to main.
+#   0. refuse if the main worktree is dirty or the branch has nothing to merge
+#   1. tools/ops/check_merge.sh <branch> must print MERGE OK
+#   2. git merge --no-ff <branch> in the main worktree
+#   3. pytest + ruff on main
+#      red   → git revert -m 1 automatically, board rows → doing, exit 1 with failing tests
+#      green → board rows → done (sha = merge commit), render BOARD.md, commit the board,
+#              print the "main moved to <sha>, rebase" broadcast and who to send it to
+# IDs default to the board rows on <branch> in state `review`.
+# Exit: 0 merged · 1 refused / red (reverted) · 2 usage or environment error.
+set -uo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
+
+BR="${1:-}"
+[[ -z "$BR" || "$BR" == "-h" || "$BR" == "--help" ]] && { sed -n 2,12p "$0"; exit 2; }
+shift; IDS=("$@")
+pick_python
+
+MAIN="$(main_worktree)"
+[[ -n "$MAIN" ]] || { echo "REFUSE: no worktree has $BASE checked out" >&2; exit 2; }
+m() { git -C "$MAIN" "$@"; }
+g rev-parse --verify -q "$BR^{commit}" >/dev/null || { echo "no such branch: $BR" >&2; exit 2; }
+
+dirty="$(m status --porcelain)"
+if [[ -n "$dirty" ]]; then
+  echo "REFUSE: $BASE working tree is dirty; commit or clean it first:"
+  printf '%s\n' "$dirty" | head -10 | sed 's/^/  /'
+  exit 1
+fi
+ahead="$(g rev-list --count "$BASE..$BR")"
+[[ "$ahead" -gt 0 ]] || { echo "REFUSE: $BR has nothing to merge into $BASE"; exit 1; }
+
+BOARD_FILE="$MAIN/docs/ops/board.yaml"
+board() { "$PY" "$OPS_DIR/board.py" --file "$BOARD_FILE" "$@"; }
+HAVE_BOARD=0; [[ -f "$BOARD_FILE" ]] && HAVE_BOARD=1
+if [[ $HAVE_BOARD -eq 1 && ${#IDS[@]} -eq 0 ]]; then
+  while IFS=$'\t' read -r id _state _owner branch _rest; do
+    [[ "$branch" == "$BR" ]] && IDS+=("$id")
+  done < <(board list --state review --format tsv)
+fi
+label="${IDS[*]:-no board IDs}"
+
+# 1. dry run
+echo "== check_merge $BR"
+"$OPS_DIR/check_merge.sh" "$BR" || { echo "REFUSE: check_merge failed; nothing merged"; exit 1; }
+
+# 2. merge
+echo "== merge $BR into $BASE ($label)"
+if ! m merge --no-ff --no-edit -m "Merge $BR ($label)" "$BR" >/dev/null; then
+  m merge --abort >/dev/null 2>&1
+  echo "REFUSE: merge failed in $MAIN; aborted, $BASE unchanged"; exit 1
+fi
+merge_sha="$(m rev-parse --short HEAD)"
+
+commit_board() {  # $1 = state, $2 = sha or "", $3 = message
+  [[ $HAVE_BOARD -eq 1 && ${#IDS[@]} -gt 0 ]] || return 0
+  local id
+  for id in "${IDS[@]}"; do board move "$id" "$1" ${2:+--sha "$2"} >/dev/null || return 1; done
+  board render >/dev/null && m add docs/ops/board.yaml docs/ops/BOARD.md \
+    && m commit -q -m "$3" >/dev/null
+}
+
+# 3. verify on main
+echo "== pytest + ruff on $BASE@$merge_sha"
+run_checks "$MAIN"
+if [[ "$T_RES" != pass* && "$T_RES" != none || "$R_RES" == FAIL* ]]; then
+  echo "RED: tests=$T_RES ruff=$R_RES. Reverting $merge_sha"
+  show_test_failure
+  printf '%s\n' "$R_OUT" | grep -E ':[0-9]+:[0-9]+:' | head -10 | sed 's/^/  /'
+  if ! m revert -m 1 --no-edit HEAD >/dev/null; then
+    echo "REVERT FAILED: fix $BASE by hand NOW (git -C <main> revert -m 1 $merge_sha)"; exit 2
+  fi
+  commit_board doing "" "board: $label → doing (merge $merge_sha reverted)" \
+    || echo "WARN board not updated"
+  rev_sha="$(m log -1 --format=%h --grep='^Revert ' 2>/dev/null)"
+  echo "REVERTED: $BASE at $(m rev-parse --short HEAD). Send the owner of $BR the failing tests and:"
+  echo "  git rebase $BASE && git revert --no-edit $rev_sha   # re-apply your work (git won't re-merge reverted commits)"
+  echo "  then fix, commit, pytest + ruff, report review again"
+  exit 1
+fi
+
+if ! commit_board done "$merge_sha" "board: $label → done ($merge_sha)"; then
+  echo "WARN merged and green, but the board update failed: run board.py move by hand"
+fi
+new_sha="$(m rev-parse --short HEAD)"
+echo "MERGED $BR → $BASE@$merge_sha tests=$T_RES ruff=$R_RES"
+
+# who needs to rebase: every owner branch with commits not on main
+to=()
+if [[ $HAVE_BOARD -eq 1 ]]; then
+  while IFS=$'\t' read -r _id sess obr; do
+    [[ -z "$obr" || "$obr" == "$BASE" ]] && continue
+    g rev-parse --verify -q "$obr" >/dev/null || continue
+    [[ "$(g rev-list --count "$BASE..$obr")" -gt 0 ]] && to+=("$sess")
+  done < <(board owners)
+fi
+echo "BROADCAST: main moved to $new_sha, rebase"
+echo "SEND TO: ${to[*]:-(no unmerged branches)}"

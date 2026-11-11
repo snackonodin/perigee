@@ -6,6 +6,8 @@
     python -m tools.cli reset-demo --yes
     python -m tools.cli seed-personas            (stub until the OPS-6 persona spec lands)
     python -m tools.cli export --user <id|email> --out FILE.json
+    python -m tools.cli backup --out FILE.astrobk [--no-raw]
+    python -m tools.cli restore FILE.astrobk [--force]   (stop the API first)
 
 The DB comes from DATABASE_URL (settings) unless --db-url is given. Results are written
 to stdout as JSON; diagnostics go to the (redacting) log on stderr.
@@ -21,6 +23,7 @@ import logging
 import os
 import sys
 from collections.abc import Sequence
+from dataclasses import asdict
 from datetime import date
 from pathlib import Path
 from typing import Any
@@ -156,6 +159,36 @@ def cmd_export(db: Session, args: argparse.Namespace) -> int:
 # ----------------------------------------------------------------- parser
 
 
+def cmd_backup(db: Session, args: argparse.Namespace) -> int:
+    from backend.services.backup import BackupError, create_backup
+
+    try:
+        summary = create_backup(Path(args.out), include_raw=not args.no_raw)
+    except BackupError as exc:
+        log.error("backup failed: %s", exc)
+        _out({"status": "failed", "error": str(exc)})
+        return 1
+    _out({"status": "ok", **asdict(summary)})
+    return 0
+
+
+def cmd_restore(db: Session, args: argparse.Namespace) -> int:
+    from backend.services.backup import BackupError, RestoreRefused, restore_backup
+
+    db.close()
+    try:
+        summary = restore_backup(Path(args.archive), force=args.force)
+    except RestoreRefused as exc:
+        _out({"status": "refused", "error": str(exc)})
+        return 2
+    except BackupError as exc:
+        log.error("restore failed: %s", exc)
+        _out({"status": "failed", "error": str(exc)})
+        return 1
+    _out({"status": "ok", **asdict(summary)})
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="astro", description="Astronaut Health Monitor operator CLI")
     p.add_argument("--db-url", help="override DATABASE_URL (default: from settings)")
@@ -185,6 +218,16 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--user", required=True, help="user id or email")
     s.add_argument("--out", required=True, help="output file (must not exist)")
     s.set_defaults(fn=cmd_export)
+
+    s = sub.add_parser("backup", help="encrypted DB snapshot + raw files (key from FIELD_KEY)")
+    s.add_argument("--out", required=True, help="archive path (outside the repo; must not exist)")
+    s.add_argument("--no-raw", action="store_true", help="manifest only, not the raw files")
+    s.set_defaults(fn=cmd_backup)
+
+    s = sub.add_parser("restore", help="verify, decrypt and restore a backup archive")
+    s.add_argument("archive", type=Path)
+    s.add_argument("--force", action="store_true", help="overwrite a non-empty DB / raw files")
+    s.set_defaults(fn=cmd_restore)
     return p
 
 

@@ -35,3 +35,45 @@ def test_in_memory_url_is_allowed() -> None:
     eng = get_engine("sqlite://")
     with eng.connect() as c:
         assert c.execute(text("PRAGMA foreign_keys")).scalar() == 1
+
+
+SENTINEL = "sentinel-answer-7f3c91"
+
+
+def _leak_paths(eng, caplog: pytest.LogCaptureFixture) -> str:
+    """Run a bound INSERT with echo + INFO logging, plus a failing statement; return
+    everything that was logged or raised."""
+    import logging
+
+    caplog.set_level(logging.INFO, logger="sqlalchemy.engine")
+    eng.echo = True
+    with eng.begin() as c:
+        c.execute(text("CREATE TABLE t (v TEXT UNIQUE)"))
+        c.execute(text("INSERT INTO t (v) VALUES (:v)"), {"v": SENTINEL})
+    err = ""
+    try:
+        with eng.begin() as c:
+            c.execute(text("INSERT INTO t (v) VALUES (:v)"), {"v": SENTINEL})  # UNIQUE fails
+    except Exception as exc:  # noqa: BLE001 - we inspect the message
+        err = str(exc)
+    eng.dispose()
+    return caplog.text + "\n" + err
+
+
+def test_sql_logging_and_errors_never_show_bound_values(
+    data_dir, caplog: pytest.LogCaptureFixture
+) -> None:
+    out = _leak_paths(get_engine(f"sqlite:///{data_dir / 'leak.db'}"), caplog)
+    assert "INSERT INTO t" in out and "UNIQUE" in out  # the paths really ran
+    assert SENTINEL not in out
+
+
+def test_leak_check_detects_a_leak_without_hide_parameters(
+    data_dir, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Control: the same check on a plain engine does see the value, so the test above
+    would catch a regression."""
+    from sqlalchemy import create_engine
+
+    out = _leak_paths(create_engine(f"sqlite:///{data_dir / 'control.db'}"), caplog)
+    assert SENTINEL in out

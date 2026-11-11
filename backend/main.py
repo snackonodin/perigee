@@ -30,6 +30,7 @@ ROUTER_MODULES: list[tuple[str, str]] = [
     ("backend.api.v1.sessions", "router"),
     ("backend.api.v1.nights", "router"),
     ("backend.api.v1.jobs", "router"),
+    ("backend.api.v1.guidance", "router"),
     ("backend.api.v1.today", "router"),
 ]
 

@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Astronaut Health Monitor</title>
+  <link rel="stylesheet" href="app.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">Astronaut Health Monitor</div>
+    <span id="synthetic-badge" class="badge" hidden>Synthetic data</span>
+    <div class="spacer"></div>
+    <label class="persona" id="persona-wrap" hidden>
+      <span>Persona</span>
+      <select id="persona-select"></select>
+    </label>
+    <span id="who" class="who"></span>
+    <button id="logout-btn" class="ghost" hidden>Log out</button>
+  </header>
+
+  <p class="disclaimer">Screening and awareness tool, not a diagnosis. If you feel unwell, contact your flight surgeon.</p>
+
+  <main id="app">
+    <!-- Login / signup -->
+    <section id="screen-login" class="screen card narrow" hidden>
+      <h1 id="login-title">Sign in</h1>
+      <form id="login-form" autocomplete="on">
+        <label>Email <input id="login-email" type="email" required autocomplete="username"></label>
+        <label>Password <input id="login-password" type="password" required minlength="10" autocomplete="current-password"></label>
+        <button type="submit" id="login-submit">Sign in</button>
+        <p class="error" id="login-error" role="alert"></p>
+      </form>
+      <p class="muted">
+        <button type="button" class="link" id="toggle-signup">Create an account instead</button>
+      </p>
+    </section>
+
+    <!-- Today -->
+    <section id="screen-today" class="screen" hidden>
+      <div class="grid">
+        <article class="card">
+          <h2>Last night</h2>
+          <div id="night"></div>
+        </article>
+        <article class="card">
+          <h2>Check-ins due</h2>
+          <div id="pending"></div>
+        </article>
+        <article class="card wide">
+          <h2>Breathing rate trend</h2>
+          <p class="muted">Median breathing rate per night (breaths/min). The shaded band is your personal median ± MAD.</p>
+          <div id="trend"></div>
+        </article>
+        <article class="card wide">
+          <h2>What stands out</h2>
+          <div id="flags"></div>
+        </article>
+        <article class="card wide">
+          <h2>Your baselines</h2>
+          <div id="baselines"></div>
+        </article>
+      </div>
+      <p class="error" id="today-error" role="alert"></p>
+    </section>
+
+    <!-- Check-in form, rendered from GET /instruments/{id} -->
+    <section id="screen-checkin" class="screen card narrow" hidden>
+      <button type="button" class="link" id="checkin-back">← Back to Today</button>
+      <h1 id="checkin-title"></h1>
+      <p class="muted" id="checkin-timeframe"></p>
+      <form id="checkin-form"></form>
+      <p class="error" id="checkin-error" role="alert"></p>
+      <div id="checkin-result"></div>
+    </section>
+  </main>
+
+  <!-- Safety screen: shown immediately, above everything, before any score -->
+  <div id="safety" class="safety" role="alertdialog" aria-modal="true" aria-labelledby="safety-title" hidden>
+    <div class="safety-box">
+      <h1 id="safety-title">Please reach out for support now</h1>
+      <p id="safety-reason"></p>
+      <ul id="safety-resources"></ul>
+      <button type="button" id="safety-ack">I have read this</button>
+    </div>
+  </div>
+</body>
+</html>

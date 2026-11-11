@@ -22,3 +22,6 @@ When a value is validated, record the data and date next to it.
 | baseline.window_days | 28 | Rolling personal baseline | no |
 | baseline.warmup_nights / mature_nights | 5 / 14 | Maturity states | no |
 | baseline.alert_robust_z | 2.5 | Deviation that raises a physiological flag | no |
+| auth.login_window_s | 900 | Login-failure counting window (s) | no |
+| auth.max_failures_per_email_ip | 5 | Failed logins per (email, IP) before 429 | no |
+| auth.max_failures_per_email | 20 | Failed logins per email across IPs before 429 | no |

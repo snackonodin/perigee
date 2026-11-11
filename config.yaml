@@ -50,3 +50,11 @@ estimators:
   breath: "csi_core.breath:reference_core"
   heart: "csi_core.heart:reference_core"
   motion: "csi_core.motion:reference_core"
+
+auth:
+  # Login throttling: in-process fixed windows, no Redis. Counts FAILED logins only.
+  # When a window's count reaches its max, further logins for that key get 429 +
+  # Retry-After until the window ends. A successful login clears the (email, ip) count only.
+  login_window_s: 900               # PLACEHOLDER: window length, seconds
+  max_failures_per_email_ip: 5      # PLACEHOLDER: per (email, client IP)
+  max_failures_per_email: 20        # PLACEHOLDER: per email, across all IPs

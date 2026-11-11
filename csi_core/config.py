@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_PATH = ROOT / "config.yaml"
@@ -73,6 +73,12 @@ class EstimatorsCfg(_Section):
     motion: str = "csi_core.motion:reference_core"
 
 
+class AuthCfg(_Section):
+    login_window_s: int = Field(default=900, gt=0)
+    max_failures_per_email_ip: int = Field(default=5, gt=0)
+    max_failures_per_email: int = Field(default=20, gt=0)
+
+
 class CoreConfig(_Section):
     capture: CaptureCfg
     preprocess: PreprocessCfg
@@ -82,6 +88,7 @@ class CoreConfig(_Section):
     safety: SafetyCfg
     retention: RetentionCfg
     estimators: EstimatorsCfg = EstimatorsCfg()
+    auth: AuthCfg = AuthCfg()
 
 
 def resolve_estimator(spec: str) -> Callable[..., Any]:

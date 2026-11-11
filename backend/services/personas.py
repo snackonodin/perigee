@@ -420,8 +420,8 @@ def raw_demo_dir(
     return final
 
 
-def _run_kind(db: Session, kind: str, params: dict) -> None:
-    rec = runs.execute(db, runs.create_run(db, kind, params, []).id)
+def _run_kind(db: Session, kind: str, params: dict, user_id: str) -> None:
+    rec = runs.execute(db, runs.create_run(db, kind, params, [], user_id=user_id).id)
     if rec.status is not RunStatus.succeeded:
         raise RuntimeError(f"{kind} failed: {rec.log.strip().splitlines()[-1]}")
 
@@ -452,7 +452,7 @@ def seed_raw(
         )
     )
     if not has_windows:
-        _run_kind(db, "process_session", {"session_id": sess.id, "user_id": uid})
+        _run_kind(db, "process_session", {"session_id": sess.id}, uid)
     return sess.id
 
 
@@ -481,6 +481,7 @@ def seed(
                 db,
                 "seed_persona_windows",
                 {"persona": p.key, "user_id": uid, "anchor": anchor.isoformat()},
+                uid,
             )
         raw_sid = seed_raw(db, p, uid, anchor, fs=raw_fs, n_sub=raw_n_sub, cache_root=cache_root)
         # Chronological: a night only sees surveys submitted up to that day, so the
@@ -491,7 +492,7 @@ def seed(
             night = anchor - timedelta(days=14 - i)
             n_surveys += seed_surveys_for_day(db, p, uid, anchor, i)
             if night not in done:
-                _run_kind(db, "run_nightly", {"user_id": uid, "day": night.isoformat()})
+                _run_kind(db, "run_nightly", {"user_id": uid, "day": night.isoformat()}, uid)
                 ran += 1
         if include_final_phq9:
             n_surveys += seed_final_phq9(db, p, uid, anchor)

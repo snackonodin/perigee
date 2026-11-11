@@ -6,7 +6,7 @@ import importlib
 from collections.abc import Callable
 from functools import lru_cache
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field
@@ -72,6 +72,12 @@ class EstimatorsCfg(_Section):
     breath: str = "csi_core.breath:reference_core"
     heart: str = "csi_core.heart:reference_core"
     motion: str = "csi_core.motion:reference_core"
+    # What a core receives per window: "signal" = the clean 1-D signal x,
+    # "matrix" = the bin-averaged, unfiltered (n, n_sub) amplitude window + active mask.
+    breath_input: Literal["signal", "matrix"] = "signal"
+    motion_input: Literal["signal", "matrix"] = "signal"
+    # "iq": heart_core_iq(t_s, csi, active, cfg) on each window's packet-level complex CSI.
+    heart_input: Literal["signal", "iq"] = "signal"
 
 
 class AuthCfg(_Section):

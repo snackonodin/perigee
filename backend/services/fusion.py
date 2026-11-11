@@ -61,16 +61,17 @@ def _default_indices(db: Session, user_id: str, week: date) -> Mapping[str, Any]
 
 def latest_indices(
     db: Session, user_id: str, day: date, provider: IndicesProvider, cfg: CoreConfig
-) -> tuple[date, Mapping[str, Any]]:
-    """Most recent week (Monday <= day) with any indices, looking back at most
-    baseline.window_days. Returns (week_start, indices); {} when none."""
+) -> dict[str, tuple[date, Mapping[str, Any] | float]]:
+    """Per index, its most recent week (Monday <= day), looking back at most
+    baseline.window_days. A weekly survey keeps its latest band even when the
+    current week only has daily check-ins. Returns {name: (week_start, entry)}."""
     week = week_start(day)
+    out: dict[str, tuple[date, Mapping[str, Any] | float]] = {}
     for k in range(max(cfg.baseline.window_days // 7, 1)):
         w = week - timedelta(weeks=k)
-        raw = provider(db, user_id, w)
-        if raw:
-            return w, raw
-    return week, {}
+        for name, entry in (provider(db, user_id, w) or {}).items():
+            out.setdefault(name, (w, entry))
+    return out
 
 
 def _split_indices(raw: Mapping[str, Any]) -> tuple[dict, dict, dict]:
@@ -123,7 +124,8 @@ def _source_kind(db: Session, user_id: str, session_ids: list[str]) -> str:
         user_id,
     )
     kinds = set(db.scalars(stmt))
-    return SourceKind.synthetic.value if kinds == {SourceKind.synthetic.value} else "csi"
+    # Any synthetic input makes the night synthetic: keeps it out of real statistics.
+    return SourceKind.synthetic.value if SourceKind.synthetic.value in kinds else "csi"
 
 
 def _upsert_night(db: Session, nf: NightFeatures, run_id: str | None) -> NightFeaturesRow:
@@ -180,23 +182,41 @@ def _phys_history(
     return hist
 
 
+def _store_indices(db: Session, user_id: str, latest: dict[str, tuple[date, Any]]) -> None:
+    """Persist each index's latest weekly value (indices table, FR9). Upsert."""
+    for name, (week, entry) in latest.items():
+        value = entry.get("value") if isinstance(entry, Mapping) else entry
+        if value is None:
+            continue
+        stmt = scoped(
+            select(IndexValue).where(IndexValue.week_start == week, IndexValue.name == name),
+            IndexValue,
+            user_id,
+        )
+        row = db.scalar(stmt)
+        if row is None:
+            row = IndexValue(user_id=user_id, week_start=week, name=name, value=float(value))
+            db.add(row)
+        row.value = float(value)
+
+
 def _mental_history(
-    db: Session, user_id: str, names: list[str], week: date, cfg: CoreConfig
+    db: Session, user_id: str, weeks: dict[str, date], cfg: CoreConfig
 ) -> dict[str, list[float]]:
-    """Earlier weeks' index values inside the baseline window (current week excluded)."""
-    if not names:
+    """Per index, values from weeks before its latest week, inside the baseline window."""
+    if not weeks:
         return {}
-    lo = week - timedelta(days=cfg.baseline.window_days)
+    lo = min(weeks.values()) - timedelta(days=cfg.baseline.window_days)
     stmt = scoped(
-        select(IndexValue).where(
-            IndexValue.name.in_(names), IndexValue.week_start >= lo, IndexValue.week_start < week
-        ),
+        select(IndexValue).where(IndexValue.name.in_(list(weeks)), IndexValue.week_start >= lo),
         IndexValue,
         user_id,
     ).order_by(IndexValue.week_start)
-    hist: dict[str, list[float]] = {n: [] for n in names}
+    hist: dict[str, list[float]] = {n: [] for n in weeks}
     for r in db.scalars(stmt):
-        hist[r.name].append(float(r.value))
+        top = weeks[r.name]
+        if top - timedelta(days=cfg.baseline.window_days) <= r.week_start < top:
+            hist[r.name].append(float(r.value))
     return hist
 
 
@@ -270,12 +290,16 @@ def run_nightly(
     _upsert_night(db, nf, run_id)
     db.flush()
 
-    week, raw = latest_indices(db, user_id, day, indices_provider or _default_indices, cfg)
-    values, direction, bands = _split_indices(raw)
+    latest = latest_indices(db, user_id, day, indices_provider or _default_indices, cfg)
+    values, direction, bands = _split_indices({k: e for k, (_, e) in latest.items()})
+    _store_indices(db, user_id, latest)
+    db.flush()
 
     sk = nf.source_kind.value
     prior = _baselines(user_id, _phys_history(db, user_id, day, sk, cfg, include_day=False), cfg)
-    mental_prior = _baselines(user_id, _mental_history(db, user_id, sorted(values), week, cfg), cfg)
+    mental_prior = _baselines(
+        user_id, _mental_history(db, user_id, {k: latest[k][0] for k in values}, cfg), cfg
+    )
     drafts = score_night(
         nf,
         prior | mental_prior,
@@ -303,9 +327,10 @@ def run_nightly(
 @runs.register("run_nightly")
 def run_nightly_handler(db: Session, run: PipelineRun) -> str:
     p = run.parameters
-    if not p.get("user_id") or not p.get("day"):
+    day = p.get("day") or p.get("date")  # tools/cli.py sends "date"
+    if not p.get("user_id") or not day:
         raise ValueError("run_nightly params must include user_id and day (ISO date)")
-    out = run_nightly(db, p["user_id"], date.fromisoformat(p["day"]), run_id=run.id)
+    out = run_nightly(db, p["user_id"], date.fromisoformat(day), run_id=run.id)
     return (
         f"run_nightly night={out['night']} windows={out['windows']} "
         f"valid={out.get('valid')} flags={out['flags']}"

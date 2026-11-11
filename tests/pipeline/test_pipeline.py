@@ -127,7 +127,8 @@ def test_band_alert_and_direction_from_indices(db, processed) -> None:
     uid, _, _ = processed
 
     def provider(_db, _uid, week):
-        assert week == date(2026, 11, 9)  # Monday
+        if week != date(2026, 11, 9):  # Monday of the night's week
+            return {}
         return {
             "phq2": {"value": 4.0, "direction": 1, "band": "positive screen", "band_alert": True},
             "who5": {"value": 80.0, "direction": -1, "band": "ok", "band_alert": False},
@@ -186,24 +187,42 @@ def test_unusable_session_is_refused(db, processed) -> None:
     assert _counts(db) == before
 
 
-@pytest.mark.slow
-def test_latest_indices_looks_back_to_most_recent_week(db, processed) -> None:
+def test_latest_indices_keeps_each_index_latest_week(db) -> None:
     from csi_core.config import get_config
 
-    uid, _, _ = processed
-    seen = []
-
     def provider(_db, _uid, week):
-        seen.append(week)
-        return (
-            {"phq2": {"value": 1.0, "band": None, "band_alert": False, "direction": 1}}
-            if (week == date(2026, 11, 2))
-            else {}
-        )
+        if week == date(2026, 11, 9):  # only check-ins this week
+            return {
+                "daily_pm.stress": {"value": 2.0, "band": None, "band_alert": False, "direction": 1}
+            }
+        if week == date(2026, 11, 2):
+            return {
+                "phq2": {
+                    "value": 3.0,
+                    "band": "at or above screening cutoff",
+                    "band_alert": True,
+                    "direction": 1,
+                },
+                "daily_pm.stress": {
+                    "value": 1.0,
+                    "band": None,
+                    "band_alert": False,
+                    "direction": 1,
+                },
+            }
+        return {}
 
-    week, raw = fusion.latest_indices(db, uid, NIGHT, provider, get_config())
-    assert week == date(2026, 11, 2) and "phq2" in raw
-    assert seen == [date(2026, 11, 9), date(2026, 11, 2)]
+    out = fusion.latest_indices(db, "u", NIGHT, provider, get_config())
+    assert out["phq2"][0] == date(2026, 11, 2)
+    assert out["daily_pm.stress"] == (
+        date(2026, 11, 9),
+        provider(None, None, date(2026, 11, 9))["daily_pm.stress"],
+    )
+
+
+def test_cli_date_param_alias(db) -> None:
+    rec = _run(db, "run_nightly", {"user_id": "nobody", "date": NIGHT.isoformat()})
+    assert rec.status is RunStatus.succeeded and "windows=0" in rec.log
 
 
 def test_night_date_uses_profile_timezone() -> None:

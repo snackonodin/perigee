@@ -69,8 +69,13 @@ def read_team_capture(path: Path, phone_mac: str | None = None) -> pd.DataFrame:
             "rate": df["rate"].astype(np.int64),
         }
     )
-    for c in active:
-        out[f"a{int(c[4:])}"] = df[c].astype(float).to_numpy()
+    cols = {f"a{int(c[4:])}": df[c].astype(float).to_numpy() for c in active}
+    # Signed I/Q (newer logger / ESP-B firmware): kept as iK / qK for the heart path.
+    if "csi_i_00" in df.columns and df["csi_i_00"].notna().all():
+        for k in range(sum(c.startswith("csi_i_") for c in df.columns)):
+            cols[f"i{k}"] = df[f"csi_i_{k:02d}"].astype(float).to_numpy()
+            cols[f"q{k}"] = df[f"csi_q_{k:02d}"].astype(float).to_numpy()
+    out = pd.concat([out.reset_index(drop=True), pd.DataFrame(cols)], axis=1)
     return out.reset_index(drop=True)
 
 

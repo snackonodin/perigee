@@ -152,6 +152,45 @@ def bin_average(df: pd.DataFrame, cfg: CoreConfig) -> tuple[np.ndarray, np.ndarr
     return out, active
 
 
+IQ_MIN_INTERVAL_US = 2000  # the team's I/Q loader rejects packets < 2 ms apart
+
+
+@dataclass(frozen=True)
+class IQPackets:
+    """Packet-level complex CSI for phase-based (heart) cores."""
+
+    t_s: np.ndarray  # seconds from the first kept packet (device clock)
+    csi: np.ndarray  # complex (n, n_sub)
+    active: np.ndarray  # bool (n_sub,)
+    t0_utc: datetime
+
+
+def has_iq(df: pd.DataFrame) -> bool:
+    return "i0" in df.columns and "q0" in df.columns
+
+
+def iq_packets(df: pd.DataFrame, cfg: CoreConfig) -> IQPackets:
+    """Same filtering as the team's load_iq_capture: unwrap device time, keep strictly
+    increasing packets at least 2 ms apart, active = non-zero in >= 99% of packets."""
+    if not has_iq(df):
+        raise ValueError("capture has no I/Q columns (amplitude-only firmware)")
+    n_sub = sum(1 for c in df.columns if c.startswith("i") and c[1:].isdigit())
+    t_us = unwrap_us(df["ts_us"].to_numpy(dtype=np.int64), bits=cfg.capture.timestamp_bits)
+    keep = np.zeros(t_us.size, dtype=bool)
+    last = None
+    for k, t in enumerate(t_us):
+        if last is None or (t > last and t - last >= IQ_MIN_INTERVAL_US):
+            keep[k] = True
+            last = t
+    i = df[[f"i{k}" for k in range(n_sub)]].to_numpy(dtype=float)[keep]
+    q = df[[f"q{k}" for k in range(n_sub)]].to_numpy(dtype=float)[keep]
+    csi = i + 1j * q
+    t = (t_us[keep] - t_us[keep][0]) / 1e6
+    active = (np.abs(csi) > 0).mean(axis=0) >= 0.99
+    t0 = pd.Timestamp(df["host_time_utc"].iloc[int(np.flatnonzero(keep)[0])]).to_pydatetime()
+    return IQPackets(t_s=t, csi=csi, active=active, t0_utc=t0)
+
+
 def clean_band(
     df: pd.DataFrame,
     cfg: CoreConfig,

@@ -11,9 +11,10 @@
 | File | sha256 | Used for |
 |---|---|---|
 | `pipeline.py` | `14c8fc7ab75e599de483921fe30edba2f0fe2d292f3c9e9d03cdcd20b0d03ee4` | breath (rate A/B, PNR) and amplitude motion feature |
+| `heart_rate.py` | `85c83d5d112258f33dcc89b28a3617d88bfab8cb21f6444e0607a9f4dd42af6d` | experimental I/Q heart rate (SCR-2, vendored 2026-11-12) |
 
-Not vendored yet: `heart_rate.py` and `movement.py` need signed I/Q captures (ESP-B
-firmware); they come with SCR-2 once an I/Q sample exists. `logger.py`/`capture.py`
+Not vendored yet: `movement.py` (I/Q Doppler movement; imports `heart_rate` absolutely,
+so its adapter will alias the vendored module rather than edit the file). `logger.py`/`capture.py`
 (pyserial) and `calibrate.py` (matplotlib) run on the capture device, not in the app.
 
 Upstream dependency pins: numpy==1.26.4, scipy==1.13.1. The app runs them with its own

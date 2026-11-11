@@ -76,6 +76,8 @@ class EstimatorsCfg(_Section):
     # "matrix" = the bin-averaged, unfiltered (n, n_sub) amplitude window + active mask.
     breath_input: Literal["signal", "matrix"] = "signal"
     motion_input: Literal["signal", "matrix"] = "signal"
+    # "iq": heart_core_iq(t_s, csi, active, cfg) on each window's packet-level complex CSI.
+    heart_input: Literal["signal", "iq"] = "signal"
 
 
 class AuthCfg(_Section):

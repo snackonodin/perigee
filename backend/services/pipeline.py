@@ -122,7 +122,7 @@ def process(
 
     df = read_rotating(files)
     windows = breath.estimate_windows(clean(df, cfg), sess.id, cfg)
-    hearts = heart.estimate_windows(heart.clean_heart(df, cfg), sess.id, cfg)
+    hearts = heart.estimate_session(df, sess.id, cfg)
 
     for model in (WindowEstimateRow, HeartEstimateRow):
         db.execute(

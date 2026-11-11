@@ -419,7 +419,6 @@ def test_answers_hmac_key_derives_from_field_key_not_secret_key(monkeypatch) -> 
         for k, v in env.items():
             monkeypatch.setenv(k, v)
         get_settings.cache_clear()
-        surveys._answers_hmac_key.cache_clear()
         return surveys.answers_digest(a)
 
     try:
@@ -430,7 +429,6 @@ def test_answers_hmac_key_derives_from_field_key_not_secret_key(monkeypatch) -> 
     finally:
         monkeypatch.undo()
         get_settings.cache_clear()
-        surveys._answers_hmac_key.cache_clear()
 
 
 # --------------------------------------------------------------------------- LEAK-1 (lesson L6)
@@ -481,3 +479,37 @@ def test_weekly_indices_until_boundaries(db) -> None:
     )
     with pytest.raises(ValueError):
         surveys.weekly_indices(db, "u1", WEEK, until=datetime(2026, 11, 11, 12))
+
+
+def test_field_key_rotation_mid_run_never_uses_stale_hmac_key(monkeypatch) -> None:
+    """Rotating FIELD_KEY the way other tests do (env + get_settings + security reset)
+    must change the digest, with no surveys-specific cache to clear."""
+    from cryptography.fernet import Fernet
+
+    from backend.config import get_settings
+
+    a = {"phq9_9": 1}
+
+    def rotate(key: str) -> str:
+        monkeypatch.setenv("FIELD_KEY", key)
+        get_settings.cache_clear()
+        security.reset_key_cache()
+        return surveys.answers_digest(a)
+
+    try:
+        k1, k2 = Fernet.generate_key().decode(), Fernet.generate_key().decode()
+        d1 = rotate(k1)
+        d2 = rotate(k2)
+        assert d1 != d2
+        assert rotate(k1) == d1  # deterministic per key
+        # Same key material -> same digest as an independent HKDF derivation.
+        assert (
+            d2
+            == surveys.hmac.new(
+                surveys._derive_hmac_key(k2.encode()), surveys._canonical(a), surveys.hashlib.sha256
+            ).hexdigest()
+        )
+    finally:
+        monkeypatch.undo()
+        get_settings.cache_clear()
+        security.reset_key_cache()

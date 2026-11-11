@@ -191,15 +191,27 @@ def _canonical(answers: dict[str, int]) -> bytes:
     return json.dumps(answers, sort_keys=True, separators=(",", ":")).encode()
 
 
-@lru_cache(maxsize=1)
-def _answers_hmac_key() -> bytes:
-    """HKDF-SHA256 from FIELD_KEY (separate from SECRET_KEY, so rotating the
-    signing key never touches data keys). Same no-key rules as backend.security."""
-    import os
-
+@lru_cache(maxsize=8)
+def _derive_hmac_key(ikm: bytes) -> bytes:
+    """HKDF-SHA256(ikm, info=astro:answers-hmac:v1). Cached BY its input, so a rotated
+    FIELD_KEY can never be served a stale key (no reset hook to forget)."""
     from cryptography.hazmat.primitives import hashes
     from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 
+    return HKDF(algorithm=hashes.SHA256(), length=32, salt=None, info=_HMAC_INFO).derive(ikm)
+
+
+@lru_cache(maxsize=1)
+def _test_only_ikm() -> bytes:
+    import os
+
+    return os.urandom(32)  # pytest only, when FIELD_KEY is unset: one key per process
+
+
+def _answers_hmac_key() -> bytes:
+    """Derived from the CURRENT FIELD_KEY on every call (separate from SECRET_KEY, so
+    rotating the signing key never touches data keys). Same no-key rules as
+    backend.security: missing FIELD_KEY raises outside pytest."""
     from backend.config import get_settings
     from backend.security import FieldKeyMissing
 
@@ -207,8 +219,8 @@ def _answers_hmac_key() -> bytes:
     if not ikm:
         if "pytest" not in sys.modules:
             raise FieldKeyMissing("FIELD_KEY is empty; it is required for answer digests")
-        ikm = os.urandom(32)  # tests only: per-process key
-    return HKDF(algorithm=hashes.SHA256(), length=32, salt=None, info=_HMAC_INFO).derive(ikm)
+        ikm = _test_only_ikm()
+    return _derive_hmac_key(ikm)
 
 
 def answers_digest(answers: dict[str, int]) -> str:

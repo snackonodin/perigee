@@ -167,7 +167,7 @@ def test_db_failure_removes_copied_folder(
     assert not any((data_dir / "raw").iterdir())
 
 
-def test_stub_stats_wrap_semantics_small_jitter_not_a_wrap(tmp_path: Path) -> None:
+def test_stats_small_jitter_is_not_a_wrap(tmp_path: Path) -> None:
     import pandas as pd
 
     from csi_core.config import get_config
@@ -183,3 +183,19 @@ def test_stub_stats_wrap_semantics_small_jitter_not_a_wrap(tmp_path: Path) -> No
     ).to_csv(p, index=False, compression="gzip")
     s = ingestion.compute_capture_stats([p], get_config())
     assert s.timestamp_wraps == 0 and s.rows == 4
+
+
+def test_ingests_real_synth_output(db: Session, user: User, tmp_path: Path) -> None:
+    from datetime import UTC, datetime
+
+    from csi_core.synth import synth_night
+
+    d = tmp_path / "synth"
+    synth_night(
+        d, start_utc=datetime(2026, 11, 10, 22, 55, tzinfo=UTC), hours=10 / 60, rr_bpm=15.0,
+        fs=20.0, n_sub=12, motion_bursts=2, absent_spans=[(420.0, 480.0)], seed=7,
+    )  # fmt: skip
+    rec = ingest_session(db, user.id, d)
+    assert rec.stats is not None and rec.stats.timestamp_wraps == 1
+    assert sum(f.kind == "csi" for f in rec.files) == 2
+    assert ingest_session(db, user.id, d).id == rec.id

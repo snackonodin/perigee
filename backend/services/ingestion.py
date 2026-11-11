@@ -31,7 +31,6 @@ import stat
 from dataclasses import dataclass
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -47,6 +46,7 @@ from backend.schemas.contracts import (
     new_id,
 )
 from csi_core.config import CoreConfig, get_config
+from csi_core.load import capture_stats, read_rotating
 
 log = logging.getLogger(__name__)
 
@@ -87,52 +87,15 @@ def raw_root() -> Path:
 
 
 # ----------------------------------------------------------------- capture stats
-# STUB until feat/csi-core merges. Then replace the body of compute_capture_stats with:
-#     from csi_core.load import capture_stats, read_rotating
-#     return capture_stats(read_rotating(files), cfg)
-# Semantics match csi_core (wrap = drop larger than half the counter range).
-
-
-def _read_csi(files: list[Path]) -> pd.DataFrame:
-    frames = []
-    for p in files:
-        df = pd.read_csv(p, compression="gzip")
-        missing = {"host_time_utc", "ts_us", "rate"} - set(df.columns)
-        if missing:
-            raise IngestError(f"{p.name}: missing columns {sorted(missing)}")
-        if len(df):
-            df["host_time_utc"] = pd.to_datetime(df["host_time_utc"], utc=True, format="ISO8601")
-            frames.append(df)
-    if not frames:
-        return pd.DataFrame(columns=["host_time_utc", "ts_us", "rate"])
-    frames.sort(key=lambda f: f["host_time_utc"].iloc[0])
-    return pd.concat(frames, ignore_index=True)
 
 
 def compute_capture_stats(files: list[Path], cfg: CoreConfig) -> CaptureStats:
-    df = _read_csi(files)
-    rows = int(len(df))
-    if rows < 2:
-        return CaptureStats(
-            rows=rows, duration_s=0.0, mean_rows_per_s=0.0, max_gap_s=0.0,
-            gaps_over_50ms=0, rate_changes=0, timestamp_wraps=0,
-        )  # fmt: skip
-    period = np.int64(1) << np.int64(cfg.capture.timestamp_bits)
-    raw = df["ts_us"].to_numpy(dtype=np.int64)
-    wrap_steps = np.diff(raw) < -(period // 2)
-    t_us = raw + np.concatenate([[0], np.cumsum(wrap_steps)]).astype(np.int64) * period
-    duration_s = max(float(t_us[-1] - t_us[0]) / 1e6, 0.0)
-    gaps_s = np.diff(t_us) / 1e6
-    rate = df["rate"].to_numpy()
-    return CaptureStats(
-        rows=rows,
-        duration_s=duration_s,
-        mean_rows_per_s=rows / duration_s if duration_s > 0 else 0.0,
-        max_gap_s=max(float(gaps_s.max()), 0.0),
-        gaps_over_50ms=int((gaps_s > cfg.capture.gap_threshold_s).sum()),
-        rate_changes=int((rate[1:] != rate[:-1]).sum()),
-        timestamp_wraps=int(wrap_steps.sum()),
-    )
+    """FR4 capture stats via csi_core (read_rotating + capture_stats)."""
+    try:
+        df = read_rotating(files)
+    except ValueError as exc:
+        raise IngestError(f"capture files invalid: {exc}") from exc
+    return capture_stats(df, cfg)
 
 
 def _count_csv_rows(path: Path) -> int:

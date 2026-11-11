@@ -20,7 +20,7 @@ export function Psyche() {
 
   return (
     <div className="grid">
-      <section className="card" aria-labelledby="q-title">
+      <section className="card wide" aria-labelledby="q-title">
         <h2 id="q-title">Questionnaires</h2>
         {list.data ? (
           <QuestionnaireList items={list.data} onStart={(id) => setParams({ instrument: id })} />

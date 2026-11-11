@@ -7,7 +7,7 @@ const SLOT_LABEL: Record<string, string> = { am: "Morning check-in", pm: "Evenin
 export function TodayCard({ today }: { today: TodayOut }) {
   const n = today.latest_night;
   return (
-    <section className="card" aria-labelledby="today-title">
+    <section className="card wide" aria-labelledby="today-title">
       <h2 id="today-title">Last night</h2>
       {n ? (
         <>

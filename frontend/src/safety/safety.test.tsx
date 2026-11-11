@@ -134,3 +134,16 @@ describe("CheckinForm safety order", () => {
     expect(screen.queryByRole("alertdialog")).toBeNull();
   });
 });
+
+describe("result wording", () => {
+  it("never claims the answers were kept or dropped; `stored` only means a row was written", async () => {
+    mockApi({ "POST /api/v1/responses": { body: responseOut({ stored: false }) } });
+    render(<SafetyProvider><CheckinForm instrument={phq9} /></SafetyProvider>);
+    answer("Little interest", "Several days");
+    answer("better off dead", "Not at all");
+    fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+    const status = await screen.findByRole("status");
+    expect(status.textContent).toMatch(/nothing was stored/);
+    expect(status.textContent).not.toMatch(/answers were not kept/);
+  });
+});

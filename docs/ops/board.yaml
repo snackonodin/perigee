@@ -605,10 +605,12 @@ tasks:
   title: services/personas.py + cli seed-personas per docs/ops/personas.md (option C)
   owner: f4
   branch: feat/pipeline
-  state: todo
+  state: review
   blockers: []
   done_when: seed creates 3 is_synthetic users; expected states per personas.md asserted; reseed idempotent; synth cache under DATA_DIR
-  sha: null
+  sha: e089ef9
+  times:
+    review: '2026-11-11T16:02:31Z'
 - id: DB-8
   title: 'cli backup / restore: encrypted SQLite snapshot + raw manifest; restore test'
   owner: b0

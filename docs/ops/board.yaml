@@ -683,11 +683,13 @@ tasks:
     (CSV/JSON); hypothesis tests on random batches'
   owner: f4
   branch: feat/pipeline
-  state: todo
+  state: review
   blockers:
   - SCR-1
   done_when: random batches round-trip exactly; replays are no-ops; malformed batches rejected without partial writes; run_nightly works on injected data
-  sha: null
+  sha: 79d7952
+  times:
+    review: '2026-11-11T20:44:40Z'
 - id: FUZZ-1
   title: 'Hypothesis API invariants: safety object on every survey/symptom response, isolation for random users/data, consent gating, no answer values in logs'
   owner: cf
@@ -778,3 +780,11 @@ tasks:
   - FE-2
   done_when: monitors render streamed + replayed sessions; reconnect on drop; no external URLs
   sha: null
+- id: L13
+  title: 'SQL logging defence in depth: hide_parameters=True + sentinel test'
+  owner: b0
+  branch: feat/db-ingest
+  state: review
+  blockers: []
+  done_when: sentinel absent from logs and exception text; control test leaks
+  sha: eaaf857

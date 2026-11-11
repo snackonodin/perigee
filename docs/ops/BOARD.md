@@ -8,7 +8,7 @@ Next task for a worker: `tools/ops/board.py list --owner <id> --next`.
 
 Owners: `ca` build-astronaut-health-backend (main) · `f4` pankajkashyap-f4 (feat/csi-core, feat/pipeline) · `b0` pankajkashyap-b0 (feat/db-ingest) · `7a` pankajkashyap-7a (feat/accounts) · `cf` pankajkashyap-cf (feat/surveys) · `ops` claude-multiplayer server launch (feat/ops)
 
-## todo (8)
+## todo (7)
 
 | ID | Task | Owner | Branch | Done when | Blockers | sha |
 |----|------|-------|--------|-----------|----------|-----|
@@ -17,7 +17,6 @@ Owners: `ca` build-astronaut-health-backend (main) · `f4` pankajkashyap-f4 (fea
 | CA-3 | Three synthetic personas (`is_synthetic`) via normal ingestion | ca | main | `cli seed-personas` → `/today` differs per persona | DB-6, CA-2, OPS-6 |  |
 | CA-4 | Demo HTML page (single file, localhost) | ca | main | login → today → check-in → safety screen shown in a dry run | CA-2 |  |
 | LIVE-1 | SSE /api/v1/live/vitals: per-user stream of newest injected windows (breath, heart[experimental], motion, presence) + replay mode for a stored session at Nx speed | b0 | db-ingest | TestClient stream test; isolation (B never receives A events); replay deterministic | QA-1, INJ-1 |  |
-| INJ-1 | Data injection (Path B): POST /api/v1/ingest/estimates (batch windows/heart/motion from the team scripts, idempotent by batch hash, run provenance with client code_version) + cli ingest-estimates (CSV/JSON); hypothesis tests on random batches | f4 | pipeline | random batches round-trip exactly; replays are no-ops; malformed batches rejected without partial writes; run_nightly works on injected data | SCR-1 |  |
 | GATE-1 | Backend gate: QA-1, INJ-1, LIVE-1, FUZZ-1, LEAK-1, LOOP-1 merged; e2e flow + seed-personas + backup/restore green on a fresh bootstrap | ca | main | all green; frontend work starts | QA-1, INJ-1, LIVE-1, FUZZ-1, LEAK-1, LOOP-1 |  |
 | FE-3 | Live tabs: Breathing + Heart monitors on SSE /live/vitals (heart labelled experimental), dynamic displays | 7a | frontend | monitors render streamed + replayed sessions; reconnect on drop; no external URLs | LIVE-1, FE-2 |  |
 
@@ -28,14 +27,16 @@ Owners: `ca` build-astronaut-health-backend (main) · `f4` pankajkashyap-f4 (fea
 | CORE-7 | `fusion.score_night` → `FlagDraft` | f4 | csi-core | components dict explains priority; thresholds only from config.yaml | CORE-6 |  |
 | FE-2 | Frontend pages on existing API (fixture-tested, no new packages): AuthProvider, global SafetyOverlay (port local pre-check + 3 s ack), Overview (Today, FlagWhy, Guidance), Sleep, Psyche (CheckinForm from instrument JSON, Questionnaires), Settings (consents, export, delete) | 7a | frontend | vitest covers each page with typed fixtures from schema.d.ts; safety tests ported from test_demo_page; tsc clean | FE-1 |  |
 
-## review (4)
+## review (6)
 
 | ID | Task | Owner | Branch | Done when | Blockers | sha |
 |----|------|-------|--------|-----------|----------|-----|
 | CA-2 | `/api/v1/today` (night features, flags, guidance, due check-ins) | ca | main | e2e test with seeded user | CA-1, DB-5, SUR-6 | a08f660 |
 | CA-5 | Wire worker start/stop into main.py lifespan; persona seeding command once OPS-6 lands | ca | main | app starts worker; seed-personas produces 3 synthetic users with expected flags | DB-7 | f3cd03f |
+| INJ-1 | Data injection (Path B): POST /api/v1/ingest/estimates (batch windows/heart/motion from the team scripts, idempotent by batch hash, run provenance with client code_version) + cli ingest-estimates (CSV/JSON); hypothesis tests on random batches | f4 | pipeline | random batches round-trip exactly; replays are no-ops; malformed batches rejected without partial writes; run_nightly works on injected data | SCR-1 | 79d7952 |
 | LOOP-1 | Failure-learning loop: tools/ops/lessons.py (add/list/close), merge_ready + stress.sh auto-record failures as lesson stubs, prompts read LESSONS.md, check_merge lints tracked files only (L1) and warns on broad reformat (L3), metrics.sh shows recurrence | 7a | accounts | a simulated RED merge creates a lesson stub; lessons.py close refuses without a guard reference; tests in tmp repos | — | a00287e |
 | FE-1 | Frontend scaffold: React+TS+Vite in frontend/, builds to backend/static/app (served at /), no CDN, typed client from /openapi.json; space theme tokens; tab shell (Overview, Breathing, Heart, Sleep, Psyche, Settings) | 7a | frontend | npm run build offline; FastAPI serves it; generated client compiles | GATE-1 | 024ddaf |
+| L13 | SQL logging defence in depth: hide_parameters=True + sentinel test | b0 | db-ingest | sentinel absent from logs and exception text; control test leaks | — | eaaf857 |
 
 ## done (56)
 

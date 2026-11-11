@@ -191,15 +191,27 @@ def _canonical(answers: dict[str, int]) -> bytes:
     return json.dumps(answers, sort_keys=True, separators=(",", ":")).encode()
 
 
-@lru_cache(maxsize=1)
-def _answers_hmac_key() -> bytes:
-    """HKDF-SHA256 from FIELD_KEY (separate from SECRET_KEY, so rotating the
-    signing key never touches data keys). Same no-key rules as backend.security."""
-    import os
-
+@lru_cache(maxsize=8)
+def _derive_hmac_key(ikm: bytes) -> bytes:
+    """HKDF-SHA256(ikm, info=astro:answers-hmac:v1). Cached BY its input, so a rotated
+    FIELD_KEY can never be served a stale key (no reset hook to forget)."""
     from cryptography.hazmat.primitives import hashes
     from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 
+    return HKDF(algorithm=hashes.SHA256(), length=32, salt=None, info=_HMAC_INFO).derive(ikm)
+
+
+@lru_cache(maxsize=1)
+def _test_only_ikm() -> bytes:
+    import os
+
+    return os.urandom(32)  # pytest only, when FIELD_KEY is unset: one key per process
+
+
+def _answers_hmac_key() -> bytes:
+    """Derived from the CURRENT FIELD_KEY on every call (separate from SECRET_KEY, so
+    rotating the signing key never touches data keys). Same no-key rules as
+    backend.security: missing FIELD_KEY raises outside pytest."""
     from backend.config import get_settings
     from backend.security import FieldKeyMissing
 
@@ -207,8 +219,8 @@ def _answers_hmac_key() -> bytes:
     if not ikm:
         if "pytest" not in sys.modules:
             raise FieldKeyMissing("FIELD_KEY is empty; it is required for answer digests")
-        ikm = os.urandom(32)  # tests only: per-process key
-    return HKDF(algorithm=hashes.SHA256(), length=32, salt=None, info=_HMAC_INFO).derive(ikm)
+        ikm = _test_only_ikm()
+    return _derive_hmac_key(ikm)
 
 
 def answers_digest(answers: dict[str, int]) -> str:
@@ -416,8 +428,14 @@ def _store_checkin(db: Any, user_id: str, instrument: dict, data: SurveyResponse
     return row.id
 
 
-def weekly_indices(db: Any, user_id: str, week_start: date) -> dict[str, dict]:
+def weekly_indices(
+    db: Any, user_id: str, week_start: date, *, until: datetime | None = None
+) -> dict[str, dict]:
     """Indices for the 7 days from week_start (UTC), from scores and check-ins only.
+
+    ``until`` (tz-aware) bounds what is counted, so a backfilled night never sees
+    answers given after it (lesson L6): surveys with administered_at < until and
+    check-ins with date <= until's UTC date. None means no bound (the whole week).
 
     Survey answers are never decrypted. Every query is scoped to user_id.
     Returns {index: {"value", "band", "band_alert", "direction"}}:
@@ -435,6 +453,13 @@ def weekly_indices(db: Any, user_id: str, week_start: date) -> dict[str, dict]:
     m = _models()
     start = datetime.combine(week_start, time.min, tzinfo=UTC)
     end = start + timedelta(days=7)
+    last_day = week_start + timedelta(days=6)
+    if until is not None:
+        if until.tzinfo is None or until.utcoffset() is None:
+            raise ValueError("until must be timezone-aware")
+        until = until.astimezone(UTC)
+        end = min(end, until)
+        last_day = min(last_day, until.date())
     out: dict[str, dict] = {}
     catalog: dict[tuple[str, str], dict] = {}
 
@@ -472,7 +497,7 @@ def weekly_indices(db: Any, user_id: str, week_start: date) -> dict[str, dict]:
     stmt = m.scoped(
         select(m.CheckinDaily)
         .where(m.CheckinDaily.date >= week_start)
-        .where(m.CheckinDaily.date < week_start + timedelta(days=7)),
+        .where(m.CheckinDaily.date <= last_day),
         m.CheckinDaily,
         user_id,
     )
@@ -537,8 +562,8 @@ def submit_payload(
     db: Any,
     user_id: str,
     instrument_id: str,
-    instrument_version: str | None,
-    administered_at: datetime | None,
+    instrument_version: Any,
+    administered_at: Any,
     answers: Any,
 ) -> dict:
     """Route entry point. Never raises for bad input: always returns a body with
@@ -550,8 +575,9 @@ def submit_payload(
         data = SurveyResponse(
             user_id=user_id,
             instrument_id=instrument_id,
-            instrument_version=instrument_version or "",  # "" -> catalog current
-            administered_at=administered_at or datetime.now(UTC),
+            # None/"" -> catalog current; a wrong type fails validation below (after safety)
+            instrument_version="" if instrument_version is None else instrument_version,
+            administered_at=datetime.now(UTC) if administered_at is None else administered_at,
             answers=answers,
         )
     except ValidationError as e:

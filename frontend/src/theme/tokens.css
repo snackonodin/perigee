@@ -1,0 +1,59 @@
+/* Dark outer-space theme. Every colour, size and radius lives here as a token. */
+@import "@fontsource-variable/inter";
+
+:root {
+  /* surfaces: deep space → panels */
+  --space-0: #05070d;
+  --space-1: #0a0f1c;
+  --space-2: #111a2e;
+  --space-3: #1a2540;
+  --line: #24314f;
+
+  /* text */
+  --ink: #e7ecf7;
+  --ink-muted: #94a2c0;
+  --ink-faint: #5d6b88;
+
+  /* accents */
+  --accent: #7aa2ff;          /* nebula blue: primary actions, focus */
+  --accent-ink: #0a1022;      /* text on accent */
+  --aurora: #4fd1c5;          /* breathing / calm signals */
+  --pulse: #ff7a90;           /* heart (experimental) */
+  --sun: #ffb454;             /* warnings, warm-up */
+  --alert: #ff5c5c;           /* alerts, safety */
+  --band: rgba(122, 162, 255, 0.16); /* baseline median ± MAD band */
+
+  /* type, space, shape */
+  --font: "Inter Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --fs-1: 0.8125rem;
+  --fs-2: 0.9375rem;
+  --fs-3: 1.125rem;
+  --fs-4: 1.5rem;
+  --gap-1: 4px;
+  --gap-2: 8px;
+  --gap-3: 16px;
+  --gap-4: 24px;
+  --radius: 12px;
+  --focus: 0 0 0 3px rgba(122, 162, 255, 0.45);
+
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; background: var(--space-0); }
+body {
+  min-height: 100vh;
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: var(--fs-2);
+  line-height: 1.5;
+  /* a faint starfield, pure CSS (no images, works offline) */
+  background:
+    radial-gradient(1px 1px at 12% 18%, rgba(255,255,255,.55) 50%, transparent 51%),
+    radial-gradient(1px 1px at 72% 34%, rgba(255,255,255,.4) 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 38% 82%, rgba(255,255,255,.35) 50%, transparent 51%),
+    radial-gradient(1px 1px at 88% 76%, rgba(255,255,255,.45) 50%, transparent 51%),
+    radial-gradient(ellipse at 20% -10%, rgba(122,162,255,.12), transparent 55%),
+    var(--space-0);
+}
+:focus-visible { outline: none; box-shadow: var(--focus); border-radius: 6px; }

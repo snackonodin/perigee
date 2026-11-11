@@ -102,3 +102,44 @@ def test_code_version_is_git_sha(monkeypatch: pytest.MonkeyPatch) -> None:
     v = runs.code_version()
     runs.code_version.cache_clear()
     assert v == "unknown" or len(v.removesuffix("-dirty")) == 40
+
+
+def _owner(db: Session) -> str:
+    u = User(email="owner@x", password_hash="x")
+    db.add(u)
+    db.commit()
+    return u.id
+
+
+@pytest.mark.parametrize("kind", ["ok", "boom"])
+def test_user_id_set_and_kept_through_execute(
+    schema: Engine, db: Session, fake_kinds, kind: str
+) -> None:
+    uid = _owner(db)
+    rec = runs.create_run(db, kind, {"n": 1}, [], user_id=uid)
+    assert db.get(PipelineRun, rec.id).user_id == uid
+    runs.execute(db, rec.id)
+    db.expire_all()
+    row = db.get(PipelineRun, rec.id)
+    assert row.user_id == uid and row.status in ("succeeded", "failed")
+
+
+def test_user_id_falls_back_to_params_and_must_agree(
+    schema: Engine, db: Session, fake_kinds
+) -> None:
+    uid = _owner(db)
+    rec = runs.create_run(db, "ok", {"n": 1, "user_id": uid}, [])
+    assert db.get(PipelineRun, rec.id).user_id == uid
+    with pytest.raises(ValueError, match="disagree"):
+        runs.create_run(db, "ok", {"n": 1, "user_id": uid}, [], user_id="someone-else")
+    glob = runs.create_run(db, "ok", {"n": 1}, [])  # global run: no owner
+    assert db.get(PipelineRun, glob.id).user_id is None
+
+
+def test_user_id_must_reference_a_user(schema: Engine, db: Session, fake_kinds) -> None:
+    from sqlalchemy.exc import IntegrityError
+
+    with pytest.raises(IntegrityError):
+        runs.create_run(db, "ok", {"n": 1}, [], user_id="00000000-0000-0000-0000-000000000000")
+    db.rollback()
+    assert db.scalar(select(func.count()).select_from(PipelineRun)) == 0

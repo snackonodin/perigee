@@ -94,8 +94,9 @@ def cmd_process(db: Session, args: argparse.Namespace) -> int:
         user = _resolve_user(db, args.user)
         night = date.fromisoformat(args.date)
         rec = runs.create_run(
-            db, "run_nightly", {"user_id": user.id, "date": night.isoformat()}, []
-        )
+            db, "run_nightly", {"user_id": user.id, "date": night.isoformat()}, [],
+            user_id=user.id,
+        )  # fmt: skip
     else:
         if not args.session_id:
             raise SystemExit("error: give SESSION_ID or --nightly")
@@ -108,8 +109,9 @@ def cmd_process(db: Session, args: argparse.Namespace) -> int:
             )
         ).all()
         rec = runs.create_run(
-            db, "process_session", {"session_id": sess.id, "user_id": sess.user_id}, list(hashes)
-        )
+            db, "process_session", {"session_id": sess.id, "user_id": sess.user_id},
+            list(hashes), user_id=sess.user_id,
+        )  # fmt: skip
     done = runs.execute(db, rec.id)
     _out(done.model_dump(mode="json"))
     return 0 if done.status == "succeeded" else 1

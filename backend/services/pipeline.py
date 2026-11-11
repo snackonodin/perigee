@@ -113,6 +113,11 @@ def process(
     sess = db.get(CaptureSession, session_id)
     if sess is None:
         raise LookupError(f"session {session_id} not found")
+    if not sess.usable:
+        raise ValueError(
+            f"session {session_id} is not usable (mean_rows_per_s="
+            f"{sess.mean_rows_per_s:.1f} < capture.min_rows_per_s); refusing to process"
+        )
     uid = sess.user_id
     files = session_csi_files(db, sess, get_settings().data_dir)
 

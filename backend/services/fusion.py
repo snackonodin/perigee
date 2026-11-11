@@ -40,8 +40,9 @@ from csi_core import night as night_mod
 from csi_core.config import CoreConfig, get_config
 from csi_core.fusion import PHYS_FEATURES, score_night
 
-# indices_provider(db, user_id, week_start) -> {name: {"value", "direction",
-# "band", "band_alert"}}; a bare float value is accepted (no direction => skipped).
+# indices_provider(db, user_id, week_start) -> {name: {"value", "band",
+# "band_alert", "direction"}} (surveys.weekly_indices). A bare float is accepted
+# and treated as having no direction (skipped by score_night).
 IndicesProvider = Callable[[Session, str, date], Mapping[str, Any]]
 
 
@@ -56,6 +57,20 @@ def _default_indices(db: Session, user_id: str, week: date) -> Mapping[str, Any]
     except ImportError:
         return {}
     return weekly_indices(db, user_id, week)
+
+
+def latest_indices(
+    db: Session, user_id: str, day: date, provider: IndicesProvider, cfg: CoreConfig
+) -> tuple[date, Mapping[str, Any]]:
+    """Most recent week (Monday <= day) with any indices, looking back at most
+    baseline.window_days. Returns (week_start, indices); {} when none."""
+    week = week_start(day)
+    for k in range(max(cfg.baseline.window_days // 7, 1)):
+        w = week - timedelta(weeks=k)
+        raw = provider(db, user_id, w)
+        if raw:
+            return w, raw
+    return week, {}
 
 
 def _split_indices(raw: Mapping[str, Any]) -> tuple[dict, dict, dict]:
@@ -255,8 +270,7 @@ def run_nightly(
     _upsert_night(db, nf, run_id)
     db.flush()
 
-    week = week_start(day)
-    raw = (indices_provider or _default_indices)(db, user_id, week)
+    week, raw = latest_indices(db, user_id, day, indices_provider or _default_indices, cfg)
     values, direction, bands = _split_indices(raw)
 
     sk = nf.source_kind.value

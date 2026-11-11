@@ -19,8 +19,9 @@ from backend.models import (
 )
 from backend.schemas.contracts import RunStatus
 from backend.services import fusion, pipeline, runs
+from backend.services.ingestion import ingest_session
 
-from .conftest import NIGHT_RR, make_user, register_session
+from .conftest import NIGHT_RR, make_user
 
 NIGHT = date(2026, 11, 10)
 TABLES = (WindowEstimateRow, HeartEstimateRow, NightFeaturesRow, Flag, Baseline)
@@ -64,10 +65,12 @@ def _counts(db: Session) -> dict[str, int]:
 
 
 @pytest.fixture
-def processed(db, data_dir, synth_files):
+def processed(db, data_dir, synth_dir):
     uid = make_user(db)
     _seed_history(db, uid)
-    sid = register_session(db, uid, synth_files, data_dir)
+    sess = ingest_session(db, uid, synth_dir)
+    assert sess.usable and sess.source_kind.value == "synthetic"
+    sid = sess.id
     rec = _run(db, "process_session", {"session_id": sid})
     assert rec.status is RunStatus.succeeded, rec.log
     return uid, sid, rec
@@ -125,6 +128,7 @@ def test_band_alert_and_direction_from_indices(db, processed) -> None:
         return {
             "phq2": {"value": 4.0, "direction": 1, "band": "positive screen", "band_alert": True},
             "who5": {"value": 80.0, "direction": -1, "band": "ok", "band_alert": False},
+            "daily_pm.stress": {"value": 2.0, "band": None, "band_alert": False, "direction": None},
             "mystery": 3.0,  # no direction: skipped
         }
 
@@ -135,6 +139,7 @@ def test_band_alert_and_direction_from_indices(db, processed) -> None:
     m = flag.components["mental"]
     assert m["phq2"]["band"] == {"band": "positive screen", "source": "catalog"}
     assert m["mystery"]["skipped"] == "no_direction"
+    assert m["daily_pm.stress"]["skipped"] == "no_direction"
 
 
 def test_other_user_cannot_see_or_process(db, processed, data_dir) -> None:
@@ -155,11 +160,43 @@ def test_other_user_cannot_see_or_process(db, processed, data_dir) -> None:
 def test_tampered_raw_file_fails_run(db, processed, data_dir) -> None:
     _, sid, _ = processed
     f = next((data_dir / "raw" / sid).glob("csi_*.csv.gz"))
+    f.chmod(0o600)  # ingestion stores raw files read-only
     f.write_bytes(f.read_bytes() + b"x")
     before = _counts(db)
     rec = _run(db, "process_session", {"session_id": sid})
     assert rec.status is RunStatus.failed and "sha256" in rec.log
     assert _counts(db) == before  # rolled back, old estimates kept
+
+
+def test_unusable_session_is_refused(db, processed) -> None:
+    from backend.models import CaptureSession
+
+    _, sid, _ = processed
+    db.get(CaptureSession, sid).usable = False
+    db.commit()
+    before = _counts(db)
+    rec = _run(db, "process_session", {"session_id": sid})
+    assert rec.status is RunStatus.failed and "not usable" in rec.log
+    assert _counts(db) == before
+
+
+def test_latest_indices_looks_back_to_most_recent_week(db, processed) -> None:
+    from csi_core.config import get_config
+
+    uid, _, _ = processed
+    seen = []
+
+    def provider(_db, _uid, week):
+        seen.append(week)
+        return (
+            {"phq2": {"value": 1.0, "band": None, "band_alert": False, "direction": 1}}
+            if (week == date(2026, 11, 2))
+            else {}
+        )
+
+    week, raw = fusion.latest_indices(db, uid, NIGHT, provider, get_config())
+    assert week == date(2026, 11, 2) and "phq2" in raw
+    assert seen == [date(2026, 11, 9), date(2026, 11, 2)]
 
 
 def test_night_date_uses_profile_timezone() -> None:

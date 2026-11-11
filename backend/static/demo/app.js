@@ -17,8 +17,10 @@ const PATHS = {
   refresh: "/api/v1/auth/refresh",
   logout: "/api/v1/auth/logout",
   me: "/api/v1/me",
+  consents: "/api/v1/me/consents",
   today: "/api/v1/today",
   nights: "/api/v1/nights",
+  instruments: "/api/v1/instruments",
   instrument: "/api/v1/instruments/{instrument_id}",
   responses: "/api/v1/responses",
 };
@@ -36,6 +38,14 @@ const SAFETY_FALLBACK = {
 };
 
 const TREND_DAYS = 28;
+// The acknowledge button stays disabled this long, so a double-click on Submit (whose
+// second click lands where the button appears) cannot dismiss the screen unread.
+const SAFETY_ACK_DELAY_MS = 3000;
+// Version label of the consent text shown on this page (CONSENT_TEXT below).
+const CONSENT_POLICY_VERSION = "demo-1";
+const CONSENT_TEXT = "Store my daily check-in answers so they can be compared with my sleep.";
+// Daily check-ins appear under "Check-ins due"; everything else is a weekly questionnaire.
+const DAILY_INSTRUMENTS = new Set(["daily_am", "daily_pm"]);
 const SLOT_LABEL = { am: "Morning", pm: "Evening" };
 const STATE_LABEL = {
   both: "Body and mood both differ from your usual",
@@ -277,10 +287,11 @@ async function openToday() {
   try {
     const end = new Date();
     const start = new Date(end.getTime() - (TREND_DAYS - 1) * 86400000);
-    const [me, today, nights] = await Promise.all([
+    const [me, today, nights, instruments] = await Promise.all([
       api("GET", PATHS.me),
       api("GET", PATHS.today),
       api("GET", PATHS.nights, { query: { from: isoDay(start), to: isoDay(end) } }),
+      api("GET", PATHS.instruments),
     ]);
     $("who").textContent = me.display_name || me.email;
     const synthetic =
@@ -291,6 +302,7 @@ async function openToday() {
     $("synthetic-badge").hidden = !synthetic;
     renderNight(today.latest_night);
     renderPending(today.pending_checkins, today.checkins_consent);
+    renderQuestionnaires(instruments);
     renderFlags(today.flags);
     renderBaselines(today.baselines);
     renderTrend(nights, (today.baselines || []).find((b) => b.feature === "rr_med"));
@@ -324,7 +336,11 @@ function renderNight(n) {
 function renderPending(items, consent) {
   const box = $("pending");
   if (consent === false) {
-    box.replaceChildren(el("p", { class: "muted", text: "Check-ins are off (consent not given)." }));
+    box.replaceChildren(
+      el("p", { class: "muted", text: "Check-ins are off (consent not given)." }),
+      el("p", { class: "muted", text: CONSENT_TEXT }),
+      el("button", { type: "button", class: "ghost", text: "Turn on daily check-ins", onclick: enableCheckins }),
+    );
     return;
   }
   if (!items || items.length === 0) {
@@ -342,6 +358,36 @@ function renderPending(items, consent) {
           text: "Start",
           onclick: () => openCheckin(p.instrument_id, p.instrument_version),
         }),
+      ),
+    ),
+  );
+}
+
+async function enableCheckins() {
+  try {
+    await api("PUT", PATHS.consents, {
+      body: { scopes: { checkins: true }, policy_version: CONSENT_POLICY_VERSION },
+    });
+    await openToday();
+  } catch (e) {
+    $("today-error").textContent = describeError(e);
+  }
+}
+
+function renderQuestionnaires(list) {
+  const box = $("questionnaires");
+  const weekly = (list || []).filter((i) => !DAILY_INSTRUMENTS.has(i.id));
+  if (weekly.length === 0) {
+    box.replaceChildren(el("p", { class: "muted", text: "No questionnaires available." }));
+    return;
+  }
+  box.replaceChildren(
+    ...weekly.map((i) =>
+      el(
+        "div",
+        { class: "pending-item" },
+        el("span", { text: i.name }),
+        el("button", { type: "button", class: "ghost", text: "Start", onclick: () => openCheckin(i.id, i.version) }),
       ),
     ),
   );
@@ -601,12 +647,31 @@ function renderCheckinResult(out) {
 
 // --------------------------------------------------------------------------- safety screen
 
+let safetyTimer = null;
+
 function showSafety({ reason, resources }) {
   $("safety-reason").textContent = reason;
   $("safety-resources").replaceChildren(...resources.map((r) => el("li", { text: r })));
   const box = $("safety");
+  const ack = $("safety-ack");
+  if (!box.hidden) return; // already showing: keep the running countdown
   box.hidden = false;
-  $("safety-ack").focus();
+  ack.disabled = true;
+  const until = Date.now() + SAFETY_ACK_DELAY_MS;
+  const tick = () => {
+    const left = Math.ceil((until - Date.now()) / 1000);
+    if (left > 0) {
+      ack.textContent = `Please read this (${left})`;
+      safetyTimer = setTimeout(tick, 250);
+    } else {
+      ack.textContent = "I have read this";
+      ack.disabled = false;
+      ack.focus();
+    }
+  };
+  clearTimeout(safetyTimer);
+  tick();
+  $("safety-title").focus();
 }
 
 // --------------------------------------------------------------------------- boot

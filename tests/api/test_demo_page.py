@@ -70,3 +70,14 @@ def test_personas_file_has_no_passwords() -> None:
     data = json.loads((DEMO / "personas.json").read_text(encoding="utf-8"))
     for p in data["personas"]:
         assert set(p) <= {"email", "label", "description"}, p
+
+
+def test_safety_ack_cannot_be_dismissed_by_a_stray_click() -> None:
+    """Found in the Chrome run: a double-click on Submit put its second click on the
+    acknowledge button, dismissing the screen unread. The button must start disabled."""
+    delay = int(re.search(r"SAFETY_ACK_DELAY_MS = (\d+)", APP_JS).group(1))
+    assert delay >= 2000
+    body = APP_JS[APP_JS.index("function showSafety") :]
+    body = body[: body.index("\n}\n")]
+    assert "ack.disabled = true" in body
+    assert body.index("ack.disabled = true") < body.index("ack.disabled = false")

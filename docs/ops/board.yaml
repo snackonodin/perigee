@@ -546,22 +546,25 @@ tasks:
   title: '`api/v1/sessions.py` (POST from DATA_DIR/inbox, list, get, /windows) + `api/v1/jobs.py` + `backend/worker.py`'
   owner: b0
   branch: feat/db-ingest
-  state: doing
+  state: review
   blockers:
   - DB-6
   done_when: TestClient covers register/list/get/windows/jobs; path traversal rejected; worker start/stop safe; isolation A/B
-  sha: null
+  sha: ccc4a1d
+  times:
+    review: '2026-11-11T15:13:15Z'
 - id: SUR-8
   title: '`api/v1/nights.py` (nights, flags, indices, checkins) + `api/v1/today.py`'
   owner: cf
   branch: feat/surveys
-  state: review
+  state: doing
   blockers:
   - SUR-7
   done_when: TestClient for every route; /today returns latest night, top-3 flags with guidance, pending check-ins, maturity; isolation A/B
   sha: 5bd2b13
   times:
     review: '2026-11-11T15:08:33Z'
+    doing: '2026-11-11T15:13:15Z'
 - id: PIPE-3
   title: runs.py lazy builtin registration (one-off ownership exception) + slow marker
   owner: f4

@@ -23,14 +23,14 @@ Owners: `ca` build-astronaut-health-backend (main) · `f4` pankajkashyap-f4 (fea
 | ID | Task | Owner | Branch | Done when | Blockers | sha |
 |----|------|-------|--------|-----------|----------|-----|
 | CORE-7 | `fusion.score_night` → `FlagDraft` | f4 | csi-core | components dict explains priority; thresholds only from config.yaml | CORE-6 |  |
-| DB-7 | `api/v1/sessions.py` (POST from DATA_DIR/inbox, list, get, /windows) + `api/v1/jobs.py` + `backend/worker.py` | b0 | db-ingest | TestClient covers register/list/get/windows/jobs; path traversal rejected; worker start/stop safe; isolation A/B | DB-6 |  |
+| SUR-8 | `api/v1/nights.py` (nights, flags, indices, checkins) + `api/v1/today.py` | cf | surveys | TestClient for every route; /today returns latest night, top-3 flags with guidance, pending check-ins, maturity; isolation A/B | SUR-7 | 5bd2b13 |
 
 ## review (2)
 
 | ID | Task | Owner | Branch | Done when | Blockers | sha |
 |----|------|-------|--------|-----------|----------|-----|
 | CA-2 | `/api/v1/today` (night features, flags, guidance, due check-ins) | ca | main | e2e test with seeded user | CA-1, DB-5, SUR-6 | 5bd2b13 |
-| SUR-8 | `api/v1/nights.py` (nights, flags, indices, checkins) + `api/v1/today.py` | cf | surveys | TestClient for every route; /today returns latest night, top-3 flags with guidance, pending check-ins, maturity; isolation A/B | SUR-7 | 5bd2b13 |
+| DB-7 | `api/v1/sessions.py` (POST from DATA_DIR/inbox, list, get, /windows) + `api/v1/jobs.py` + `backend/worker.py` | b0 | db-ingest | TestClient covers register/list/get/windows/jobs; path traversal rejected; worker start/stop safe; isolation A/B | DB-6 | ccc4a1d |
 
 ## done (44)
 

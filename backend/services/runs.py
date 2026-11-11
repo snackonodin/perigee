@@ -21,7 +21,7 @@ from functools import lru_cache
 
 from sqlalchemy.orm import Session
 
-from backend.models import PipelineRun, utcnow
+from backend.models import PipelineRun, User, utcnow
 from backend.schemas.contracts import RunRecord, RunStatus
 from csi_core.config import ROOT
 
@@ -94,10 +94,28 @@ def _append(row: PipelineRun, line: str) -> None:
     row.log = (row.log + f"{utcnow().isoformat()} {line}\n")[-_MAX_LOG:]
 
 
-def create_run(db: Session, kind: str, params: dict, input_hashes: list[str]) -> RunRecord:
+def create_run(
+    db: Session,
+    kind: str,
+    params: dict,
+    input_hashes: list[str],
+    *,
+    user_id: str | None = None,
+) -> RunRecord:
+    """Record a queued run. user_id owns the run (pipeline_runs.user_id, used by scoped()
+    reads and by delete_user). If omitted, params["user_id"] is used when present; the two
+    must agree. Global runs pass neither."""
     _load_builtins()
     if kind not in _HANDLERS:
         raise ValueError(f"unknown run kind {kind!r}; known: {registered_kinds()}")
+    p_uid = params.get("user_id") if isinstance(params, dict) else None
+    if user_id is None and isinstance(p_uid, str):
+        # Fallback for callers that only put the owner in params. Best effort: an id that
+        # is not a user must never break run creation, so the column stays NULL then.
+        if db.get(User, p_uid) is not None:
+            user_id = p_uid
+    elif user_id is not None and p_uid is not None and p_uid != user_id:
+        raise ValueError("user_id argument and params['user_id'] disagree")
     # Validate through the contract first (sha256 format, JSON-able params).
     rec = RunRecord(
         kind=kind,
@@ -113,6 +131,7 @@ def create_run(db: Session, kind: str, params: dict, input_hashes: list[str]) ->
         input_hashes=rec.input_hashes,
         status=RunStatus.queued.value,
         log="",
+        user_id=user_id,
     )
     _append(row, f"queued code={rec.code_version}")
     db.add(row)

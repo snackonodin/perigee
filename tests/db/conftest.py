@@ -112,3 +112,15 @@ def _capture_template(tmp_path_factory: pytest.TempPathFactory) -> Path:
 def capture_dir(_capture_template: Path, tmp_path: Path) -> Path:
     """A fresh, writable copy per test (tests may break it on purpose)."""
     return Path(shutil.copytree(_capture_template, tmp_path / "capture"))
+
+
+@pytest.fixture(autouse=True, scope="session")
+def _builtin_run_kinds_imported() -> None:
+    """Import the pipeline modules before any test patches runs._HANDLERS.
+
+    Their @register side effect runs on first import and would otherwise overwrite a
+    monkeypatched fake whenever create_run's lazy _load_builtins() imports them first.
+    """
+    from backend.services import runs
+
+    runs._load_builtins()

@@ -58,7 +58,7 @@ def test_unknown_user_is_an_error(schema, capture_dir) -> None:
 
 
 def test_process_records_a_run(schema, db, capture_dir, capsys, monkeypatch) -> None:
-    _user(db, "a@x")
+    u_id = _user(db, "a@x").id
     _, out = _run(capsys, "ingest", "--user", "a@x", str(capture_dir))
     sid = out[0]["session_id"]
     seen = {}
@@ -73,6 +73,8 @@ def test_process_records_a_run(schema, db, capture_dir, capsys, monkeypatch) -> 
     assert code == 0 and rec["status"] == "succeeded"
     assert seen["session_id"] == sid
     assert len(rec["input_hashes"]) == 4  # every raw file of the session
+    db.expire_all()
+    assert db.get(PipelineRun, rec["id"]).user_id == u_id  # run is owned
 
 
 def test_process_failing_kind_exits_1(schema, db, capture_dir, capsys, monkeypatch) -> None:

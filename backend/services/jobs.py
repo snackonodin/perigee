@@ -68,12 +68,7 @@ def submit_job(db: Session, user_id: str, kind: str, params: dict[str, Any]) -> 
         except ValueError:
             raise JobError("date must be YYYY-MM-DD") from None
 
-    rec = runs.create_run(db, kind, clean, hashes)
-    row = db.get(PipelineRun, rec.id)
-    assert row is not None
-    row.user_id = user_id
-    db.commit()
-    return rec
+    return runs.create_run(db, kind, clean, hashes, user_id=user_id)
 
 
 def get_job(db: Session, user_id: str, run_id: str) -> RunRecord:

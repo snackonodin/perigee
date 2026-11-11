@@ -8,14 +8,17 @@ from __future__ import annotations
 
 import json
 import logging
+from collections.abc import Callable
+from datetime import UTC
 from functools import lru_cache
-from pathlib import Path
+from typing import Any
 
-from backend.schemas.contracts import SafetyResult
+from backend.schemas.contracts import SafetyResult, SurveyResponse
+from csi_core.config import ROOT
 
 log = logging.getLogger(__name__)
 
-SEEDS_DIR = Path(__file__).resolve().parents[2] / "seeds"
+SEEDS_DIR = ROOT / "seeds"
 INSTRUMENTS_DIR = SEEDS_DIR / "instruments"
 
 # Used only if seeds/safety_resources.json cannot be read: the safety path
@@ -158,3 +161,174 @@ def score_answers(instrument: dict, answers: dict[str, int]) -> dict:
     if scoring.get("per_item"):
         result["items"] = {it["key"]: answers[it["key"]] for it in instrument["items"]}
     return result
+
+
+# --------------------------------------------------------------------------- DB-backed
+#
+# Models come from feat/db-ingest (backend.models: Instrument, SurveyResponseRow,
+# SafetyEvent, scoped) and encrypt() from feat/accounts (backend.security). Both
+# are resolved lazily, so that safety_check keeps working with no DB and so that
+# tests can inject stand-ins with set_models() / set_encryptor().
+
+
+_MODELS: Any = None
+_ENCRYPT: Callable[[bytes], bytes] | None = None
+
+
+def set_models(models: Any) -> None:
+    global _MODELS
+    _MODELS = models
+
+
+def set_encryptor(fn: Callable[[bytes], bytes] | None) -> None:
+    global _ENCRYPT
+    _ENCRYPT = fn
+
+
+def _models() -> Any:
+    if _MODELS is None:
+        import backend.models as m
+
+        return m
+    return _MODELS
+
+
+def _encrypt(data: bytes) -> bytes:
+    if _ENCRYPT is not None:
+        return _ENCRYPT(data)
+    from backend.security import encrypt
+
+    return encrypt(data)
+
+
+def encode_answers(answers: dict[str, int]) -> bytes:
+    """Answers -> ciphertext for SurveyResponseRow.answers (never stored in plaintext)."""
+    return _encrypt(json.dumps(answers, sort_keys=True, separators=(",", ":")).encode())
+
+
+class SubmissionError(Exception):
+    """Raised by submit_response. Always carries the safety result, so the caller
+    can show the safety screen even when the submission itself fails."""
+
+    def __init__(self, kind: str, safety: SafetyResult, errors: list[str] | None = None) -> None:
+        super().__init__(f"submission failed: {kind}")
+        self.kind = kind  # "invalid" | "unknown_instrument" | "forbidden" | "storage"
+        self.safety = safety
+        self.errors = errors or []
+
+
+def load_catalog(db: Any) -> None:
+    """Idempotent upsert of every seed instrument, keyed by (instrument_id, version)."""
+    from sqlalchemy import select
+
+    m = _models()
+    for inst_id, doc in load_seed_catalog().items():
+        row = db.scalars(
+            select(m.Instrument).where(
+                m.Instrument.instrument_id == inst_id, m.Instrument.version == doc["version"]
+            )
+        ).first()
+        fields = {
+            "name": doc["name"],
+            "timeframe": doc.get("timeframe"),
+            "license_note": doc.get("license_note"),
+            "source_url": doc.get("source_url"),
+            "definition": doc,
+        }
+        if row is None:
+            db.add(m.Instrument(instrument_id=inst_id, version=doc["version"], **fields))
+        else:
+            for k, v in fields.items():
+                setattr(row, k, v)
+    db.commit()
+    log.info("instrument catalog loaded: %d instruments", len(_seed_catalog()))
+
+
+def get_instrument(db: Any, instrument_id: str, version: str | None = None) -> dict:
+    """The catalog definition. Without ``version``, the most recently updated one."""
+    from sqlalchemy import select
+
+    m = _models()
+    stmt = select(m.Instrument).where(m.Instrument.instrument_id == instrument_id)
+    if version is not None:
+        stmt = stmt.where(m.Instrument.version == version)
+    row = db.scalars(stmt.order_by(m.Instrument.updated_at.desc())).first()
+    if row is None:
+        raise UnknownInstrument(instrument_id)
+    return json.loads(json.dumps(row.definition))
+
+
+def _instrument_for_safety(db: Any, instrument_id: str) -> dict | None:
+    # Seeds first: pure, cached, no DB, so a DB failure cannot hide the safety screen.
+    try:
+        return get_seed_instrument(instrument_id)
+    except UnknownInstrument:
+        pass
+    try:
+        return get_instrument(db, instrument_id)
+    except Exception:
+        return None
+
+
+def _record_safety_event(db: Any, user_id: str, instrument_id: str) -> None:
+    """Minimal row (no answers), committed on its own before anything else is stored."""
+    m = _models()
+    try:
+        db.add(
+            m.SafetyEvent(user_id=user_id, source=f"survey:{instrument_id}", reason="safety_item")
+        )
+        db.commit()
+    except Exception:
+        db.rollback()
+        log.error("safety event could not be stored (instrument=%s)", instrument_id)
+
+
+def submit_response(db: Any, user_id: str, data: SurveyResponse) -> dict:
+    """Safety first, then validate, score and store.
+
+    Returns {"id", "total", "scores", "safety"}. On failure raises SubmissionError,
+    which still carries the safety result.
+    """
+    # 1. Safety, before any validation. Synchronous, never queued.
+    safety_inst = _instrument_for_safety(db, data.instrument_id)
+    safety = safety_check(safety_inst, data.answers) if safety_inst else SafetyResult(show=False)
+    if safety.show:
+        _record_safety_event(db, user_id, data.instrument_id)
+
+    # 2. Ownership, instrument + version, answers.
+    if data.user_id != user_id:
+        raise SubmissionError("forbidden", safety)
+    try:
+        get_instrument(db, data.instrument_id)
+    except UnknownInstrument:
+        raise SubmissionError("unknown_instrument", safety) from None
+    try:
+        instrument = get_instrument(db, data.instrument_id, data.instrument_version)
+    except UnknownInstrument:
+        raise SubmissionError("invalid", safety, ["instrument_version not in catalog"]) from None
+    try:
+        scored = score_answers(instrument, data.answers)
+    except InvalidAnswers as e:
+        raise SubmissionError("invalid", safety, e.errors) from None
+
+    # 3. Store. answers become ciphertext here; never log them.
+    m = _models()
+    scores = {k: v for k, v in scored.items() if k != "total"}
+    try:
+        row = m.SurveyResponseRow(
+            user_id=user_id,
+            instrument_id=instrument["id"],
+            instrument_version=instrument["version"],
+            administered_at=data.administered_at.astimezone(UTC),
+            answers=encode_answers(data.answers),
+            total=scored["total"],
+            scores=scores,
+        )
+        db.add(row)
+        db.commit()
+    except Exception:
+        db.rollback()
+        log.error("survey response could not be stored (instrument=%s)", instrument["id"])
+        raise SubmissionError("storage", safety) from None
+    log.info("survey response stored id=%s instrument=%s", row.id, instrument["id"])
+    return {"id": row.id, "total": scored["total"], "scores": scores, "safety": safety.model_dump()}

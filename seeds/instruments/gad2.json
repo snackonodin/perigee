@@ -57,18 +57,21 @@
     "method": "sum",
     "min": 0,
     "max": 6,
-    "ranges_source": "Kroenke K, Spitzer RL, Williams JBW, Monahan PO, Lowe B. Anxiety disorders in primary care: prevalence, impairment, comorbidity, and detection. Ann Intern Med. 2007;146(5):317-325. Screening cutoff >=3.",
+    "ranges_source": "Kroenke K, Spitzer RL, Williams JBW, Monahan PO, Lowe B. Anxiety disorders in primary care: prevalence, impairment, comorbidity, and detection. Ann Intern Med. 2007;146(5):317-325. Screening cutoff >=3. Alert basis: score >=3 is the published positive-screen cut-off in that paper.",
     "ranges": [
       {
         "min": 0,
         "max": 2,
-        "label": "below screening cutoff"
+        "label": "below screening cutoff",
+        "alert": false
       },
       {
         "min": 3,
         "max": 6,
-        "label": "at or above screening cutoff"
+        "label": "at or above screening cutoff",
+        "alert": true
       }
     ]
-  }
+  },
+  "direction": 1
 }

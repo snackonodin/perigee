@@ -31,7 +31,8 @@
           "value": 4,
           "label": "Very good"
         }
-      ]
+      ],
+      "direction": -1
     },
     {
       "key": "stress",
@@ -57,7 +58,8 @@
           "value": 4,
           "label": "Extremely"
         }
-      ]
+      ],
+      "direction": 1
     },
     {
       "key": "energy",
@@ -83,7 +85,8 @@
           "value": 4,
           "label": "A lot"
         }
-      ]
+      ],
+      "direction": -1
     }
   ],
   "scoring": {
@@ -91,5 +94,7 @@
     "per_item": true,
     "ranges": [],
     "ranges_source": "PLACEHOLDER: no bands. The total is not interpreted; items are reported individually."
-  }
+  },
+  "direction": null,
+  "direction_note": "Per-item: +1 means a higher value is worse, -1 means a higher value is better."
 }

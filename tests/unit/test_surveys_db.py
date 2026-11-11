@@ -10,7 +10,8 @@ from __future__ import annotations
 import base64
 import json
 import logging
-from datetime import UTC, datetime
+import sys
+from datetime import UTC, date, datetime
 
 import pytest
 from sqlalchemy import select, text
@@ -303,3 +304,107 @@ def test_checkin_without_consent_stores_nothing(db, state) -> None:
     assert out["scores"]["items"] == {"sleep_quality": 1, "energy": 0, "mood": 0}
     assert db.query(CheckinDaily).count() == 0
     assert db.query(SurveyResponseRow).count() == 0
+
+
+# --------------------------------------------------------------------------- weekly indices
+
+
+def _who5(v: int) -> dict[str, int]:
+    return {f"who5_{i}": v for i in range(1, 6)}
+
+
+WEEK = date(2026, 11, 9)  # a Monday
+
+
+def test_weekly_indices_latest_score_band_and_item_means(db) -> None:
+    submit_response(db, "u1", _resp("u1", "who5", _who5(2), when=_at(2026, 11, 9)))
+    submit_response(db, "u1", _resp("u1", "who5", _who5(3), when=_at(2026, 11, 12)))
+    phq2 = {"phq2_1": 1, "phq2_2": 2}
+    submit_response(db, "u1", _resp("u1", "phq2", phq2, when=_at(2026, 11, 10)))
+    for day, mood, stress in [(9, 1, 4), (10, 3, 2), (15, 4, 0)]:
+        a = {"mood": mood, "stress": stress, "energy": 2}
+        submit_response(db, "u1", _resp("u1", "daily_pm", a, when=_at(2026, 11, day, 21)))
+    # Outside the window: Sunday 23:59 before, and the next Monday 00:00 (UTC).
+    g = {"gad2_1": 3, "gad2_2": 3}
+    submit_response(
+        db, "u1", _resp("u1", "gad2", g, when=datetime(2026, 11, 8, 23, 59, tzinfo=UTC))
+    )
+    submit_response(db, "u1", _resp("u1", "gad2", g, when=datetime(2026, 11, 16, tzinfo=UTC)))
+    submit_response(
+        db,
+        "u1",
+        _resp("u1", "daily_pm", {"mood": 0, "stress": 4, "energy": 0}, when=_at(2026, 11, 16)),
+    )
+
+    idx = surveys.weekly_indices(db, "u1", WEEK)
+    assert idx["who5"] == {  # latest: 15 * 4 = 60, above the <=50 cut-off
+        "value": 60.0,
+        "band": "above screening cutoff",
+        "band_alert": False,
+        "direction": -1,
+    }
+    assert idx["phq2"] == {
+        "value": 3.0,
+        "band": "at or above screening cutoff",
+        "band_alert": True,
+        "direction": 1,
+    }
+    assert idx["daily_pm.mood"]["value"] == pytest.approx(8 / 3)
+    assert idx["daily_pm.mood"]["direction"] == -1
+    assert idx["daily_pm.stress"] == {
+        "value": pytest.approx(2.0),
+        "band": None,
+        "band_alert": False,
+        "direction": 1,
+    }
+    assert "gad2" not in idx
+
+
+def test_weekly_indices_low_who5_alerts(db) -> None:
+    submit_response(db, "u1", _resp("u1", "who5", _who5(2), when=_at(2026, 11, 10)))  # 40
+    idx = surveys.weekly_indices(db, "u1", WEEK)
+    assert idx["who5"]["band"] == "low wellbeing" and idx["who5"]["band_alert"] is True
+
+
+def test_weekly_indices_without_answers_consent_still_has_scores(db) -> None:
+    _set_consent(db, "u1", "survey_answers", False)
+    submit_response(db, "u1", _resp("u1", "phq9", _phq9(0, rest=2), when=_at(2026, 11, 10)))
+    idx = surveys.weekly_indices(db, "u1", WEEK)
+    assert idx["phq9"]["value"] == 16.0 and idx["phq9"]["band_alert"] is True
+
+
+def test_weekly_indices_user_isolation(db) -> None:
+    """User A cannot read user B's responses or check-ins through weekly_indices."""
+    submit_response(db, "userB", _resp("userB", "who5", _who5(5), when=_at(2026, 11, 10)))
+    submit_response(
+        db,
+        "userB",
+        _resp(
+            "userB",
+            "daily_am",
+            {"sleep_quality": 0, "energy": 0, "mood": 0},
+            when=_at(2026, 11, 10),
+        ),
+    )
+    assert surveys.weekly_indices(db, "userA", WEEK) == {}
+    submit_response(db, "userA", _resp("userA", "who5", _who5(1), when=_at(2026, 11, 11)))
+    a = surveys.weekly_indices(db, "userA", WEEK)
+    b = surveys.weekly_indices(db, "userB", WEEK)
+    assert set(a) == {"who5"} and a["who5"]["value"] == 20.0
+    assert b["who5"]["value"] == 100.0 and b["daily_am.mood"]["value"] == 0.0
+
+
+def test_weekly_indices_requires_user_id(db) -> None:
+    with pytest.raises(ValueError):
+        surveys.weekly_indices(db, "", WEEK)
+
+
+def test_weekly_indices_never_decrypts_answers(db, monkeypatch) -> None:
+    submit_response(db, "u1", _resp("u1", "who5", _who5(3), when=_at(2026, 11, 10)))
+
+    def boom(*a, **k):
+        raise AssertionError("weekly_indices must not touch answers")
+
+    monkeypatch.setattr(surveys, "_encrypt", boom)
+    monkeypatch.setattr(sys.modules[__name__], "placeholder_decrypt", boom)
+    assert surveys.weekly_indices(db, "u1", WEEK)["who5"]["value"] == 60.0

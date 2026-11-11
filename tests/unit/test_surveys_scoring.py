@@ -14,8 +14,9 @@ def test_phq9_sum_and_band() -> None:
     inst = surveys.get_seed_instrument("phq9")
     r = score_answers(inst, _all(inst, 3))
     assert r["total"] == 27 and r["score"] == 27 and r["band"] == "severe"
+    assert r["band_alert"] is True
     r = score_answers(inst, _all(inst, 0))
-    assert r["score"] == 0 and r["band"] == "minimal"
+    assert r["score"] == 0 and r["band"] == "minimal" and r["band_alert"] is False
     answers = _all(inst, 1)  # 9 -> mild
     assert score_answers(inst, answers)["band"] == "mild"
     answers["phq9_1"] = 2  # 10 -> moderate (boundary)
@@ -44,7 +45,7 @@ def test_who5_times_four() -> None:
 def test_daily_checkin_per_item_no_band() -> None:
     inst = surveys.get_seed_instrument("daily_pm")
     r = score_answers(inst, {"mood": 3, "stress": 1, "energy": 2})
-    assert r["band"] is None
+    assert r["band"] is None and r["band_alert"] is False
     assert r["items"] == {"mood": 3, "stress": 1, "energy": 2}
 
 

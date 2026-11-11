@@ -57,3 +57,32 @@ def test_phq2_matches_phq9_first_two_items() -> None:
     p2, p9 = _load("phq2"), _load("phq9")
     assert [i["text"] for i in p2["items"]] == [i["text"] for i in p9["items"][:2]]
     assert len(p9["items"]) == 9
+
+
+def test_alert_flags_only_where_cited() -> None:
+    expected_alerts = {
+        "phq9": {"moderate", "moderately severe", "severe"},
+        "phq2": {"at or above screening cutoff"},
+        "gad2": {"at or above screening cutoff"},
+        "who5": {"very low wellbeing", "low wellbeing"},
+    }
+    for name, labels in expected_alerts.items():
+        sc = _load(name)["scoring"]
+        assert all(isinstance(r["alert"], bool) for r in sc["ranges"])
+        assert {r["label"] for r in sc["ranges"] if r["alert"]} == labels
+        assert "Alert basis" in sc["ranges_source"]
+
+
+def test_direction() -> None:
+    assert {n: _load(n)["direction"] for n in ("phq9", "phq2", "gad2", "who5")} == {
+        "phq9": 1,
+        "phq2": 1,
+        "gad2": 1,
+        "who5": -1,
+    }
+    for n in ("daily_am", "daily_pm"):
+        d = _load(n)
+        assert d["direction"] is None
+        dirs = {it["key"]: it["direction"] for it in d["items"]}
+        assert all(v in (1, -1) for v in dirs.values())
+        assert dirs.get("stress", 1) == 1 and dirs.get("mood") == -1

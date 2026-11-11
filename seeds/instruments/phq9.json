@@ -214,33 +214,39 @@
     "method": "sum",
     "min": 0,
     "max": 27,
-    "ranges_source": "Kroenke K, Spitzer RL, Williams JBW. The PHQ-9: validity of a brief depression severity measure. J Gen Intern Med. 2001;16(9):606-613. doi:10.1046/j.1525-1497.2001.016009606.x",
+    "ranges_source": "Kroenke K, Spitzer RL, Williams JBW. The PHQ-9: validity of a brief depression severity measure. J Gen Intern Med. 2001;16(9):606-613. doi:10.1046/j.1525-1497.2001.016009606.x Alert basis: the same paper reports a score >=10 as the cut-off (sensitivity and specificity 88% for major depression), so ranges from 'moderate' upward are alert=true.",
     "ranges": [
       {
         "min": 0,
         "max": 4,
-        "label": "minimal"
+        "label": "minimal",
+        "alert": false
       },
       {
         "min": 5,
         "max": 9,
-        "label": "mild"
+        "label": "mild",
+        "alert": false
       },
       {
         "min": 10,
         "max": 14,
-        "label": "moderate"
+        "label": "moderate",
+        "alert": true
       },
       {
         "min": 15,
         "max": 19,
-        "label": "moderately severe"
+        "label": "moderately severe",
+        "alert": true
       },
       {
         "min": 20,
         "max": 27,
-        "label": "severe"
+        "label": "severe",
+        "alert": true
       }
     ]
-  }
+  },
+  "direction": 1
 }

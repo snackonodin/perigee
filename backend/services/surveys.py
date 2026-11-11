@@ -11,7 +11,7 @@ import hmac
 import json
 import logging
 from collections.abc import Callable
-from datetime import UTC
+from datetime import UTC, date, datetime, time, timedelta
 from functools import lru_cache
 from typing import Any
 
@@ -129,18 +129,20 @@ def validate_answers(instrument: dict, answers: dict[str, int]) -> None:
         raise InvalidAnswers(errors)
 
 
-def _band(ranges: list[dict], score: float) -> str | None:
-    for r in ranges:
+def band_for(instrument: dict, score: float) -> tuple[str | None, bool]:
+    """(band label, alert) for a score, from the catalog's cited ranges only.
+    No matching range -> (None, False)."""
+    for r in instrument["scoring"].get("ranges", []):
         if r["min"] <= score <= r["max"]:
-            return r["label"]
-    return None
+            return r["label"], bool(r.get("alert", False))
+    return None, False
 
 
 def score_answers(instrument: dict, answers: dict[str, int]) -> dict:
     """Validate, then score from the catalog entry alone.
 
     Returns {"total": raw sum, "score": scaled score, "band": label | None,
-    "method": ..., "items": {...} only for per-item check-ins}.
+    "band_alert": bool, "method": ..., "items": {...} only for per-item check-ins}.
     ``sum`` -> score = total; ``sum_x4`` -> score = total * 4 (WHO-5 percentage).
     Bands come only from the instrument JSON (cited or empty).
     """
@@ -154,10 +156,12 @@ def score_answers(instrument: dict, answers: dict[str, int]) -> dict:
         score = total * 4
     else:
         raise ValueError(f"unknown scoring method for {instrument['id']}: {method}")
+    band, alert = band_for(instrument, score)
     result: dict = {
         "total": total,
         "score": score,
-        "band": _band(scoring.get("ranges", []), score),
+        "band": band,
+        "band_alert": alert,
         "method": method,
     }
     if scoring.get("per_item"):
@@ -372,6 +376,7 @@ def _store_survey(
         scores = {
             "score": scored["score"],
             "band": scored["band"],
+            "band_alert": scored["band_alert"],
             "method": scored["method"],
             "answers_hmac": answers_digest(data.answers),
             "answers_retained": False,
@@ -414,3 +419,77 @@ def _store_checkin(db: Any, user_id: str, instrument: dict, data: SurveyResponse
     row.answers = dict(data.answers)
     db.commit()
     return row.id
+
+
+def weekly_indices(db: Any, user_id: str, week_start: date) -> dict[str, dict]:
+    """Indices for the 7 days from week_start (UTC), from scores and check-ins only.
+
+    Survey answers are never decrypted. Every query is scoped to user_id.
+    Returns {index: {"value", "band", "band_alert", "direction"}}:
+    - "<instrument_id>" (phq2, gad2, who5, phq9): latest score that week; WHO-5
+      is the 0-100 percentage. band/band_alert come from the catalog's cited
+      ranges for the stored instrument version.
+    - "<daily_id>.<item>" (e.g. "daily_pm.stress"): mean that week; no band
+      (band=None, band_alert=False), direction from the item.
+    direction: +1 means higher is worse, -1 means higher is better.
+    Indices with no data that week are omitted. Persisting to the indices
+    table is left to the caller.
+    """
+    from sqlalchemy import select
+
+    m = _models()
+    start = datetime.combine(week_start, time.min, tzinfo=UTC)
+    end = start + timedelta(days=7)
+    out: dict[str, dict] = {}
+    catalog: dict[tuple[str, str], dict] = {}
+
+    def inst_for(instrument_id: str, version: str) -> dict:
+        if (instrument_id, version) not in catalog:
+            catalog[instrument_id, version] = get_instrument(db, instrument_id, version)
+        return catalog[instrument_id, version]
+
+    stmt = m.scoped(
+        select(m.SurveyResponseRow)
+        .where(m.SurveyResponseRow.administered_at >= start)
+        .where(m.SurveyResponseRow.administered_at < end)
+        .order_by(m.SurveyResponseRow.administered_at),
+        m.SurveyResponseRow,
+        user_id,
+    )
+    for row in db.scalars(stmt):  # ordered by time: the last one wins
+        score = (row.scores or {}).get("score")
+        if score is None:
+            continue
+        inst = inst_for(row.instrument_id, row.instrument_version)
+        band, alert = band_for(inst, score)
+        out[row.instrument_id] = {
+            "value": float(score),
+            "band": band,
+            "band_alert": alert,
+            "direction": inst.get("direction"),
+        }
+
+    stmt = m.scoped(
+        select(m.CheckinDaily)
+        .where(m.CheckinDaily.date >= week_start)
+        .where(m.CheckinDaily.date < week_start + timedelta(days=7)),
+        m.CheckinDaily,
+        user_id,
+    )
+    values: dict[str, list[float]] = {}
+    directions: dict[str, int | None] = {}
+    for row in db.scalars(stmt):
+        inst = inst_for(row.instrument_id, row.instrument_version)
+        item_dir = {it["key"]: it.get("direction") for it in inst["items"]}
+        for key, value in row.answers.items():
+            name = f"{row.instrument_id}.{key}"
+            values.setdefault(name, []).append(float(value))
+            directions[name] = item_dir.get(key)
+    for name, vals in values.items():
+        out[name] = {
+            "value": sum(vals) / len(vals),
+            "band": None,
+            "band_alert": False,
+            "direction": directions[name],
+        }
+    return out

@@ -8,31 +8,32 @@ Next task for a worker: `tools/ops/board.py list --owner <id> --next`.
 
 Owners: `ca` build-astronaut-health-backend (main) · `f4` pankajkashyap-f4 (feat/csi-core, feat/pipeline) · `b0` pankajkashyap-b0 (feat/db-ingest) · `7a` pankajkashyap-7a (feat/accounts) · `cf` pankajkashyap-cf (feat/surveys) · `ops` claude-multiplayer server launch (feat/ops)
 
-## todo (6)
+## todo (5)
 
 | ID | Task | Owner | Branch | Done when | Blockers | sha |
 |----|------|-------|--------|-----------|----------|-----|
 | CORE-8 | Wrap user's real breathing / heart-rate / motion scripts into csi_core | f4 | csi-core | same outputs as scripts on a sample file; HR stays experimental | user supplies scripts |  |
 | CA-1 | Integrate routers in `backend/main.py` | ca | main | all routers mounted; /openapi.json lists them | ACC-6, SUR-7 |  |
-| CA-2 | `/api/v1/today` (night features, flags, guidance, due check-ins) | ca | main | e2e test with seeded user | CA-1, DB-5, SUR-6 |  |
 | CA-3 | Three synthetic personas (`is_synthetic`) via normal ingestion | ca | main | `cli seed-personas` → `/today` differs per persona | DB-6, CA-2, OPS-6 |  |
 | CA-4 | Demo HTML page (single file, localhost) | ca | main | login → today → check-in → safety screen shown in a dry run | CA-2 |  |
 | CA-5 | Wire worker start/stop into main.py lifespan; persona seeding command once OPS-6 lands | ca | main | app starts worker; seed-personas produces 3 synthetic users with expected flags | DB-7 |  |
 
-## doing (3)
+## doing (2)
 
 | ID | Task | Owner | Branch | Done when | Blockers | sha |
 |----|------|-------|--------|-----------|----------|-----|
 | CORE-7 | `fusion.score_night` → `FlagDraft` | f4 | csi-core | components dict explains priority; thresholds only from config.yaml | CORE-6 |  |
 | DB-7 | `api/v1/sessions.py` (POST from DATA_DIR/inbox, list, get, /windows) + `api/v1/jobs.py` + `backend/worker.py` | b0 | db-ingest | TestClient covers register/list/get/windows/jobs; path traversal rejected; worker start/stop safe; isolation A/B | DB-6 |  |
-| SUR-8 | `api/v1/nights.py` (nights, flags, indices, checkins) + `api/v1/today.py` | cf | surveys | TestClient for every route; /today returns latest night, top-3 flags with guidance, pending check-ins, maturity; isolation A/B | SUR-7 |  |
 
-## review (0)
+## review (3)
 
 | ID | Task | Owner | Branch | Done when | Blockers | sha |
 |----|------|-------|--------|-----------|----------|-----|
+| ACC-7 | Isolation test: user A cannot read user B | 7a | accounts | test over every user-owned table via `scoped` | ACC-5 | 48f4467 |
+| CA-2 | `/api/v1/today` (night features, flags, guidance, due check-ins) | ca | main | e2e test with seeded user | CA-1, DB-5, SUR-6 | 5bd2b13 |
+| SUR-8 | `api/v1/nights.py` (nights, flags, indices, checkins) + `api/v1/today.py` | cf | surveys | TestClient for every route; /today returns latest night, top-3 flags with guidance, pending check-ins, maturity; isolation A/B | SUR-7 | 5bd2b13 |
 
-## done (44)
+## done (43)
 
 | ID | Task | Owner | Branch | Done when | Blockers | sha |
 |----|------|-------|--------|-----------|----------|-----|
@@ -56,7 +57,6 @@ Owners: `ca` build-astronaut-health-backend (main) · `f4` pankajkashyap-f4 (fea
 | ACC-4 | `backend/deps.py` `get_db`, `current_user` | 7a | accounts | 401 without token; returns user_id | DB-1, ACC-2 | 7d9477d |
 | ACC-5 | `services/accounts.py` signup/login/refresh/logout/export/delete | 7a | accounts | logout + delete revoke refresh tokens; delete removes raw files | DB-3, ACC-4 | bfcd805 |
 | ACC-6 | `api/v1/auth.py`, `api/v1/me.py` (routers, not mounted) | 7a | accounts | TestClient flow signup→login→me→logout | ACC-5 | bfcd805 |
-| ACC-7 | Isolation test: user A cannot read user B | 7a | accounts | test over every user-owned table via `scoped` | ACC-5 | bfcd805 |
 | SUR-1 | `seeds/instruments/*.json` (phq2, gad2, who5, phq9, daily_am, daily_pm) | cf | surveys | schema test; self-harm item has `safety_trigger`; license_note + source_url set | — | 72732e5 |
 | SUR-2 | `safety_check` (pure) | cf | surveys | trigger at min_value always shows; severe codes from config.yaml | SUR-1 | 72732e5 |
 | SUR-3 | `load_catalog` (idempotent), `get_instrument` | cf | surveys | 2nd load is a no-op | DB-3, SUR-1 | 72732e5 |

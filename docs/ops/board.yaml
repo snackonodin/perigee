@@ -254,13 +254,13 @@ tasks:
   title: 'Isolation test: user A cannot read user B'
   owner: 7a
   branch: feat/accounts
-  state: done
+  state: review
   blockers:
   - ACC-5
   done_when: test over every user-owned table via `scoped`
-  sha: bfcd805
+  sha: 48f4467
   times:
-    review: '2026-11-11T15:01:13Z'
+    review: '2026-11-11T15:08:33Z'
     done: '2026-11-11T15:02:53Z'
 - id: SUR-1
   title: '`seeds/instruments/*.json` (phq2, gad2, who5, phq9, daily_am, daily_pm)'
@@ -358,13 +358,15 @@ tasks:
   title: '`/api/v1/today` (night features, flags, guidance, due check-ins)'
   owner: ca
   branch: main
-  state: todo
+  state: review
   blockers:
   - CA-1
   - DB-5
   - SUR-6
   done_when: e2e test with seeded user
-  sha: null
+  sha: 5bd2b13
+  times:
+    review: '2026-11-11T15:08:33Z'
 - id: CA-3
   title: Three synthetic personas (`is_synthetic`) via normal ingestion
   owner: ca
@@ -553,11 +555,13 @@ tasks:
   title: '`api/v1/nights.py` (nights, flags, indices, checkins) + `api/v1/today.py`'
   owner: cf
   branch: feat/surveys
-  state: doing
+  state: review
   blockers:
   - SUR-7
   done_when: TestClient for every route; /today returns latest night, top-3 flags with guidance, pending check-ins, maturity; isolation A/B
-  sha: null
+  sha: 5bd2b13
+  times:
+    review: '2026-11-11T15:08:33Z'
 - id: PIPE-3
   title: runs.py lazy builtin registration (one-off ownership exception) + slow marker
   owner: f4

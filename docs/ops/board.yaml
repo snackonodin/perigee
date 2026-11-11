@@ -227,36 +227,39 @@ tasks:
   title: '`services/accounts.py` signup/login/refresh/logout/export/delete'
   owner: 7a
   branch: feat/accounts
-  state: review
+  state: done
   blockers:
   - DB-3
   - ACC-4
   done_when: logout + delete revoke refresh tokens; delete removes raw files
-  sha: 297664b
+  sha: bfcd805
   times:
     review: '2026-11-11T15:01:13Z'
+    done: '2026-11-11T15:02:53Z'
 - id: ACC-6
   title: '`api/v1/auth.py`, `api/v1/me.py` (routers, not mounted)'
   owner: 7a
   branch: feat/accounts
-  state: review
+  state: done
   blockers:
   - ACC-5
   done_when: TestClient flow signup→login→me→logout
-  sha: 98777e7
+  sha: bfcd805
   times:
     review: '2026-11-11T15:01:13Z'
+    done: '2026-11-11T15:02:53Z'
 - id: ACC-7
   title: 'Isolation test: user A cannot read user B'
   owner: 7a
   branch: feat/accounts
-  state: review
+  state: done
   blockers:
   - ACC-5
   done_when: test over every user-owned table via `scoped`
-  sha: 297664b
+  sha: bfcd805
   times:
     review: '2026-11-11T15:01:13Z'
+    done: '2026-11-11T15:02:53Z'
 - id: SUR-1
   title: '`seeds/instruments/*.json` (phq2, gad2, who5, phq9, daily_am, daily_pm)'
   owner: cf

@@ -27,20 +27,17 @@ Owners: `ca` build-astronaut-health-backend (main) · `f4` pankajkashyap-f4 (fea
 | DB-7 | `api/v1/sessions.py` (POST from DATA_DIR/inbox, list, get, /windows) + `api/v1/jobs.py` + `backend/worker.py` | b0 | db-ingest | TestClient covers register/list/get/windows/jobs; path traversal rejected; worker start/stop safe; isolation A/B | DB-6 |  |
 | SUR-8 | `api/v1/nights.py` (nights, flags, indices, checkins) + `api/v1/today.py` | cf | surveys | TestClient for every route; /today returns latest night, top-3 flags with guidance, pending check-ins, maturity; isolation A/B | SUR-7 |  |
 
-## review (8)
+## review (5)
 
 | ID | Task | Owner | Branch | Done when | Blockers | sha |
 |----|------|-------|--------|-----------|----------|-----|
 | PIPE-1 | `services/pipeline.py`: process_session / run_nightly glue (csi_core → DB rows with run_id) | f4 | pipeline | synth night → window_estimates + night_features rows for one user, isolated by user_id | DB-4, CORE-6 |  |
 | PIPE-2 | `services/fusion.py`: score_night → flags rows (+ guidance hook) | f4 | pipeline | flags carry components; thresholds only from config.yaml | PIPE-1, CORE-7 |  |
-| ACC-5 | `services/accounts.py` signup/login/refresh/logout/export/delete | 7a | accounts | logout + delete revoke refresh tokens; delete removes raw files | DB-3, ACC-4 | 297664b |
-| ACC-6 | `api/v1/auth.py`, `api/v1/me.py` (routers, not mounted) | 7a | accounts | TestClient flow signup→login→me→logout | ACC-5 | 98777e7 |
-| ACC-7 | Isolation test: user A cannot read user B | 7a | accounts | test over every user-owned table via `scoped` | ACC-5 | 297664b |
 | OPS-6 | Persona data spec `docs/ops/personas.md` (steady; breathing/sleep drift; mental dip + safety) | ops | ops | per persona: synth params, seeds, survey schedule, expected /today derived from config placeholders | — | 9f816a0 |
 | OPS-7 | `tests/e2e/curl_flow.sh` demo flow against BASE_URL (default http://127.0.0.1:8000) | ops | ops | signup→login→check-in→safety→/today→logout→token rejected, pass/fail per step | CA-2 | 94d71d2 |
 | PIPE-3 | runs.py lazy builtin registration (one-off ownership exception) + slow marker | f4 | pipeline | test_builtin_kinds_registered passes; full suite green | PIPE-2 | 076136f |
 
-## done (36)
+## done (39)
 
 | ID | Task | Owner | Branch | Done when | Blockers | sha |
 |----|------|-------|--------|-----------|----------|-----|
@@ -60,6 +57,9 @@ Owners: `ca` build-astronaut-health-backend (main) · `f4` pankajkashyap-f4 (fea
 | ACC-2 | access JWT + `new_refresh_token` (plaintext, sha256) | 7a | accounts | expired token rejected; secret from env only | ACC-1 | 09ff38c |
 | ACC-3 | `encrypt` / `decrypt` (Fernet FIELD_KEY) + `EncryptedJSON` | 7a | accounts | round-trip test; ciphertext ≠ plaintext in DB | DB-2 | 09ff38c |
 | ACC-4 | `backend/deps.py` `get_db`, `current_user` | 7a | accounts | 401 without token; returns user_id | DB-1, ACC-2 | 7d9477d |
+| ACC-5 | `services/accounts.py` signup/login/refresh/logout/export/delete | 7a | accounts | logout + delete revoke refresh tokens; delete removes raw files | DB-3, ACC-4 | bfcd805 |
+| ACC-6 | `api/v1/auth.py`, `api/v1/me.py` (routers, not mounted) | 7a | accounts | TestClient flow signup→login→me→logout | ACC-5 | bfcd805 |
+| ACC-7 | Isolation test: user A cannot read user B | 7a | accounts | test over every user-owned table via `scoped` | ACC-5 | bfcd805 |
 | SUR-1 | `seeds/instruments/*.json` (phq2, gad2, who5, phq9, daily_am, daily_pm) | cf | surveys | schema test; self-harm item has `safety_trigger`; license_note + source_url set | — | 72732e5 |
 | SUR-2 | `safety_check` (pure) | cf | surveys | trigger at min_value always shows; severe codes from config.yaml | SUR-1 | 72732e5 |
 | SUR-3 | `load_catalog` (idempotent), `get_instrument` | cf | surveys | 2nd load is a no-op | DB-3, SUR-1 | 72732e5 |

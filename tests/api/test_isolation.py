@@ -23,7 +23,16 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 
 from backend.main import create_app
-from backend.models import Base, Flag, SafetyEvent, UserOwned, scoped
+from backend.models import (
+    Base,
+    Baseline,
+    CheckinDaily,
+    Flag,
+    NightFeaturesRow,
+    SafetyEvent,
+    UserOwned,
+    scoped,
+)
 from backend.services import accounts as acc
 from backend.services import jobs, surveys
 from backend.services import sessions as sessions_svc
@@ -93,8 +102,15 @@ ISOLATION_CASES: list[IsolationCase] = [
         json={"kind": "process_session", "params": {"session_id": "{a_session_id}"}},
     ),
     IsolationCase("get", "/api/v1/jobs/{job_id}", 404),
-    # Template for id-addressed routes (nights, ...):
-    # IsolationCase("get", "/api/v1/nights/{a_night_id}", 404),
+    # readouts (surveys, SUR-8): lists and /today are B's own (empty); A's night date is missing
+    IsolationCase("get", "/api/v1/nights", 200, params={"from": "2026-10-01", "to": "2026-12-01"}),
+    IsolationCase("get", "/api/v1/nights/{day}", 404),
+    IsolationCase("get", "/api/v1/flags", 200, params={"since": "2026-10-01"}),
+    IsolationCase("get", "/api/v1/indices", 200),  # this week: A's response is in it
+    IsolationCase(
+        "get", "/api/v1/checkins", 200, params={"from": "2026-10-01", "to": "2026-12-01"}
+    ),
+    IsolationCase("get", "/api/v1/today", 200),
 ]
 
 # Routes that serve no per-user data. Anything else must have a case.
@@ -165,6 +181,27 @@ def world(app_client, db, tmp_path) -> dict[str, Any]:
         message_key="test",
     )
     db.add(flag)
+    night = NightFeaturesRow(
+        user_id=a["user_id"],
+        date=datetime(2026, 11, 1, tzinfo=UTC).date(),
+        presence_hours=7.0,
+        rr_med=14.0,
+        valid=True,
+        session_ids=[session.id],
+        source_kind="synthetic",
+    )
+    db.add(night)
+    db.add(
+        CheckinDaily(
+            user_id=a["user_id"],
+            date=datetime(2026, 11, 1, tzinfo=UTC).date(),
+            slot="am",
+            instrument_id="daily_am",
+            instrument_version="1.0",
+            answers={"sleep_quality": 1, "energy": 1, "mood": 1},
+        )
+    )
+    db.add(Baseline(user_id=a["user_id"], feature="rr_med", n=5, window_days=28))
     db.commit()
     surveys.load_catalog(db)
     job = jobs.submit_job(db, a["user_id"], "run_nightly", {"date": "2026-11-01"})
@@ -188,6 +225,7 @@ def world(app_client, db, tmp_path) -> dict[str, Any]:
         "session_id": session.id,  # OpenAPI template names, for id-addressed routes
         "job_id": job.id,
         "a_flag_id": flag.id,
+        "day": "2026-11-01",  # A's night date (/nights/{day})
         "a_response_id": resp.json()["id"],
         "instrument_id": "phq2",
         # Strings that must never appear in anything B receives.
@@ -198,6 +236,7 @@ def world(app_client, db, tmp_path) -> dict[str, Any]:
             session.id,
             job.id,
             flag.id,
+            night.id,
             resp.json()["id"],
             a["access_token"],
             a["refresh_token"],
@@ -288,6 +327,9 @@ def test_scoped_isolates_every_user_owned_table(db, world) -> None:
         "sessions",
         "survey_responses",
         "flags",
+        "night_features",
+        "checkins_daily",
+        "baselines",
     } <= set(tables_with_a_rows), tables_with_a_rows
 
 

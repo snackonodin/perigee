@@ -260,3 +260,22 @@ def test_guidance_other_users_flag_is_404(client, auth) -> None:
     assert r.status_code == 404 and r.json()["error"] == "not_found"
     assert _count(GuidanceShown) == 0
     assert client.get("/api/v1/guidance", headers=h).status_code == 422  # flag_id required
+
+
+def test_missing_version_uses_catalog_current(client, auth) -> None:
+    _, h = auth
+    body = {"instrument_id": "phq9", "answers": _phq9(1)}
+    j = client.post("/api/v1/responses", json=body, headers=h).json()
+    assert j["ok"] is True and j["stored"] is True
+    assert j["safety"]["show"] is True
+    with db_mod.SessionLocal() as s:
+        assert s.get(SurveyResponseRow, j["id"]).instrument_version == "1.0"
+
+
+def test_missing_version_invalid_answers_still_safety(client, auth) -> None:
+    _, h = auth
+    j = client.post(
+        "/api/v1/responses", json={"instrument_id": "phq9", "answers": {"phq9_9": 2}}, headers=h
+    ).json()
+    assert j["ok"] is False and j["error"] == "invalid" and j["safety"]["show"] is True
+    assert _count(SafetyEvent) == 1

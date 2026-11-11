@@ -163,3 +163,20 @@ def test_select_guidance_user_isolation(db) -> None:
 def test_select_guidance_unknown_flag(db) -> None:
     with pytest.raises(guidance.UnknownFlag):
         guidance.select_guidance(db, "ua", "nope")
+
+
+def test_guidance_shown_once_per_flag_card_per_day(db) -> None:
+    from datetime import UTC, datetime, timedelta
+
+    comps = _comps(mental={"phq2": {"band": {"band": "x"}}})
+    fid = _flag(db, "ua", "mental_only", comps)
+    first = guidance.select_guidance(db, "ua", fid)
+    guidance.select_guidance(db, "ua", fid)
+    guidance.select_guidance(db, "ua", fid)
+    assert db.query(GuidanceShown).count() == len(first)
+    # Rows from an earlier UTC day do not count for today.
+    for r in db.query(GuidanceShown).all():
+        r.shown_at = datetime.now(UTC) - timedelta(days=1)
+    db.commit()
+    guidance.select_guidance(db, "ua", fid)
+    assert db.query(GuidanceShown).count() == 2 * len(first)

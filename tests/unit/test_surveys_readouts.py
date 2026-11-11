@@ -108,3 +108,36 @@ def test_bad_range_is_400(client) -> None:
     _, h = _user("d@example.test")
     r = client.get("/api/v1/nights", params={"from": "2026-11-10", "to": "2026-11-01"}, headers=h)
     assert r.status_code == 400 and r.json()["error"] == "invalid_range"
+
+
+def test_openapi_has_typed_schemas(client) -> None:
+    spec = client.get("/openapi.json").json()
+    schemas = spec["components"]["schemas"]
+    for name in (
+        "NightOut",
+        "FlagOut",
+        "IndicesOut",
+        "IndexOut",
+        "CheckinOut",
+        "TodayOut",
+        "TodayFlagOut",
+        "BaselineOut",
+        "PendingCheckin",
+    ):
+        assert name in schemas, name
+    assert "hr_med" not in schemas["NightOut"]["properties"]
+    paths = spec["paths"]
+    ok = lambda p: paths[p]["get"]["responses"]["200"]["content"]["application/json"]["schema"]  # noqa: E731
+    assert ok("/api/v1/today") == {"$ref": "#/components/schemas/TodayOut"}
+    assert ok("/api/v1/indices") == {"$ref": "#/components/schemas/IndicesOut"}
+    assert ok("/api/v1/nights")["items"] == {"$ref": "#/components/schemas/NightOut"}
+
+
+def test_today_reload_does_not_recount_guidance(client) -> None:
+    uid, h = _user("e@example.test")
+    _seed(uid)
+    first = client.get("/api/v1/today", headers=h).json()
+    client.get("/api/v1/today", headers=h)
+    client.get("/api/v1/today", headers=h)
+    with db_mod.SessionLocal() as s:
+        assert s.query(GuidanceShown).count() == len(first["flags"][0]["guidance"])

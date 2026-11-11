@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import logging
+from datetime import UTC, datetime, time
 from functools import lru_cache
 from typing import Any
 
@@ -144,12 +145,25 @@ def select_guidance(db: Any, user_id: str, flag_id: str) -> list[dict]:
         r.card_key: r
         for r in db.scalars(select(m.GuidanceCard).where(m.GuidanceCard.card_key.in_(keys)))
     }
+    # guidance_shown: at most one row per (user, flag, card) per UTC day.
+    day_start = datetime.combine(datetime.now(UTC).date(), time.min, tzinfo=UTC)
+    already = set(
+        db.scalars(
+            m.scoped(
+                select(m.GuidanceShown.card_id).where(
+                    m.GuidanceShown.flag_id == flag.id, m.GuidanceShown.shown_at >= day_start
+                ),
+                m.GuidanceShown,
+                user_id,
+            )
+        )
+    )
     out = []
     for card in cards:
         row = rows.get(card["card_key"])
         if row is None:  # catalog not loaded: still show the card, nothing to link
             log.warning("guidance card %s not in DB; run load_guidance_cards", card["card_key"])
-        else:
+        elif row.id not in already:
             db.add(m.GuidanceShown(user_id=user_id, card_id=row.id, flag_id=flag.id))
         out.append(_public(card, signals))
     db.commit()

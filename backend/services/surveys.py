@@ -322,11 +322,13 @@ def submit_response(db: Any, user_id: str, data: SurveyResponse) -> dict:
     if data.user_id != user_id:
         raise SubmissionError("forbidden", safety)
     try:
-        get_instrument(db, data.instrument_id)
+        current = get_instrument(db, data.instrument_id)
     except UnknownInstrument:
         raise SubmissionError("unknown_instrument", safety) from None
     try:
-        instrument = get_instrument(db, data.instrument_id, data.instrument_version)
+        # No version given (""): use the catalog's current one.
+        version = data.instrument_version or current["version"]
+        instrument = get_instrument(db, data.instrument_id, version)
     except UnknownInstrument:
         raise SubmissionError("invalid", safety, ["instrument_version not in catalog"]) from None
     try:
@@ -548,7 +550,7 @@ def submit_payload(
         data = SurveyResponse(
             user_id=user_id,
             instrument_id=instrument_id,
-            instrument_version=instrument_version or "",
+            instrument_version=instrument_version or "",  # "" -> catalog current
             administered_at=administered_at or datetime.now(UTC),
             answers=answers,
         )

@@ -1,0 +1,105 @@
+{
+  "version": "1.0",
+  "note": "Conservative awareness cards. No diagnoses, no medication or dosing advice, no numeric thresholds. A card is eligible when the flag state is in match.states and (match.signals is empty or a listed signal deviated). Lower priority shows first.",
+  "cards": [
+    {
+      "card_key": "talk_to_support",
+      "title": "Check in with someone",
+      "body": "Your recent check-ins look different from your usual pattern. This is not a diagnosis. It can help to talk it through with someone you trust, or with your support contact.",
+      "contact_support_text": "If this keeps happening or you feel worse, talk to your flight surgeon or your designated support contact. If you ever feel unsafe, contact them now or call your local emergency number.",
+      "source_note": "Project-authored signposting, no clinical claim. Mirrors the PHQ/GAD screener guidance that a positive screen should be followed up by a qualified professional (phqscreeners.com). Not yet reviewed by a clinician (reviewed_by is null).",
+      "match": {
+        "states": [
+          "mental_only",
+          "both"
+        ],
+        "signals": []
+      },
+      "priority": 0,
+      "reviewed_by": null
+    },
+    {
+      "card_key": "paced_breathing",
+      "title": "A few minutes of slow breathing",
+      "body": "If you feel tense, try sitting comfortably and breathing slowly and gently through your nose for a few minutes, letting each out-breath be a little longer than the in-breath. Stop if you feel dizzy or uncomfortable.",
+      "contact_support_text": "If this keeps happening or you feel worse, talk to your flight surgeon or your designated support contact. If you ever feel unsafe, contact them now or call your local emergency number.",
+      "source_note": "General relaxation guidance; no specific rate or effect is claimed. TODO-VERIFY: attach a reviewed source (e.g. a national health service breathing-exercise page). Not yet reviewed by a clinician (reviewed_by is null).",
+      "match": {
+        "states": [
+          "phys_only",
+          "mental_only",
+          "both"
+        ],
+        "signals": [
+          "rr_med",
+          "rr_var",
+          "daily_pm.stress",
+          "gad2"
+        ]
+      },
+      "priority": 1,
+      "reviewed_by": null
+    },
+    {
+      "card_key": "caffeine_cutoff",
+      "title": "Earlier last coffee",
+      "body": "Caffeine late in the day can make it harder to fall asleep. If your sleep has been unsettled, you could try having your last caffeinated drink earlier in the day.",
+      "contact_support_text": "If this keeps happening or you feel worse, talk to your flight surgeon or your designated support contact. If you ever feel unsafe, contact them now or call your local emergency number.",
+      "source_note": "Common sleep-hygiene advice, e.g. CDC 'Tips for Better Sleep'; Drake C et al. Caffeine effects on sleep taken 0, 3, or 6 hours before going to bed. J Clin Sleep Med. 2013;9(11):1195-1200. TODO-VERIFY citations. Not yet reviewed by a clinician (reviewed_by is null).",
+      "match": {
+        "states": [
+          "phys_only",
+          "both"
+        ],
+        "signals": [
+          "restless_frac",
+          "presence_hours",
+          "daily_am.sleep_quality"
+        ]
+      },
+      "priority": 2,
+      "reviewed_by": null
+    },
+    {
+      "card_key": "wind_down",
+      "title": "A short wind-down routine",
+      "body": "A calm, regular routine before sleep can help: dim the lights, put screens and work away, and do something quiet for a little while before bed.",
+      "contact_support_text": "If this keeps happening or you feel worse, talk to your flight surgeon or your designated support contact. If you ever feel unsafe, contact them now or call your local emergency number.",
+      "source_note": "Common sleep-hygiene advice (e.g. CDC 'Tips for Better Sleep'). TODO-VERIFY citation. Not yet reviewed by a clinician (reviewed_by is null).",
+      "match": {
+        "states": [
+          "phys_only",
+          "mental_only",
+          "both"
+        ],
+        "signals": [
+          "restless_frac",
+          "daily_am.sleep_quality",
+          "daily_pm.stress"
+        ]
+      },
+      "priority": 3,
+      "reviewed_by": null
+    },
+    {
+      "card_key": "schedule_shift",
+      "title": "Keep sleep timing steady",
+      "body": "Going to sleep and waking at similar times each day can help. If your work schedule has shifted, ask your flight surgeon or support contact how best to adjust, rather than changing everything at once.",
+      "contact_support_text": "If this keeps happening or you feel worse, talk to your flight surgeon or your designated support contact. If you ever feel unsafe, contact them now or call your local emergency number.",
+      "source_note": "Common sleep-hygiene advice on regular sleep timing (e.g. CDC 'Tips for Better Sleep'). Schedule changes in operations are a matter for the flight surgeon. TODO-VERIFY citation. Not yet reviewed by a clinician (reviewed_by is null).",
+      "match": {
+        "states": [
+          "phys_only",
+          "both"
+        ],
+        "signals": [
+          "presence_hours",
+          "daily_am.energy",
+          "daily_pm.energy"
+        ]
+      },
+      "priority": 4,
+      "reviewed_by": null
+    }
+  ]
+}

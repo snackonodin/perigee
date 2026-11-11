@@ -34,7 +34,16 @@ def robust_z(value: float, b: BaselineState) -> float | None: ...
 class FlagDraft: domain_pair: str; phys_level: int; mental_level: int; state: str; priority: float;
                  components: dict; message_key: str
 def score_night(night: NightFeatures, baselines: dict[str, BaselineState],
-                latest_indices: dict[str, float], cfg: CoreConfig) -> list[FlagDraft]: ...
+                latest_indices: dict[str, float], cfg: CoreConfig, *,
+                index_direction: Mapping[str, int] | None = None,     # +1 higher=worse, -1 higher=better; missing => skipped
+                mental_band_alerts: Mapping[str, str] | None = None,  # index -> cited catalog band label; flags during warm-up
+                ) -> list[FlagDraft]: ...   # [] when nothing flags; one draft/night, domain_pair "physiology|mental",
+                                            # state both|phys_only|mental_only, message_key "flag.<state>", levels 0/1
+# also available
+def count_wraps(ts_us, bits=32) -> int                                   # timebase
+def clean_band(df, cfg, band_hz) -> CleanSignal                          # preprocess
+def clean_heart(df, cfg) -> CleanSignal; estimate_windows(sig, session_id, cfg) -> list[HeartEstimate]   # heart
+def detect(windows, fs, cfg) -> MotionResult                             # motion
 ```
 
 **Capture file format (what synth writes and what real capture must write):**

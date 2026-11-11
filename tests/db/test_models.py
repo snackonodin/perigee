@@ -11,11 +11,13 @@ from backend.models import (
     AuditLog,
     Base,
     CaptureSession,
+    Consent,
     HeartEstimateRow,
     Instrument,
     Marker,
     NightFeaturesRow,
     PipelineRun,
+    Profile,
     RawFile,
     SurveyResponseRow,
     User,
@@ -205,3 +207,26 @@ def test_audit_log_survives_user_delete(schema: Engine, db: Session) -> None:
     db.expire_all()
     row = db.scalars(select(AuditLog)).one()
     assert row.user_id is None and row.action == "login"
+
+
+def test_consents_one_row_per_scope(schema: Engine, db: Session) -> None:
+    u = _user(db, "a@x")
+    db.add(Consent(user_id=u.id, scope="csi_capture", granted=True, policy_version="1"))
+    db.flush()
+    db.add(Consent(user_id=u.id, scope="csi_capture", granted=False, policy_version="2"))
+    with pytest.raises(IntegrityError, match="UNIQUE"):
+        db.flush()
+
+
+def test_profile_display_name_stored_as_bytes(schema: Engine, db: Session) -> None:
+    u = _user(db, "a@x")
+    db.add(Profile(user_id=u.id, display_name=b"\x01cipher"))
+    db.commit()
+    cols = {c["name"] for c in inspect(db.get_bind()).get_columns("profiles")}
+    assert "display_name_enc" in cols and "display_name" not in cols
+
+
+@pytest.mark.parametrize("bad", ["../etc", "not-a-uuid", "A" * 36, ""])
+def test_session_id_must_be_uuid(bad: str) -> None:
+    with pytest.raises(ValueError):
+        CaptureSession(id=bad)

@@ -2,7 +2,7 @@
 
 Revision ID: 0001
 Revises:
-Create Date: 2026-11-11 16:20:08.848063
+Create Date: 2026-11-11 16:22:13.638162
 
 """
 
@@ -157,6 +157,7 @@ def upgrade() -> None:
             ["user_id"], ["users.id"], name=op.f("fk_consents_user_id_users"), ondelete="CASCADE"
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_consents")),
+        sa.UniqueConstraint("user_id", "scope", name=op.f("uq_consents_user_id_scope")),
     )
     with op.batch_alter_table("consents", schema=None) as batch_op:
         batch_op.create_index(batch_op.f("ix_consents_user_id"), ["user_id"], unique=False)
@@ -257,7 +258,7 @@ def upgrade() -> None:
     op.create_table(
         "profiles",
         sa.Column("id", sa.String(length=36), nullable=False),
-        sa.Column("display_name", sa.String(length=128), nullable=True),
+        sa.Column("display_name_enc", sa.LargeBinary(), nullable=True),
         sa.Column("timezone", sa.String(length=64), nullable=False),
         sa.Column("settings", sa.Text(), nullable=False),
         sa.Column("created_at", sa.String(length=27), nullable=False),

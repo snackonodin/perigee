@@ -5,7 +5,17 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import DDL, Boolean, ForeignKey, Index, String, Text, event
+from sqlalchemy import (
+    DDL,
+    Boolean,
+    ForeignKey,
+    Index,
+    LargeBinary,
+    String,
+    Text,
+    UniqueConstraint,
+    event,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from backend.models.base import Base, JSONText, UserOwned, UTCDateTime, utcnow, uuid_pk
@@ -47,7 +57,8 @@ class Profile(UserOwned, Base):
     __table_args__ = (Index("uq_profiles_user_id", "user_id", unique=True),)
 
     id: Mapped[str] = uuid_pk()
-    display_name: Mapped[str | None] = mapped_column(String(128))
+    # Encrypted by the accounts branch (EncryptedJSON); stored as ciphertext bytes.
+    display_name: Mapped[bytes | None] = mapped_column("display_name_enc", LargeBinary)
     timezone: Mapped[str] = mapped_column(String(64), default="UTC", nullable=False)
     settings: Mapped[dict[str, Any]] = mapped_column(JSONText, default=dict, nullable=False)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow, nullable=False)
@@ -57,7 +68,10 @@ class Profile(UserOwned, Base):
 
 
 class Consent(UserOwned, Base):
+    """Current state per (user, scope). The change history lives in audit_log."""
+
     __tablename__ = "consents"
+    __table_args__ = (UniqueConstraint("user_id", "scope"),)
 
     id: Mapped[str] = uuid_pk()
     scope: Mapped[str] = mapped_column(String(64), nullable=False)

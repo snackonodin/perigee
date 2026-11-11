@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+import uuid
 from datetime import datetime
 
 from sqlalchemy import Boolean, Float, ForeignKey, Integer, String, Text, UniqueConstraint
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, validates
 
 from backend.models.base import Base, UserOwned, UTCDateTime, enum_check, utcnow, uuid_pk
 from backend.schemas.contracts import Posture, ReferenceKind, SourceKind
@@ -52,6 +53,13 @@ class CaptureSession(UserOwned, Base):
         String(36), ForeignKey("pipeline_runs.id", ondelete="SET NULL")
     )
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow, nullable=False)
+
+    @validates("id")
+    def _uuid_id(self, _key: str, value: str) -> str:
+        # The id names DATA_DIR/raw/<session_id>; the delete path refuses non-UUIDs.
+        if str(uuid.UUID(value)) != value:
+            raise ValueError("sessions.id must be a canonical lowercase UUID string")
+        return value
 
 
 class RawFile(UserOwned, Base):

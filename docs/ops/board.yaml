@@ -546,13 +546,14 @@ tasks:
   title: '`api/v1/sessions.py` (POST from DATA_DIR/inbox, list, get, /windows) + `api/v1/jobs.py` + `backend/worker.py`'
   owner: b0
   branch: feat/db-ingest
-  state: review
+  state: done
   blockers:
   - DB-6
   done_when: TestClient covers register/list/get/windows/jobs; path traversal rejected; worker start/stop safe; isolation A/B
-  sha: ccc4a1d
+  sha: 79466b5
   times:
     review: '2026-11-11T15:13:15Z'
+    done: '2026-11-11T15:16:01Z'
 - id: SUR-8
   title: '`api/v1/nights.py` (nights, flags, indices, checkins) + `api/v1/today.py`'
   owner: cf

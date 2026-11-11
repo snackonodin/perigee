@@ -1,4 +1,8 @@
 {
-  "note": "Synthetic demo personas: emails and labels only. Never put passwords in this served file; the demo password is typed once and kept in sessionStorage. Fill in from the OPS-6 persona spec.",
-  "personas": []
+  "note": "Synthetic demo personas (docs/ops/personas.md): emails and labels only. Never put passwords in this served file; tools/cli seed-personas prints the generated password once, and the page keeps it in sessionStorage.",
+  "personas": [
+    {"email": "persona-steady@example.invalid", "label": "P1 steady"},
+    {"email": "persona-drift@example.invalid", "label": "P2 drift", "description": "physiology flag"},
+    {"email": "persona-dip@example.invalid", "label": "P3 dip", "description": "mental band flag; PHQ-9 safety screen"}
+  ]
 }

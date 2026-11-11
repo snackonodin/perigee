@@ -48,6 +48,10 @@
           <h2>Check-ins due</h2>
           <div id="pending"></div>
         </article>
+        <article class="card">
+          <h2>Questionnaires</h2>
+          <div id="questionnaires"></div>
+        </article>
         <article class="card wide">
           <h2>Breathing rate trend</h2>
           <p class="muted">Median breathing rate per night (breaths/min). The shaded band is your personal median ± MAD.</p>
@@ -79,7 +83,7 @@
   <!-- Safety screen: shown immediately, above everything, before any score -->
   <div id="safety" class="safety" role="alertdialog" aria-modal="true" aria-labelledby="safety-title" hidden>
     <div class="safety-box">
-      <h1 id="safety-title">Please reach out for support now</h1>
+      <h1 id="safety-title" tabindex="-1">Please reach out for support now</h1>
       <p id="safety-reason"></p>
       <ul id="safety-resources"></ul>
       <button type="button" id="safety-ack">I have read this</button>

@@ -5,6 +5,7 @@
     python -m tools.cli process --nightly --user <id|email> --date YYYY-MM-DD
     python -m tools.cli reset-demo --yes
     python -m tools.cli seed-personas [--anchor YYYY-MM-DD] [--include-final-phq9]
+    python -m tools.cli ingest-estimates FILE.json|FILE.csv --user <id|email> --code-version V
     python -m tools.cli export --user <id|email> --out FILE.json
     python -m tools.cli backup --out FILE.astrobk [--no-raw]
     python -m tools.cli restore FILE.astrobk [--force]   (stop the API first)
@@ -148,6 +149,30 @@ def cmd_seed_personas(db: Session, args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_ingest_estimates(db: Session, args: argparse.Namespace) -> int:
+    """Store a device estimate batch (JSON batch or device CSV); same path as the API."""
+    from backend.services import injection
+
+    user = _resolve_user(db, args.user)
+    path = Path(args.file)
+    text = path.read_text()
+    try:
+        if path.suffix.lower() == ".csv":
+            data = injection.batch_from_csv(text, session_id=args.session_id)
+        else:
+            data = json.loads(text)
+            if args.session_id:
+                data = {k: v for k, v in data.items() if k != "session"}
+                data["session_id"] = args.session_id
+        out = injection.inject(db, user.id, data, args.code_version)
+    except (injection.InjectionError, json.JSONDecodeError) as exc:
+        errors = getattr(exc, "errors", [])
+        _out({"error": str(exc), "errors": errors})
+        return 1
+    _out(out)
+    return 0
+
+
 def cmd_export(db: Session, args: argparse.Namespace) -> int:
     """Write one user's data export (decrypted: red-class) to a new 0600 file."""
     from backend.services.accounts import export_user
@@ -225,6 +250,13 @@ def build_parser() -> argparse.ArgumentParser:
         help="also seed P3's final PHQ-9 (normally submitted live in the demo)",
     )
     s.set_defaults(fn=cmd_seed_personas)
+
+    s = sub.add_parser("ingest-estimates", help="store a device estimate batch (json|csv)")
+    s.add_argument("file", help="batch .json or device .csv")
+    s.add_argument("--user", required=True, help="user id or email")
+    s.add_argument("--code-version", required=True, help="version of the code that made it")
+    s.add_argument("--session-id", help="attach to this existing session instead")
+    s.set_defaults(fn=cmd_ingest_estimates)
 
     s = sub.add_parser("export", help="export one user's data to a JSON file")
     s.add_argument("--user", required=True, help="user id or email")

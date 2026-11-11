@@ -35,6 +35,7 @@ _BUILTIN_MODULES = (
     "backend.services.pipeline",
     "backend.services.fusion",
     "backend.services.personas",
+    "backend.services.injection",
 )
 _MAX_LOG = 20_000
 

@@ -190,8 +190,8 @@ def test_scoped_user_a_cannot_read_user_b(schema: Engine, db: Session) -> None:
 def test_scoped_rejects_global_models_and_blank_user() -> None:
     with pytest.raises(TypeError):
         scoped(select(Instrument), Instrument, "u")
-    with pytest.raises(TypeError):
-        scoped(select(PipelineRun), PipelineRun, "u")
+    # pipeline_runs has a nullable user_id (0003), so job reads can be scoped.
+    assert "pipeline_runs.user_id" in str(scoped(select(PipelineRun), PipelineRun, "u"))
     with pytest.raises(ValueError):
         scoped(select(RawFile), RawFile, "")
 
@@ -240,8 +240,11 @@ def test_safety_event_details_encrypted(schema: Engine, db: Session) -> None:
     from backend.models import SafetyEvent
 
     u = _user(db, "a@x")
-    db.add(SafetyEvent(user_id=u.id, source="phq9", reason="safety_item",
-                       details_enc={"item": "phq9_9"}))
+    db.add(
+        SafetyEvent(
+            user_id=u.id, source="phq9", reason="safety_item", details_enc={"item": "phq9_9"}
+        )
+    )
     db.add(SafetyEvent(user_id=u.id, source="phq9", reason="safety_item"))
     db.commit()
     stored = db.execute(text("SELECT details_enc FROM safety_events")).scalars().all()

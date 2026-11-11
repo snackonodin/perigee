@@ -14,7 +14,7 @@ from csi_core.config import ROOT
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=ROOT / ".env", extra="ignore")
 
-    secret_key: str = Field(default="dev-only-insecure-key", min_length=16)
+    secret_key: str = Field(default="dev-only-insecure-key-change-me-in-dotenv!", min_length=32)
     field_key: str = ""  # Fernet key for red-class fields; required outside tests
     data_dir: Path = Path("~/astro-data")
     database_url: str = "sqlite:///~/astro-data/db/astro.db"

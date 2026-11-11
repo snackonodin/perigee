@@ -416,8 +416,14 @@ def _store_checkin(db: Any, user_id: str, instrument: dict, data: SurveyResponse
     return row.id
 
 
-def weekly_indices(db: Any, user_id: str, week_start: date) -> dict[str, dict]:
+def weekly_indices(
+    db: Any, user_id: str, week_start: date, *, until: datetime | None = None
+) -> dict[str, dict]:
     """Indices for the 7 days from week_start (UTC), from scores and check-ins only.
+
+    ``until`` (tz-aware) bounds what is counted, so a backfilled night never sees
+    answers given after it (lesson L6): surveys with administered_at < until and
+    check-ins with date <= until's UTC date. None means no bound (the whole week).
 
     Survey answers are never decrypted. Every query is scoped to user_id.
     Returns {index: {"value", "band", "band_alert", "direction"}}:
@@ -435,6 +441,13 @@ def weekly_indices(db: Any, user_id: str, week_start: date) -> dict[str, dict]:
     m = _models()
     start = datetime.combine(week_start, time.min, tzinfo=UTC)
     end = start + timedelta(days=7)
+    last_day = week_start + timedelta(days=6)
+    if until is not None:
+        if until.tzinfo is None or until.utcoffset() is None:
+            raise ValueError("until must be timezone-aware")
+        until = until.astimezone(UTC)
+        end = min(end, until)
+        last_day = min(last_day, until.date())
     out: dict[str, dict] = {}
     catalog: dict[tuple[str, str], dict] = {}
 
@@ -472,7 +485,7 @@ def weekly_indices(db: Any, user_id: str, week_start: date) -> dict[str, dict]:
     stmt = m.scoped(
         select(m.CheckinDaily)
         .where(m.CheckinDaily.date >= week_start)
-        .where(m.CheckinDaily.date < week_start + timedelta(days=7)),
+        .where(m.CheckinDaily.date <= last_day),
         m.CheckinDaily,
         user_id,
     )

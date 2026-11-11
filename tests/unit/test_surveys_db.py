@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 import logging
 import sys
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta
 
 import pytest
 from sqlalchemy import select, text
@@ -431,3 +431,53 @@ def test_answers_hmac_key_derives_from_field_key_not_secret_key(monkeypatch) -> 
         monkeypatch.undo()
         get_settings.cache_clear()
         surveys._answers_hmac_key.cache_clear()
+
+
+# --------------------------------------------------------------------------- LEAK-1 (lesson L6)
+
+
+def test_weekly_indices_until_excludes_later_answers(db) -> None:
+    """A backfilled night (Tue) must not see answers given later that week (Thu)."""
+    submit_response(db, "u1", _resp("u1", "who5", _who5(4), when=_at(2026, 11, 10, 8)))  # Tue 80
+    submit_response(db, "u1", _resp("u1", "who5", _who5(1), when=_at(2026, 11, 12, 8)))  # Thu 20
+    submit_response(
+        db, "u1", _resp("u1", "phq2", {"phq2_1": 3, "phq2_2": 3}, when=_at(2026, 11, 12, 9))
+    )  # Thu only
+    for day, mood in [(10, 4), (12, 0)]:
+        submit_response(
+            db,
+            "u1",
+            _resp(
+                "u1",
+                "daily_pm",
+                {"mood": mood, "stress": 1, "energy": 2},
+                when=_at(2026, 11, day, 21),
+            ),
+        )
+
+    night_end = datetime(2026, 11, 11, 12, tzinfo=UTC)  # night of Tue -> next noon
+    before = surveys.weekly_indices(db, "u1", WEEK, until=night_end)
+    assert before["who5"]["value"] == 80.0
+    assert "phq2" not in before
+    assert before["daily_pm.mood"]["value"] == 4.0  # Thu check-in not counted
+
+    # Answers added later never change the backfilled result.
+    submit_response(db, "u1", _resp("u1", "who5", _who5(0), when=_at(2026, 11, 13, 8)))
+    assert surveys.weekly_indices(db, "u1", WEEK, until=night_end) == before
+
+    full = surveys.weekly_indices(db, "u1", WEEK)
+    assert full["who5"]["value"] == 0.0 and "phq2" in full
+
+
+def test_weekly_indices_until_boundaries(db) -> None:
+    t = _at(2026, 11, 10, 8)
+    submit_response(db, "u1", _resp("u1", "who5", _who5(3), when=t))
+    assert "who5" not in surveys.weekly_indices(db, "u1", WEEK, until=t)  # strictly before
+    assert "who5" in surveys.weekly_indices(db, "u1", WEEK, until=t + timedelta(microseconds=1))
+    # until before the week starts -> nothing; after it ends -> same as no bound
+    assert surveys.weekly_indices(db, "u1", WEEK, until=_at(2026, 11, 1)) == {}
+    assert surveys.weekly_indices(db, "u1", WEEK, until=_at(2026, 12, 1)) == surveys.weekly_indices(
+        db, "u1", WEEK
+    )
+    with pytest.raises(ValueError):
+        surveys.weekly_indices(db, "u1", WEEK, until=datetime(2026, 11, 11, 12))

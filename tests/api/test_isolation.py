@@ -22,8 +22,9 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 
 from backend.main import create_app
-from backend.models import Base, SafetyEvent
+from backend.models import Base, Flag, SafetyEvent
 from backend.services import accounts as acc
+from backend.services import surveys
 from backend.services.ingestion import ingest_session
 from csi_core.synth import synth_night
 
@@ -57,7 +58,22 @@ ISOLATION_CASES: list[IsolationCase] = [
     ),
     IsolationCase("post", "/api/v1/me/export", 200),
     IsolationCase("delete", "/api/v1/me", 204),
-    # Template for id-addressed routes (sessions, nights, responses, ...):
+    # surveys: the instrument catalog is global; responses are written for the caller only
+    IsolationCase("get", "/api/v1/instruments", 200),
+    IsolationCase("get", "/api/v1/instruments/{instrument_id}", 200),
+    IsolationCase(
+        "post",
+        "/api/v1/responses",
+        200,
+        json={
+            "instrument_id": "phq2",
+            "instrument_version": "1.0",
+            "answers": {"phq2_1": 0, "phq2_2": 1},
+        },
+    ),
+    # guidance: addressing A's flag by id must look exactly like a missing flag
+    IsolationCase("get", "/api/v1/guidance", 404, params={"flag_id": "{a_flag_id}"}),
+    # Template for id-addressed routes (sessions, nights, ...):
     # IsolationCase("get", "/api/v1/sessions/{a_session_id}", 404),
 ]
 
@@ -117,18 +133,46 @@ def world(app_client, db, tmp_path) -> dict[str, Any]:
     )
     session = ingest_session(db, a["user_id"], _night(tmp_path / "src_a"))
     db.add(SafetyEvent(user_id=a["user_id"], source="test", reason="r", details_enc={"k": 1}))
+    flag = Flag(
+        user_id=a["user_id"],
+        date=datetime(2026, 11, 1, tzinfo=UTC).date(),
+        domain_pair="sleep_mood",
+        phys_level=1,
+        mental_level=1,
+        state="watch",
+        priority=0.5,
+        components={},
+        message_key="test",
+    )
+    db.add(flag)
     db.commit()
+    surveys.load_catalog(db)
+    resp = app_client.post(
+        "/api/v1/responses",
+        headers=_h(a),
+        json={
+            "instrument_id": "phq2",
+            "instrument_version": "1.0",
+            "answers": {"phq2_1": 2, "phq2_2": 3},
+        },
+    )
+    assert resp.status_code == 200 and resp.json()["stored"], resp.text
     return {
         "a": a,
         "b": b,
         "a_user_id": a["user_id"],
         "a_session_id": session.id,
+        "a_flag_id": flag.id,
+        "a_response_id": resp.json()["id"],
+        "instrument_id": "phq2",
         # Strings that must never appear in anything B receives.
         "a_markers": [
             a["user_id"],
             "alice@example.com",
             A_NAME,
             session.id,
+            flag.id,
+            resp.json()["id"],
             a["access_token"],
             a["refresh_token"],
         ],
@@ -163,7 +207,7 @@ def test_b_cannot_read_or_change_a(case: IsolationCase, app_client, db, world) -
         case.path.format(**world),
         headers=_h(world["b"]),
         json=case.json,
-        params=case.params,
+        params={k: str(v).format(**world) for k, v in case.params.items()},
     )
 
     assert res.status_code == case.expect, res.text

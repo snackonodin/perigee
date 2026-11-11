@@ -218,29 +218,31 @@ def _daily_values(p: Persona, i: int, rng: np.random.Generator) -> dict[str, int
     return {"mood": j(3), "energy": j(3), "stress": j(1), "sleep_quality": j(3)}
 
 
-def seed_surveys(db: Session, p: Persona, uid: str, anchor: date, *, final_phq9: bool) -> int:
-    from backend.services import surveys
-
-    surveys.load_catalog(db)
+def seed_surveys_for_day(db: Session, p: Persona, uid: str, anchor: date, i: int) -> int:
+    """Surveys administered on day i (0 = D-14 .. 13 = D-1): daily AM/PM, and the
+    weekly instruments on D-14 and D-7. Returns the number of new submissions."""
+    day = anchor - timedelta(days=14 - i)
+    v = _daily_values(p, i, np.random.default_rng(p.seed * 1000 + i))
     n = 0
-    am_keys, pm_keys = _item_keys(db, "daily_am"), _item_keys(db, "daily_pm")
-    for i in range(14):
-        day = anchor - timedelta(days=14 - i)
-        rng = np.random.default_rng(p.seed * 1000 + i)
-        v = _daily_values(p, i, rng)
-        _submit(db, uid, "daily_am", am_keys, [v[k] for k in am_keys], _at(day, 7))
-        _submit(db, uid, "daily_pm", pm_keys, [v[k] for k in pm_keys], _at(day, 21))
-        n += 2
-    for inst, (first, second) in p.weekly.items():
+    for inst, hh in (("daily_am", 7), ("daily_pm", 21)):
         keys = _item_keys(db, inst)
-        for vals, days_before in ((first, 14), (second, 7)):
-            if _submit(db, uid, inst, keys, vals, _at(anchor - timedelta(days=days_before), 12)):
-                n += 1
-    if final_phq9 and p.mental_dip:
-        keys = _item_keys(db, "phq9")
-        if _submit(db, uid, "phq9", keys, [FINAL_PHQ9[k] for k in keys], _at(anchor, 9)):
+        if _submit(db, uid, inst, keys, [v[k] for k in keys], _at(day, hh)):
             n += 1
+    for inst, (first, second) in p.weekly.items():
+        for vals, days_before in ((first, 14), (second, 7)):
+            if 14 - i == days_before and _submit(
+                db, uid, inst, _item_keys(db, inst), vals, _at(day, 12)
+            ):
+                n += 1
     return n
+
+
+def seed_final_phq9(db: Session, p: Persona, uid: str, anchor: date) -> int:
+    """P3's PHQ-9 on D (normally submitted live in the demo, never by default)."""
+    if not p.mental_dip:
+        return 0
+    keys = _item_keys(db, "phq9")
+    return int(bool(_submit(db, uid, "phq9", keys, [FINAL_PHQ9[k] for k in keys], _at(anchor, 9))))
 
 
 # ----------------------------------------------------------------- window-level nights
@@ -368,7 +370,6 @@ def seed_windows(
     return n
 
 
-@runs.register("seed_persona_windows")
 def seed_windows_handler(db: Session, run: PipelineRun) -> str:
     prm = run.parameters
     p = next(x for x in PERSONAS if x.key == prm["persona"])
@@ -469,10 +470,12 @@ def seed(
     cache_root: Path | None = None,
 ) -> dict[str, Any]:
     """Seed all personas for demo day ``anchor``. Safe to re-run."""
+    from backend.services import surveys
+
     out: dict[str, Any] = {"anchor": anchor.isoformat(), "personas": []}
     for p in PERSONAS:
         uid, generated = _ensure_user(db, p, password)
-        n_surveys = seed_surveys(db, p, uid, anchor, final_phq9=include_final_phq9)
+        surveys.load_catalog(db)
         if _missing_window_nights(db, p, anchor):  # no run row at all on a no-op reseed
             _run_kind(
                 db,
@@ -480,13 +483,18 @@ def seed(
                 {"persona": p.key, "user_id": uid, "anchor": anchor.isoformat()},
             )
         raw_sid = seed_raw(db, p, uid, anchor, fs=raw_fs, n_sub=raw_n_sub, cache_root=cache_root)
+        # Chronological: a night only sees surveys submitted up to that day, so the
+        # backfill does not leak later answers into earlier nights.
         done = set(db.scalars(scoped(select(NightFeaturesRow.date), NightFeaturesRow, uid)))
-        ran = 0
-        for k in range(14, 0, -1):
-            night = anchor - timedelta(days=k)
+        ran = n_surveys = 0
+        for i in range(14):
+            night = anchor - timedelta(days=14 - i)
+            n_surveys += seed_surveys_for_day(db, p, uid, anchor, i)
             if night not in done:
                 _run_kind(db, "run_nightly", {"user_id": uid, "day": night.isoformat()})
                 ran += 1
+        if include_final_phq9:
+            n_surveys += seed_final_phq9(db, p, uid, anchor)
         entry = {
             "key": p.key,
             "email": p.email,

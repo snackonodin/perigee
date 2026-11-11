@@ -98,15 +98,10 @@ def test_three_synthetic_users_with_14_valid_nights(seeded) -> None:
         assert raw.usable and raw.mean_rows_per_s >= cfg.capture.min_rows_per_s
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="presence_hours z -2.3: small-n MAD + FR13 exclusion; pending baseline.mad_floor "
-    "decision (coordinator)",
-)
 def test_p1_steady_no_flag_and_calibrated(seeded) -> None:
     db, out, _ = seeded
     uid = _uid(out, "steady")
-    assert _demo_flags(db, uid) == []
+    assert db.scalars(select(Flag).where(Flag.user_id == uid)).all() == []  # history too
     from backend.services.fusion import _baselines, _phys_history
 
     cfg = get_config()
@@ -117,8 +112,26 @@ def test_p1_steady_no_flag_and_calibrated(seeded) -> None:
     )
     base = _baselines(uid, _phys_history(db, uid, DEMO, "synthetic", cfg, False), cfg)
     for f in PHYS_FEATURES:  # personas.md §2 calibration rule
-        z = robust_z(getattr(demo, f), base[f])
+        z = robust_z(getattr(demo, f), base[f], cfg.baseline.mad_floor.get(f))
         assert z is None or abs(z) < 1.5, (f, z)
+    assert base["rr_med"].n == 13  # every history night valid and non-alert (FR13)
+
+
+def test_history_flag_counts(seeded, record_property) -> None:
+    """Reported, not tuned (coordinator): history flags from the generator spread."""
+    db, out, _ = seeded
+    counts = {}
+    for p in out["personas"]:
+        flags = db.scalars(select(Flag).where(Flag.user_id == p["user_id"], Flag.date < DEMO))
+        counts[p["key"]] = sorted((f.date.isoformat(), f.state) for f in flags)
+    record_property("history_flags", counts)
+    assert counts["steady"] == []
+    # No leakage: P3's band alerts start with the D-7 surveys, never before.
+    d7 = (ANCHOR - timedelta(days=7)).isoformat()
+    assert counts["mental-dip"] and all(d >= d7 for d, _ in counts["mental-dip"])
+    # P2: only the designed drift nights (D-5..D-2) may alert.
+    d5 = (ANCHOR - timedelta(days=5)).isoformat()
+    assert all(d >= d5 and s == "phys_only" for d, s in counts["breath-drift"])
 
 
 def test_p2_drift_phys_only(seeded) -> None:

@@ -97,3 +97,12 @@ def test_robust_z_ignores_float_noise_mad(cfg) -> None:
     noise = [float(np.var([14.2] * 7)) for _ in range(5)] + [1e-29, 3e-30, 0.0, 1e-29]
     st = update_baseline(_prev(cfg), noise, cfg)
     assert robust_z(1e-5, st) is None
+
+
+def test_robust_z_mad_floor(cfg) -> None:
+    st = update_baseline(_prev(cfg), [14.0, 14.02, 14.04] * 3, cfg)  # MAD 0.02
+    assert robust_z(14.3, st) == pytest.approx((14.3 - 14.02) / (1.4826 * 0.02))
+    assert robust_z(14.3, st, mad_floor=0.3) == pytest.approx((14.3 - 14.02) / (1.4826 * 0.3))
+    assert robust_z(14.3, st, mad_floor=0.001) == robust_z(14.3, st)  # floor below MAD: no-op
+    flat = update_baseline(_prev(cfg), [15.0] * 5, cfg)
+    assert robust_z(15.6, flat, mad_floor=0.3) == pytest.approx(0.6 / (1.4826 * 0.3))

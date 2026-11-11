@@ -34,7 +34,6 @@ from backend.models import (
     scoped,
 )
 from backend.schemas.contracts import BaselineState, NightFeatures, SourceKind, WindowEstimate
-from backend.services import runs
 from backend.services.pipeline import night_bounds_utc, user_tz
 from csi_core import night as night_mod
 from csi_core.config import CoreConfig, get_config
@@ -324,7 +323,6 @@ def run_nightly(
     }
 
 
-@runs.register("run_nightly")
 def run_nightly_handler(db: Session, run: PipelineRun) -> str:
     p = run.parameters
     day = p.get("day") or p.get("date")  # tools/cli.py sends "date"

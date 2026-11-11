@@ -109,13 +109,16 @@ def update_baseline(prev: BaselineState, history: list[float], cfg: CoreConfig) 
     )
 
 
-def robust_z(value: float, b: BaselineState) -> float | None:
-    """(value - median) / (1.4826 * MAD); None when undefined (no data, or MAD 0 up
-    to float round-off)."""
-    if value is None or b.median is None or b.mad is None:
+def robust_z(value: float, b: BaselineState, mad_floor: float | None = None) -> float | None:
+    """(value - median) / (1.4826 * max(MAD, mad_floor)).
+
+    ``mad_floor`` (``baseline.mad_floor[feature]``) stops a small-n MAD from
+    understating the spread. Without a floor, z is None when there is no data or
+    the MAD is 0 up to float round-off.
+    """
+    if value is None or b.median is None or b.mad is None or not np.isfinite(value):
         return None
-    if b.mad <= MAD_REL_EPS * max(1.0, abs(b.median)):
+    mad = b.mad if mad_floor is None else max(b.mad, float(mad_floor))
+    if mad <= MAD_REL_EPS * max(1.0, abs(b.median)):
         return None
-    if not np.isfinite(value):
-        return None
-    return float((value - b.median) / (MAD_SCALE * b.mad))
+    return float((value - b.median) / (MAD_SCALE * mad))

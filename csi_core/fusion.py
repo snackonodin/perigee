@@ -37,7 +37,13 @@ class FlagDraft:
     message_key: str
 
 
-def _score(name: str, value: float | None, b: BaselineState | None, comps: dict) -> float | None:
+def _score(
+    name: str,
+    value: float | None,
+    b: BaselineState | None,
+    comps: dict,
+    mad_floor: float | None = None,
+) -> float | None:
     if b is None:
         comps[name] = {"value": value, "skipped": "no_baseline"}
         return None
@@ -47,11 +53,12 @@ def _score(name: str, value: float | None, b: BaselineState | None, comps: dict)
         "mad": b.mad,
         "n": b.n,
         "maturity": b.maturity.value,
+        "mad_floor": mad_floor,
     }
     if b.maturity == Maturity.warm_up:
         comps[name] = entry | {"skipped": "warm_up"}
         return None
-    z = robust_z(value, b) if value is not None else None
+    z = robust_z(value, b, mad_floor) if value is not None else None
     if z is None:
         comps[name] = entry | {"skipped": "undefined"}
         return None
@@ -76,12 +83,13 @@ def score_night(
     index_direction = index_direction or {}
     mental_band_alerts = mental_band_alerts or {}
     alert = cfg.baseline.alert_robust_z
+    floors = cfg.baseline.mad_floor
     phys: dict = {}
     mental: dict = {}
     phys_z: list[float] = []
     if night.valid:
         for f in PHYS_FEATURES:
-            z = _score(f, getattr(night, f), baselines.get(f), phys)
+            z = _score(f, getattr(night, f), baselines.get(f), phys, floors.get(f))
             if z is not None:
                 phys_z.append(z)
     else:
@@ -92,7 +100,7 @@ def score_night(
         if direction not in (1, -1):
             mental[k] = {"value": latest_indices[k], "skipped": "no_direction"}
             continue
-        z = _score(k, latest_indices[k], baselines.get(k), mental)
+        z = _score(k, latest_indices[k], baselines.get(k), mental, floors.get(k))
         if z is not None:
             mental[k]["direction"] = direction
             mental_dz.append(direction * z)

@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from sqlalchemy import delete, select, update
+from sqlalchemy import Table, delete, select, update
 from sqlalchemy.orm import Session
 
 from backend import security
@@ -30,10 +30,11 @@ log = logging.getLogger(__name__)
 
 PASSWORD_MIN = 10
 PASSWORD_MAX = 1024  # bounds hashing cost; not a policy value
+DISPLAY_NAME_MAX = 128
 CONSENT_SCOPES: tuple[str, ...] = ("checkins", "survey_answers", "raw_csi", "share_summaries")
 _EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 # Columns never exported, even to the account owner.
-_EXPORT_EXCLUDE = {"password_hash", "token_hash"}
+_EXPORT_EXCLUDE = {"password_hash", "token_sha256"}
 
 
 # --------------------------------------------------------------------------- errors
@@ -96,9 +97,9 @@ def _check_password(pw: str) -> None:
         raise InvalidInput(f"password must be {PASSWORD_MIN} to {PASSWORD_MAX} characters")
 
 
-def audit(db: Session, user_id: str | None, action: str, **detail: Any) -> None:
-    """Add an audit row (caller commits). Detail must hold no red-class values."""
-    db.add(AuditLog(user_id=user_id, action=action, detail=detail))
+def audit(db: Session, user_id: str | None, action: str, **details: Any) -> None:
+    """Add an audit row (caller commits). details must hold no red-class values."""
+    db.add(AuditLog(user_id=user_id, action=action, details=details))
 
 
 def _issue_tokens(db: Session, user_id: str) -> AuthResult:
@@ -107,7 +108,7 @@ def _issue_tokens(db: Session, user_id: str) -> AuthResult:
     db.add(
         RefreshToken(
             user_id=user_id,
-            token_hash=digest,
+            token_sha256=digest,
             expires_at=_now() + timedelta(days=s.refresh_token_days),
         )
     )
@@ -185,7 +186,7 @@ def refresh(db: Session, refresh_token: str) -> AuthResult:
     """
     row = db.scalar(
         select(RefreshToken).where(
-            RefreshToken.token_hash == security.hash_refresh_token(refresh_token)
+            RefreshToken.token_sha256 == security.hash_refresh_token(refresh_token)
         )
     )
     if row is None:
@@ -210,7 +211,7 @@ def logout(db: Session, refresh_token: str, user_id: str | None = None) -> None:
     With user_id, revoke only if the token belongs to that user.
     """
     stmt = update(RefreshToken).where(
-        RefreshToken.token_hash == security.hash_refresh_token(refresh_token),
+        RefreshToken.token_sha256 == security.hash_refresh_token(refresh_token),
         RefreshToken.revoked_at.is_(None),
     )
     if user_id is not None:
@@ -241,12 +242,14 @@ def update_profile(db: Session, user_id: str, changes: dict[str, Any]) -> dict[s
     unknown = set(changes) - {"display_name", "timezone"}
     if unknown:
         raise InvalidInput(f"unknown profile fields: {sorted(unknown)}")
-    tz = changes.get("timezone")
-    if tz is not None:
+    if "timezone" in changes:
         try:
-            ZoneInfo(tz)
+            ZoneInfo(str(changes["timezone"]))
         except (ZoneInfoNotFoundError, ValueError):
             raise InvalidInput("unknown timezone") from None
+    name = changes.get("display_name")
+    if name is not None and len(name) > DISPLAY_NAME_MAX:
+        raise InvalidInput(f"display_name is longer than {DISPLAY_NAME_MAX} characters")
     prof = db.scalar(select(Profile).where(Profile.user_id == user_id))
     if prof is None:
         prof = Profile(user_id=user_id)
@@ -306,8 +309,12 @@ def set_consents(
 # --------------------------------------------------------------------------- export / delete
 
 
-def _user_tables() -> list:
-    """Every table with a user_id column, parents before children."""
+def _user_tables() -> list[Table]:
+    """Every table with a user_id column, parents before children.
+
+    NOT NULL user_id = user-owned rows (deleted with the user). Nullable user_id
+    (audit_log) = rows that outlive the user with user_id set to NULL.
+    """
     return [t for t in Base.metadata.sorted_tables if "user_id" in t.c]
 
 
@@ -325,8 +332,21 @@ def _jsonable(v: Any) -> Any:
     return v
 
 
-def _rows(db: Session, table, where) -> list[dict[str, Any]]:
-    cols = [c for c in table.c if c.name not in _EXPORT_EXCLUDE]
+def _attr_names(table: Table) -> dict[str, str]:
+    """Column name -> ORM attribute name (display_name_enc -> display_name)."""
+    for m in Base.registry.mappers:
+        if m.local_table is table:
+            return {c.name: key for key, c in m.columns.items()}
+    return {}
+
+
+def _rows(db: Session, table: Table, where: Any) -> list[dict[str, Any]]:
+    names = _attr_names(table)
+    cols = [
+        c.label(names.get(c.name, c.name))
+        for c in table.c
+        if names.get(c.name, c.name) not in _EXPORT_EXCLUDE and c.name not in _EXPORT_EXCLUDE
+    ]
     return [
         {k: _jsonable(v) for k, v in r._mapping.items()}
         for r in db.execute(select(*cols).where(where))
@@ -346,35 +366,49 @@ def export_user(db: Session, user_id: str) -> dict[str, Any]:
     }
 
 
-def _raw_dirs(db: Session, user_id: str, data_dir: Path) -> list[Path]:
+def _raw_paths(db: Session, user_id: str, data_dir: Path) -> list[Path]:
+    """DATA_DIR/raw/<session_id> for each session, plus sessions.raw_path when it lies
+    inside DATA_DIR/raw. Anything that would escape DATA_DIR/raw raises."""
     sessions = Base.metadata.tables.get("sessions")
     if sessions is None:
         return []
     raw_root = (data_dir / "raw").resolve()
-    dirs = []
-    for sid in db.scalars(select(sessions.c.id).where(sessions.c.user_id == user_id)):
-        uuid.UUID(sid)  # session ids are UUIDs; anything else must not become a path
-        d = (raw_root / sid).resolve()
-        if d.parent != raw_root:
-            raise RuntimeError("session raw path escapes DATA_DIR/raw")
-        dirs.append(d)
-    return dirs
+    has_raw_path = "raw_path" in sessions.c
+    cols = [sessions.c.id] + ([sessions.c.raw_path] if has_raw_path else [])
+    paths: list[Path] = []
+    for row in db.execute(select(*cols).where(sessions.c.user_id == user_id)):
+        uuid.UUID(row.id)  # session ids are UUIDs; anything else must not become a path
+        paths.append(raw_root / row.id)
+        if has_raw_path and row.raw_path:
+            p = Path(row.raw_path).expanduser()
+            p = (p if p.is_absolute() else data_dir / p).resolve()
+            if p == raw_root or not p.is_relative_to(raw_root):
+                raise ValueError("session raw_path is outside DATA_DIR/raw")
+            paths.append(p)
+    return paths
 
 
-def delete_user(db: Session, user_id: str, data_dir: Path) -> None:
+def delete_user(db: Session, user_id: str, data_dir: Path | None = None) -> None:
     """Delete raw files, then every row of the user, then the user. Tokens die with the rows.
 
-    Files go first: if anything fails, the transaction rolls back, the rows remain and
-    the delete can be retried. Leaves one audit row with user_id NULL.
+    data_dir defaults to settings.data_dir (from .env). Files go first: if anything fails,
+    the transaction rolls back, the rows remain and the delete can be retried. Audit rows
+    stay with user_id NULL, plus one anonymous "account.delete" row.
     """
     _active_user(db, user_id)
+    data_dir = Path(data_dir if data_dir is not None else get_settings().data_dir)
     try:
-        for d in _raw_dirs(db, user_id, data_dir):
-            if d.exists():
-                shutil.rmtree(d)
+        for p in _raw_paths(db, user_id, data_dir):
+            if p.is_dir():
+                shutil.rmtree(p)
+            elif p.exists():
+                p.unlink()
         _revoke_all(db, user_id)
         for t in reversed(_user_tables()):
-            db.execute(delete(t).where(t.c.user_id == user_id))
+            if t.c.user_id.nullable:
+                db.execute(update(t).where(t.c.user_id == user_id).values(user_id=None))
+            else:
+                db.execute(delete(t).where(t.c.user_id == user_id))
         db.execute(delete(User).where(User.id == user_id))
         audit(db, None, "account.delete")
         db.commit()

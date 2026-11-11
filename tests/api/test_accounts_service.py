@@ -93,12 +93,14 @@ def test_profile_update_and_encryption(db) -> None:
     r = acc.signup(db, "a@b.co", PW)
     me = acc.update_profile(db, r.user_id, {"display_name": "Ada", "timezone": "Asia/Kolkata"})
     assert me["display_name"] == "Ada" and me["timezone"] == "Asia/Kolkata"
-    raw = db.connection().exec_driver_sql("SELECT display_name FROM profiles").scalar_one()
+    raw = db.connection().exec_driver_sql("SELECT display_name_enc FROM profiles").scalar_one()
     assert b"Ada" not in raw
     with pytest.raises(acc.InvalidInput):
         acc.update_profile(db, r.user_id, {"timezone": "Mars/Olympus"})
     with pytest.raises(acc.InvalidInput):
         acc.update_profile(db, r.user_id, {"email": "x@y.zz"})
+    with pytest.raises(acc.InvalidInput):
+        acc.update_profile(db, r.user_id, {"display_name": "x" * 129})
 
 
 def test_consents_default_set_and_audit(db) -> None:
@@ -123,7 +125,7 @@ def test_export_has_all_rows_no_secrets(db) -> None:
     t = out["tables"]
     assert t["profiles"][0]["display_name"] == "Ada"
     assert t["consents"][0]["scope"] == "checkins"
-    assert t["refresh_tokens"] and all("token_hash" not in x for x in t["refresh_tokens"])
+    assert t["refresh_tokens"] and all("token_sha256" not in x for x in t["refresh_tokens"])
     assert "account.export" in [x["action"] for x in t["audit_log"]]
     blob = repr(out)
     assert other.user_id not in blob and "b@b.co" not in blob
@@ -158,17 +160,50 @@ def test_delete_user_removes_rows_files_tokens(db, tmp_path) -> None:
         acc.refresh(db, a.refresh_token)
     with pytest.raises(acc.InvalidCredentials):
         acc.login(db, "a@b.co", PW)
-    # one anonymous audit row survives
-    assert db.scalar(select(func.count()).select_from(AuditLog).where(
-        AuditLog.action == "account.delete", AuditLog.user_id.is_(None))) == 1
+    # audit history survives anonymised, plus one anonymous delete row
+    anon = list(db.scalars(select(AuditLog.action).where(AuditLog.user_id.is_(None))))
+    assert anon.count("account.delete") == 1 and "auth.signup" in anon
     # B is untouched
     assert acc.refresh(db, b.refresh_token).user_id == b.user_id
 
 
-def test_delete_refuses_path_escape(db, tmp_path) -> None:
+def test_delete_removes_raw_path_inside_data_dir(db, tmp_path) -> None:
     a = acc.signup(db, "a@b.co", PW)
-    db.add(SessionRow(id="../../etc", user_id=a.user_id))
+    f = tmp_path / "raw" / "2026-11-10" / "csi_00.csv.gz"
+    f.parent.mkdir(parents=True)
+    f.write_bytes(b"x")
+    db.add(SessionRow(id=str(uuid.uuid4()), user_id=a.user_id, raw_path="raw/2026-11-10"))
+    db.commit()
+    acc.delete_user(db, a.user_id, tmp_path)
+    assert not f.parent.exists()
+
+
+def test_delete_defaults_to_settings_data_dir(db, tmp_path, monkeypatch) -> None:
+    from backend.config import get_settings
+
+    monkeypatch.setattr(get_settings(), "data_dir", tmp_path)
+    a = acc.signup(db, "a@b.co", PW)
+    sid = str(uuid.uuid4())
+    (tmp_path / "raw" / sid).mkdir(parents=True)
+    db.add(SessionRow(id=sid, user_id=a.user_id))
+    db.commit()
+    acc.delete_user(db, a.user_id)
+    assert not (tmp_path / "raw" / sid).exists()
+
+
+@pytest.mark.parametrize("sid,raw_path", [
+    ("../../etc", ""),
+    (str(uuid.uuid4()), "../outside"),
+    (str(uuid.uuid4()), "raw"),
+])
+def test_delete_refuses_path_escape(db, tmp_path, sid, raw_path) -> None:
+    a = acc.signup(db, "a@b.co", PW)
+    victim = tmp_path / "outside" / "keep.txt"
+    victim.parent.mkdir()
+    victim.write_text("x")
+    db.add(SessionRow(id=sid, user_id=a.user_id, raw_path=raw_path))
     db.commit()
     with pytest.raises(ValueError):
         acc.delete_user(db, a.user_id, tmp_path)
     assert db.get(User, a.user_id) is not None  # rolled back, retryable
+    assert victim.exists()

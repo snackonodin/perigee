@@ -160,7 +160,10 @@ def test_survey_answers_stored_as_bytes_in_answers_enc(schema: Engine, db: Sessi
     cols = {c["name"] for c in inspect(db.get_bind()).get_columns("survey_responses")}
     assert "answers_enc" in cols and "answers" not in cols
     stored = db.execute(text("SELECT answers_enc FROM survey_responses")).scalar()
-    assert isinstance(stored, bytes) and b"q1" not in stored  # ciphertext only
+    # Ciphertext only. The plaintext is JSON, so it contains '{' and '"', which never occur
+    # in a base64 Fernet token: a short marker like b"q1" can match by chance (~2%).
+    assert isinstance(stored, bytes) and b'{"q1"' not in stored and b'"q1":' not in stored
+    assert stored.startswith(b"gAAAAA")  # Fernet token version byte, base64
     db.expire_all()
     assert db.scalars(select(SurveyResponseRow.answers)).one() == {"q1": 3, "q2": 2}
 
@@ -227,7 +230,11 @@ def test_profile_display_name_stored_as_bytes(schema: Engine, db: Session) -> No
     cols = {c["name"] for c in inspect(db.get_bind()).get_columns("profiles")}
     assert "display_name_enc" in cols and "display_name" not in cols
     stored = db.execute(text("SELECT display_name_enc FROM profiles")).scalar()
-    assert isinstance(stored, bytes) and b"Ada" not in stored  # ciphertext only
+    # Ciphertext only: JSON '"Ada"' has quotes, which base64 never contains (no chance match)
+    assert isinstance(stored, bytes) and b'"Ada"' not in stored
+    assert stored.startswith(b"gAAAAA")
+    db.expire_all()
+    assert db.scalars(select(Profile.display_name)).one() == "Ada"
 
 
 @pytest.mark.parametrize("bad", ["../etc", "not-a-uuid", "A" * 36, ""])

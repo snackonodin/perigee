@@ -7,7 +7,10 @@ per persona, reseed idempotency and reset-demo. Thresholds come from the config.
 from __future__ import annotations
 
 import logging
+import shutil
+import sqlite3
 from collections.abc import Iterator
+from contextlib import closing
 from datetime import date, timedelta
 from pathlib import Path
 
@@ -17,6 +20,7 @@ from sqlalchemy.orm import Session
 
 from backend import db as db_mod
 from backend.config import get_settings
+from backend.db import sqlite_path
 from backend.models import (
     Base,
     CaptureSession,
@@ -58,6 +62,39 @@ def seeded(tmp_path_factory, synth_cache) -> Iterator[tuple[Session, dict, Path]
         eng.dispose()
         db_mod.SessionLocal.configure(bind=None)
         get_settings.cache_clear()
+
+
+@pytest.fixture
+def seeded_copy(seeded, tmp_path) -> Iterator[tuple[Session, dict, Path]]:
+    """A private clone of the module's seeded DATA_DIR for tests that change data.
+
+    The seed is expensive, so it runs once per module; tests that reseed, reset or add
+    rows work on this copy, so test order can never leak their changes into the
+    read-only tests (lesson L2, QA-1).
+    """
+    db0, out, d0 = seeded
+    db0.commit()
+    src = sqlite_path(get_settings().database_url)
+    assert src is not None
+    d = tmp_path / "astro-data"
+    (d / "db").mkdir(parents=True)
+    with closing(sqlite3.connect(src)) as a, closing(sqlite3.connect(d / "db" / "astro.db")) as b:
+        a.backup(b)  # consistent copy under WAL
+    if (d0 / "raw").exists():
+        shutil.copytree(d0 / "raw", d / "raw")
+    prev_bind = db_mod.SessionLocal.kw.get("bind")
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setenv("DATA_DIR", str(d))
+        mp.setenv("DATABASE_URL", f"sqlite:///{d / 'db' / 'astro.db'}")
+        get_settings.cache_clear()
+        eng = db_mod.init_db()
+        try:
+            with db_mod.SessionLocal() as db:
+                yield db, out, d
+        finally:
+            eng.dispose()
+            db_mod.SessionLocal.configure(bind=prev_bind)
+    get_settings.cache_clear()
 
 
 def _uid(out: dict, key: str) -> str:
@@ -155,8 +192,8 @@ def test_p3_mental_only_from_catalog_bands(seeded) -> None:
     assert "phq9" not in m  # the final PHQ-9 is submitted live, not seeded
 
 
-def test_generated_passwords_returned_once_never_logged(seeded, synth_cache, caplog) -> None:
-    db, out, _ = seeded
+def test_generated_passwords_returned_once_never_logged(seeded_copy, synth_cache, caplog) -> None:
+    db, out, _ = seeded_copy
     assert all(p.get("generated_password") for p in out["personas"])
     caplog.set_level(logging.DEBUG)
     again = personas.seed(db, anchor=ANCHOR, raw_n_sub=RAW_N_SUB, cache_root=synth_cache)
@@ -165,15 +202,15 @@ def test_generated_passwords_returned_once_never_logged(seeded, synth_cache, cap
         assert p["generated_password"] not in caplog.text
 
 
-def test_reseed_is_idempotent(seeded, synth_cache) -> None:
-    db, _, _ = seeded
+def test_reseed_is_idempotent(seeded_copy, synth_cache) -> None:
+    db, _, _ = seeded_copy
     before = _user_row_counts(db)
     personas.seed(db, anchor=ANCHOR, raw_n_sub=RAW_N_SUB, cache_root=synth_cache)
     assert _user_row_counts(db) == before
 
 
-def test_final_phq9_option_shows_safety_path(seeded, synth_cache) -> None:
-    db, out, _ = seeded
+def test_final_phq9_option_shows_safety_path(seeded_copy, synth_cache) -> None:
+    db, out, _ = seeded_copy
     uid = _uid(out, "mental-dip")
     assert (
         db.scalar(select(func.count()).select_from(SafetyEvent).where(SafetyEvent.user_id == uid))
@@ -188,12 +225,12 @@ def test_final_phq9_option_shows_safety_path(seeded, synth_cache) -> None:
     )
 
 
-def test_reset_demo_removes_everything(seeded, synth_cache) -> None:
+def test_reset_demo_removes_everything(seeded_copy, synth_cache) -> None:
     import argparse
 
     from tools import cli
 
-    db, out, d = seeded
+    db, out, d = seeded_copy
     ids = [p["user_id"] for p in out["personas"]]
     assert cli.cmd_reset_demo(db, argparse.Namespace(yes=True)) == 0
     counts = _user_row_counts(db, ids)  # audit_log/pipeline_runs keep rows with user_id NULL

@@ -106,3 +106,23 @@ def test_warm_up_baseline_never_flags(cfg) -> None:
 
 def test_missing_baseline_is_skipped(cfg) -> None:
     assert score_night(_night(), {}, {"phq2": 6.0}, cfg) == []
+
+
+def test_mad_floor_from_config_damps_tight_baseline(cfg) -> None:
+    tight = _b(cfg, "presence_hours", [7.5, 7.52, 7.54] * 6)  # MAD 0.02 h
+    night = NightFeatures(
+        user_id="u",
+        date=date(2026, 11, 10),
+        rr_med=15.0,
+        presence_hours=7.3,
+        quality=0.9,
+        valid=True,
+    )
+    no_floor = cfg.model_copy(
+        update={"baseline": cfg.baseline.model_copy(update={"mad_floor": {}})}
+    )
+    assert score_night(night, {"presence_hours": tight}, {}, no_floor)  # z ~ -7.4: flagged
+    floored = cfg.model_copy(
+        update={"baseline": cfg.baseline.model_copy(update={"mad_floor": {"presence_hours": 0.2}})}
+    )
+    assert score_night(night, {"presence_hours": tight}, {}, floored) == []  # z ~ -0.7

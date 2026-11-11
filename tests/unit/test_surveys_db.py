@@ -177,6 +177,11 @@ def test_user_mismatch_is_forbidden(db) -> None:
     assert db.query(SurveyResponseRow).count() == 0
 
 
+def test_answers_hmac_empty_with_consent(db) -> None:
+    out = submit_response(db, "u1", _resp("u1", "phq2", {"phq2_1": 0, "phq2_2": 1}))
+    assert db.get(SurveyResponseRow, out["id"]).answers_hmac is None
+
+
 def test_answers_encrypted_at_rest(db) -> None:
     out = submit_response(db, "u1", _resp("u1", "phq9", _phq9(0, rest=2)))
     raw = db.execute(
@@ -238,11 +243,15 @@ def test_survey_without_answers_consent_keeps_no_answers(db, state) -> None:
     out = submit_response(db, "u1", _resp("u1", "phq9", answers))
     assert out["stored"] is True and out["safety"]["show"] is True
     row = db.get(SurveyResponseRow, out["id"])
-    assert row.answers == {}  # no answer data retained (NULL once 0002 lands)
+    assert row.answers is None
     assert row.total == 17
     assert row.scores["band"] == "moderately severe"
-    assert row.scores["answers_retained"] is False
-    assert len(row.scores["answers_hmac"]) == 64
+    assert len(row.answers_hmac) == 64 and row.answers_hmac == surveys.answers_digest(answers)
+    assert "answers_hmac" not in row.scores
+    raw = db.execute(
+        text("SELECT answers_enc FROM survey_responses WHERE id = :id"), {"id": out["id"]}
+    ).scalar_one()
+    assert raw is None
     assert "items" not in row.scores
     # safety event still written
     assert db.query(SafetyEvent).count() == 1

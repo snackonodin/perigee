@@ -363,29 +363,23 @@ def _store_survey(
     db: Any, user_id: str, instrument: dict, data: SurveyResponse, scored: dict
 ) -> str:
     """survey_responses. With survey_answers consent: encrypted answers + scores.
-    Without: no answers; only total, score/band and a keyed digest."""
+    Without: answers NULL; total, score/band in scores and a keyed HMAC in answers_hmac."""
     m = _models()
     scores = {k: v for k, v in scored.items() if k != "total"}
+    answers: dict[str, int] | None = None
+    answers_hmac: str | None = None
     if has_consent(db, user_id, CONSENT_SURVEY_ANSWERS):
-        answers: dict[str, int] = dict(data.answers)  # EncryptedJSON encrypts on write
+        answers = dict(data.answers)  # EncryptedJSON encrypts on write
     else:
-        # MERGE(0002): answers=None once answers_enc is nullable, HMAC -> answers_hmac column.
-        # Until then answers_enc is NOT NULL: store an encrypted empty dict (no answer data).
-        answers = {}
-        scores = {
-            "score": scored["score"],
-            "band": scored["band"],
-            "band_alert": scored["band_alert"],
-            "method": scored["method"],
-            "answers_hmac": answers_digest(data.answers),
-            "answers_retained": False,
-        }
+        answers_hmac = answers_digest(data.answers)
+        scores.pop("items", None)  # never keep item values without consent
     row = m.SurveyResponseRow(
         user_id=user_id,
         instrument_id=instrument["id"],
         instrument_version=instrument["version"],
         administered_at=data.administered_at.astimezone(UTC),
         answers=answers,
+        answers_hmac=answers_hmac,
         total=scored["total"],
         scores=scores,
     )

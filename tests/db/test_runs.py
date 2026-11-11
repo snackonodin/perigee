@@ -90,10 +90,10 @@ def test_create_run_validates(schema: Engine, db: Session, fake_kinds) -> None:
     assert db.scalar(select(func.count()).select_from(PipelineRun)) == 0
 
 
-def test_builtin_kinds_fail_loudly_until_csi_core(schema: Engine, db: Session) -> None:
+def test_builtin_kinds_registered(schema: Engine, db: Session) -> None:
     assert {"process_session", "run_nightly"} <= set(runs.registered_kinds())
     done = runs.execute(db, runs.create_run(db, "process_session", {}, []).id)
-    assert done.status is RunStatus.failed and "csi-core" in done.log
+    assert done.status is RunStatus.failed and "session_id" in done.log
 
 
 def test_code_version_is_git_sha(monkeypatch: pytest.MonkeyPatch) -> None:

@@ -12,6 +12,7 @@ answers, notes, tokens) in params or logs.
 
 from __future__ import annotations
 
+import importlib
 import logging
 import os
 import subprocess
@@ -28,6 +29,9 @@ log = logging.getLogger(__name__)
 
 Handler = Callable[[Session, PipelineRun], str]
 _HANDLERS: dict[str, Handler] = {}
+# Modules that define the built-in kinds (each exposes RUN_KINDS = {kind: handler}).
+# Imported lazily, because they import this module.
+_BUILTIN_MODULES = ("backend.services.pipeline", "backend.services.fusion")
 _MAX_LOG = 20_000
 
 
@@ -39,7 +43,19 @@ def register(kind: str) -> Callable[[Handler], Handler]:
     return deco
 
 
+def _load_builtins() -> None:
+    """Make sure every built-in kind is in the registry.
+
+    Registered explicitly from RUN_KINDS, not only by the import side effect,
+    because a module is imported once while the registry can be swapped (tests).
+    """
+    for m in _BUILTIN_MODULES:
+        for kind, fn in importlib.import_module(m).RUN_KINDS.items():
+            _HANDLERS.setdefault(kind, fn)
+
+
 def registered_kinds() -> list[str]:
+    _load_builtins()
     return sorted(_HANDLERS)
 
 
@@ -79,6 +95,7 @@ def _append(row: PipelineRun, line: str) -> None:
 
 
 def create_run(db: Session, kind: str, params: dict, input_hashes: list[str]) -> RunRecord:
+    _load_builtins()
     if kind not in _HANDLERS:
         raise ValueError(f"unknown run kind {kind!r}; known: {registered_kinds()}")
     # Validate through the contract first (sha256 format, JSON-able params).
@@ -104,6 +121,7 @@ def create_run(db: Session, kind: str, params: dict, input_hashes: list[str]) ->
 
 
 def execute(db: Session, run_id: str) -> RunRecord:
+    _load_builtins()  # a worker may execute a run created before the import
     row = db.get(PipelineRun, run_id)
     if row is None:
         raise LookupError(f"run {run_id} not found")
@@ -136,18 +154,3 @@ def execute(db: Session, run_id: str) -> RunRecord:
     _append(row, "succeeded")
     db.commit()
     return to_record(row)
-
-
-# ----------------------------------------------------------------- built-in kinds
-# Real implementations land when feat/csi-core merges (clean -> estimate_windows ->
-# aggregate -> score_night). Until then they fail loudly instead of faking output.
-
-
-@register("process_session")
-def _process_session(db: Session, run: PipelineRun) -> str:
-    raise NotImplementedError("process_session needs csi_core (pending feat/csi-core merge)")
-
-
-@register("run_nightly")
-def _run_nightly(db: Session, run: PipelineRun) -> str:
-    raise NotImplementedError("run_nightly needs csi_core (pending feat/csi-core merge)")

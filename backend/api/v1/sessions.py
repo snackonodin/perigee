@@ -20,7 +20,9 @@ class SessionIn(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     src_dir: str = Field(
-        min_length=1, max_length=512, description="Folder name relative to DATA_DIR/inbox"
+        min_length=1,
+        max_length=512,
+        description="Folder name relative to DATA_DIR/inbox/<your user id>",
     )
 
 

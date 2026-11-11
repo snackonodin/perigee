@@ -45,9 +45,9 @@ def bob(client) -> tuple[str, dict[str, str]]:
 
 
 @pytest.fixture
-def inbox(data_dir: Path, capture_dir: Path) -> Path:
-    root = data_dir / "inbox"
-    root.mkdir()
+def inbox(data_dir: Path, capture_dir: Path, alice) -> Path:
+    root = data_dir / "inbox" / alice[0]
+    root.mkdir(parents=True)
     shutil.copytree(capture_dir, root / "night1")
     return root
 
@@ -157,6 +157,8 @@ def test_user_a_cannot_read_user_b(client, alice, bob, inbox) -> None:
     assert len(client.get("/api/v1/windows", params={"session_id": sid}, headers=ha).json()) == 1
 
     assert client.get("/api/v1/sessions", params=RANGE, headers=hb).json() == []
+    r = _register(client, hb)  # A's inbox folder name means nothing in B's inbox
+    assert r.status_code == 400 and r.json()["error"] == "bad_src_dir"
     assert client.get(f"/api/v1/sessions/{sid}", headers=hb).status_code == 404
     r = client.get("/api/v1/windows", params={"session_id": sid}, headers=hb)
     assert r.status_code == 404

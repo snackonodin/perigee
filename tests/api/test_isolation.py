@@ -12,6 +12,7 @@ test_every_route_has_a_case fails until each mounted route has a case or is in E
 
 from __future__ import annotations
 
+import shutil
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
@@ -24,7 +25,8 @@ from sqlalchemy import select
 from backend.main import create_app
 from backend.models import Base, Flag, SafetyEvent
 from backend.services import accounts as acc
-from backend.services import surveys
+from backend.services import jobs, surveys
+from backend.services import sessions as sessions_svc
 from backend.services.ingestion import ingest_session
 from csi_core.synth import synth_night
 
@@ -73,8 +75,26 @@ ISOLATION_CASES: list[IsolationCase] = [
     ),
     # guidance: addressing A's flag by id must look exactly like a missing flag
     IsolationCase("get", "/api/v1/guidance", 404, params={"flag_id": "{a_flag_id}"}),
-    # Template for id-addressed routes (sessions, nights, ...):
-    # IsolationCase("get", "/api/v1/sessions/{a_session_id}", 404),
+    # sessions / jobs (db-ingest): lists are B's own (empty); A's ids look missing
+    IsolationCase(
+        "get",
+        "/api/v1/sessions",
+        200,
+        params={"from": "2026-10-01T00:00:00Z", "to": "2026-12-01T00:00:00Z"},
+    ),
+    IsolationCase("get", "/api/v1/sessions/{session_id}", 404),
+    IsolationCase("get", "/api/v1/windows", 404, params={"session_id": "{a_session_id}"}),
+    # per-user inbox: A's folder name does not exist in B's inbox
+    IsolationCase("post", "/api/v1/sessions", 400, json={"src_dir": "night_a"}),
+    IsolationCase(
+        "post",
+        "/api/v1/jobs/process",
+        404,
+        json={"kind": "process_session", "params": {"session_id": "{a_session_id}"}},
+    ),
+    IsolationCase("get", "/api/v1/jobs/{job_id}", 404),
+    # Template for id-addressed routes (nights, ...):
+    # IsolationCase("get", "/api/v1/nights/{a_night_id}", 404),
 ]
 
 # Routes that serve no per-user data. Anything else must have a case.
@@ -147,6 +167,9 @@ def world(app_client, db, tmp_path) -> dict[str, Any]:
     db.add(flag)
     db.commit()
     surveys.load_catalog(db)
+    job = jobs.submit_job(db, a["user_id"], "run_nightly", {"date": "2026-11-01"})
+    inbox_a = sessions_svc.inbox_root(a["user_id"]) / "night_a"
+    shutil.copytree(tmp_path / "src_a", inbox_a)
     resp = app_client.post(
         "/api/v1/responses",
         headers=_h(a),
@@ -162,6 +185,8 @@ def world(app_client, db, tmp_path) -> dict[str, Any]:
         "b": b,
         "a_user_id": a["user_id"],
         "a_session_id": session.id,
+        "session_id": session.id,  # OpenAPI template names, for id-addressed routes
+        "job_id": job.id,
         "a_flag_id": flag.id,
         "a_response_id": resp.json()["id"],
         "instrument_id": "phq2",
@@ -171,6 +196,7 @@ def world(app_client, db, tmp_path) -> dict[str, Any]:
             "alice@example.com",
             A_NAME,
             session.id,
+            job.id,
             flag.id,
             resp.json()["id"],
             a["access_token"],
@@ -182,6 +208,17 @@ def world(app_client, db, tmp_path) -> dict[str, Any]:
 @pytest.fixture(params=ISOLATION_CASES, ids=lambda c: c.id)
 def case(request) -> IsolationCase:
     return request.param
+
+
+def _fill(obj: Any, world: dict[str, Any]) -> Any:
+    """Fill {placeholders} in string values of a JSON body from ``world``."""
+    if isinstance(obj, str):
+        return obj.format(**world)
+    if isinstance(obj, dict):
+        return {k: _fill(v, world) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_fill(v, world) for v in obj]
+    return obj
 
 
 def _snapshot(db, user_id: str) -> dict[str, list[tuple]]:
@@ -206,7 +243,7 @@ def test_b_cannot_read_or_change_a(case: IsolationCase, app_client, db, world) -
         case.method,
         case.path.format(**world),
         headers=_h(world["b"]),
-        json=case.json,
+        json=_fill(case.json, world),
         params={k: str(v).format(**world) for k, v in case.params.items()},
     )
 

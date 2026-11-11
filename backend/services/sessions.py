@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import uuid
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -24,12 +25,14 @@ class InboxPathError(ValueError):
     """The requested inbox folder name is not acceptable (never echoes the input)."""
 
 
-def inbox_root() -> Path:
-    return get_settings().data_dir / "inbox"
+def inbox_root(user_id: str) -> Path:
+    """Per-user inbox: DATA_DIR/inbox/<user_id>/. A user can only ingest from their own,
+    so nobody can pull another person's capture into their account by guessing a name."""
+    return get_settings().data_dir / "inbox" / str(uuid.UUID(user_id))
 
 
-def resolve_inbox_dir(name: str) -> Path:
-    """Map a folder name relative to DATA_DIR/inbox to a real directory inside it.
+def resolve_inbox_dir(user_id: str, name: str) -> Path:
+    """Map a folder name relative to the user's inbox to a real directory inside it.
 
     Rejects absolute paths, '..', backslashes, odd characters and symlinks that
     escape the inbox.
@@ -39,7 +42,7 @@ def resolve_inbox_dir(name: str) -> Path:
     parts = name.strip("/").split("/")
     if len(parts) > _MAX_DEPTH or any(p in (".", "..") or not _PART.match(p) for p in parts):
         raise InboxPathError("src_dir must be a folder name relative to the inbox")
-    root = inbox_root().resolve()
+    root = inbox_root(user_id).resolve()
     target = root.joinpath(*parts).resolve()
     if target == root or not target.is_relative_to(root):
         raise InboxPathError("src_dir must be a folder name relative to the inbox")
@@ -50,7 +53,7 @@ def resolve_inbox_dir(name: str) -> Path:
 
 def register_session(db: Session, user_id: str, name: str) -> tuple[SessionRecord, bool]:
     """Ingest an inbox folder. Returns (record, created); created=False if already known."""
-    src = resolve_inbox_dir(name)
+    src = resolve_inbox_dir(user_id, name)
     count = scoped(select(func.count()).select_from(CaptureSession), CaptureSession, user_id)
     before = db.scalar(count)
     rec = ingest_session(db, user_id, src)

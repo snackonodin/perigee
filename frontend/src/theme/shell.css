@@ -25,3 +25,76 @@
   margin: 0 0 var(--gap-3); padding: var(--gap-2) var(--gap-3); border-radius: 8px;
   border: 1px solid var(--pulse); color: var(--pulse); font-weight: 600;
 }
+
+.spacer { flex: 1; }
+.who { font-size: var(--fs-1); }
+.footnote { font-size: var(--fs-1); margin-top: var(--gap-4); }
+.narrow { max-width: 460px; margin: 10vh auto 0; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: var(--gap-3); margin-top: var(--gap-3); }
+.card { background: var(--space-1); border: 1px solid var(--line); border-radius: var(--radius); padding: var(--gap-4); min-width: 0; }
+.card.wide { grid-column: 1 / -1; }
+.card h2 { font-size: var(--fs-3); margin: 0 0 var(--gap-3); }
+.card h3 { font-size: var(--fs-2); margin: var(--gap-4) 0 var(--gap-2); }
+.error { color: var(--alert); min-height: 1.2em; }
+.kv { display: grid; grid-template-columns: max-content 1fr; gap: var(--gap-1) var(--gap-3); margin: 0; }
+.kv dt { color: var(--ink-muted); }
+.kv dd { margin: 0; }
+ul.plain { list-style: none; padding: 0; margin: 0; }
+ul.plain li { padding: var(--gap-1) 0; }
+.row { display: flex; align-items: center; justify-content: space-between; gap: var(--gap-2); }
+label { display: block; margin: var(--gap-2) 0; }
+input:not([type="radio"]):not([type="checkbox"]) {
+  display: block; width: 100%; margin-top: var(--gap-1); padding: var(--gap-2) 10px; font: inherit;
+  color: var(--ink); background: var(--space-0); border: 1px solid var(--line); border-radius: 8px;
+}
+button {
+  font: inherit; font-weight: 600; cursor: pointer; padding: var(--gap-2) var(--gap-3); border-radius: 8px;
+  border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink);
+}
+button:disabled { opacity: 0.55; cursor: default; }
+button.ghost { background: transparent; color: var(--accent); }
+button.link { background: none; border: none; color: var(--accent); padding: 0; text-decoration: underline; font-weight: 500; }
+button.danger { background: transparent; color: var(--alert); border-color: var(--alert); }
+a { color: var(--accent); }
+.option { display: flex; gap: var(--gap-2); align-items: center; margin: var(--gap-1) 0; }
+fieldset { border: 1px solid var(--line); border-radius: 10px; margin: var(--gap-3) 0; padding: var(--gap-2) var(--gap-3); }
+legend { padding: 0 var(--gap-1); font-weight: 550; }
+.maturity { font-size: var(--fs-1); padding: 1px 8px; border-radius: 999px; border: 1px solid var(--line); }
+.maturity.warm_up { color: var(--sun); }
+.maturity.widening { color: var(--accent); }
+.maturity.mature { color: var(--aurora); }
+.flag { border-top: 1px solid var(--line); padding-top: var(--gap-3); margin-top: var(--gap-3); }
+.flag:first-of-type { border-top: none; margin-top: 0; padding-top: 0; }
+.flag h3 { margin-top: 0; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: var(--fs-1); }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { color: var(--ink-muted); font-weight: 600; }
+tr.invalid td { color: var(--ink-faint); }
+.z-high { color: var(--alert); font-weight: 700; }
+.guidance { background: var(--space-2); border-radius: 10px; padding: var(--gap-3); margin: var(--gap-2) 0; }
+.guidance h4 { margin: 0 0 var(--gap-1); }
+.guidance .src { font-size: var(--fs-1); color: var(--ink-muted); margin-bottom: 0; }
+.trend { margin: 0; }
+.trend svg { width: 100%; height: auto; display: block; }
+.trend .axis { stroke: var(--line); }
+.trend .label { fill: var(--ink-muted); font-size: 11px; }
+.trend .band { fill: var(--band); }
+.trend .median { stroke: var(--accent); stroke-dasharray: 4 3; }
+.trend .line { stroke: var(--aurora); fill: none; stroke-width: 1.8; }
+.trend .pt { fill: var(--aurora); }
+.trend .pt.out { fill: var(--alert); }
+.confirm { border: 1px solid var(--alert); border-radius: 10px; padding: var(--gap-3); }
+hr { border: none; border-top: 1px solid var(--line); margin: var(--gap-4) 0; }
+
+/* Safety screen: above everything, from any page (portal on body). */
+.safety {
+  position: fixed; inset: 0; z-index: 2147483647; display: flex; align-items: center; justify-content: center;
+  padding: var(--gap-3); background: rgba(3, 5, 10, 0.88);
+}
+.safety-box {
+  max-width: 560px; width: 100%; background: var(--space-2); color: var(--ink);
+  border-radius: var(--radius); border-top: 6px solid var(--alert); padding: var(--gap-4);
+}
+.safety-box h1 { font-size: var(--fs-4); margin-top: 0; }
+.safety-box li { margin: var(--gap-2) 0; font-weight: 600; }

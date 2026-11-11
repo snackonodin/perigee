@@ -1,17 +1,52 @@
-import { createBrowserRouter, createMemoryRouter, RouterProvider } from "react-router";
+import type { ReactElement } from "react";
+import { createBrowserRouter, createMemoryRouter, Outlet, RouterProvider } from "react-router";
+import { AuthProvider, RequireAuth } from "./auth/AuthProvider";
 import { AppShell } from "./components/AppShell";
+import { Login } from "./pages/Login";
+import { Overview } from "./pages/Overview";
+import { Psyche } from "./pages/Psyche";
+import { Settings } from "./pages/Settings";
+import { Sleep } from "./pages/Sleep";
 import { Placeholder } from "./routes/Placeholder";
 import { TABS } from "./routes/tabs";
+import { SafetyProvider } from "./safety/SafetyProvider";
+
+const PAGES: Record<string, ReactElement> = {
+  "/": <Overview />,
+  "/sleep": <Sleep />,
+  "/psyche": <Psyche />,
+  "/settings": <Settings />,
+};
+
+function Root() {
+  return (
+    <AuthProvider>
+      <SafetyProvider>
+        <Outlet />
+      </SafetyProvider>
+    </AuthProvider>
+  );
+}
 
 const routes = [
   {
-    path: "/",
-    element: <AppShell />,
-    children: TABS.map((t) =>
-      t.path === "/"
-        ? { index: true, element: <Placeholder tab={t} /> }
-        : { path: t.path.slice(1), element: <Placeholder tab={t} /> },
-    ),
+    element: <Root />,
+    children: [
+      { path: "/login", element: <Login /> },
+      {
+        path: "/",
+        element: (
+          <RequireAuth>
+            <AppShell />
+          </RequireAuth>
+        ),
+        children: TABS.map((t) => {
+          // Breathing and Heart (live monitors) come in FE-3.
+          const element = PAGES[t.path] ?? <Placeholder tab={t} />;
+          return t.path === "/" ? { index: true, element } : { path: t.path.slice(1), element };
+        }),
+      },
+    ],
   },
 ];
 

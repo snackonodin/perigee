@@ -14,6 +14,8 @@ export default defineConfig({
   },
   server: {
     host: "127.0.0.1",
+    // the app bundles seeds/safety_resources.json (offline safety text) from the repo root
+    fs: { allow: [".."] },
     proxy: { "/api": "http://127.0.0.1:8000" },
   },
   test: {

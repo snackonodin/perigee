@@ -730,11 +730,13 @@ tasks:
     Psyche, Settings)'
   owner: 7a
   branch: feat/frontend
-  state: todo
+  state: review
   blockers:
   - GATE-1
   done_when: npm run build offline; FastAPI serves it; generated client compiles
-  sha: null
+  sha: 024ddaf
+  times:
+    review: '2026-11-11T20:17:30Z'
 - id: FLAKY-1
   title: Root-cause the flaky tests/pipeline/test_personas.py failures on main (2-4 different tests per run)
   owner: b0
@@ -742,4 +744,24 @@ tasks:
   state: doing
   blockers: []
   done_when: test_personas.py green 10/10 runs alone and in the full suite; root cause + guard recorded as a lesson
+  sha: null
+- id: FE-2
+  title: 'Frontend pages on existing API (fixture-tested, no new packages): AuthProvider, global SafetyOverlay (port local pre-check + 3 s ack), Overview (Today, FlagWhy, Guidance), Sleep, Psyche (CheckinForm
+    from instrument JSON, Questionnaires), Settings (consents, export, delete)'
+  owner: 7a
+  branch: feat/frontend
+  state: doing
+  blockers:
+  - FE-1
+  done_when: vitest covers each page with typed fixtures from schema.d.ts; safety tests ported from test_demo_page; tsc clean
+  sha: null
+- id: FE-3
+  title: 'Live tabs: Breathing + Heart monitors on SSE /live/vitals (heart labelled experimental), dynamic displays'
+  owner: 7a
+  branch: feat/frontend
+  state: todo
+  blockers:
+  - LIVE-1
+  - FE-2
+  done_when: monitors render streamed + replayed sessions; reconnect on drop; no external URLs
   sha: null

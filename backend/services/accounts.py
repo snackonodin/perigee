@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from sqlalchemy import Table, delete, select, update
+from sqlalchemy import Table, Text, delete, or_, select, type_coerce, update
 from sqlalchemy.orm import Session
 
 from backend import security
@@ -313,13 +313,44 @@ def set_consents(
 # --------------------------------------------------------------------------- export / delete
 
 
-def _user_tables() -> list[Table]:
-    """Every table with a user_id column, parents before children.
+# Tables whose rows outlive the user with user_id set to NULL. Every other table with a
+# user_id column is deleted with the user, whether its user_id is nullable or not.
+ANONYMISED_TABLES = frozenset({"audit_log"})
 
-    NOT NULL user_id = user-owned rows (deleted with the user). Nullable user_id
-    (audit_log) = rows that outlive the user with user_id set to NULL.
-    """
+
+def _user_tables() -> list[Table]:
+    """Every table with a user_id column, parents before children."""
     return [t for t in Base.metadata.sorted_tables if "user_id" in t.c]
+
+
+def _identifiers(db: Session, user_id: str) -> set[str]:
+    """UUIDs that identify the user's data: the user id and their session ids.
+
+    Content hashes are deliberately not used: identical files (an empty markers.csv, the
+    same meta.json) hash the same for different users, so a hash would match their runs too.
+    """
+    ids = {user_id}
+    if (s := Base.metadata.tables.get("sessions")) is not None:
+        ids.update(db.scalars(select(s.c.id).where(s.c.user_id == user_id)))
+    return ids
+
+
+def _delete_runs_mentioning(db: Session, identifiers: set[str]) -> int:
+    """Delete pipeline_runs whose parameters or log mention any identifier.
+
+    Runs created by runs.create_run() carry no user_id; the user appears only inside
+    parameters ({"session_id"} or {"user_id", "day"}). Every run kind is single-user, so a
+    run that mentions the user is the user's run. Identifiers are UUIDs, which contain no
+    LIKE wildcards.
+    """
+    runs = Base.metadata.tables.get("pipeline_runs")
+    if runs is None or not identifiers:
+        return 0
+    cols = [type_coerce(runs.c[n], Text) for n in ("parameters", "log") if n in runs.c]
+    for ident in identifiers:
+        uuid.UUID(ident)  # raises ValueError for anything that is not a UUID
+    cond = or_(*(c.like(f"%{ident}%") for c in cols for ident in sorted(identifiers)))
+    return db.execute(delete(runs).where(cond)).rowcount or 0
 
 
 def _jsonable(v: Any) -> Any:
@@ -408,7 +439,8 @@ def delete_user(db: Session, user_id: str, data_dir: Path | None = None) -> None
 
     data_dir defaults to settings.data_dir (from .env). Files go first: if anything fails,
     the transaction rolls back, the rows remain and the delete can be retried. Audit rows
-    stay with user_id NULL, plus one anonymous "account.delete" row.
+    stay with user_id NULL, plus one anonymous "account.delete" row; pipeline_runs that
+    mention the user (by user_id column or inside parameters/log) are deleted.
     """
     _active_user(db, user_id)
     data_dir = Path(data_dir if data_dir is not None else get_settings().data_dir)
@@ -419,12 +451,14 @@ def delete_user(db: Session, user_id: str, data_dir: Path | None = None) -> None
                 shutil.rmtree(p)
             elif p.exists():
                 p.unlink()
+        identifiers = _identifiers(db, user_id)
         _revoke_all(db, user_id)
         for t in reversed(_user_tables()):
-            if t.c.user_id.nullable:
+            if t.name in ANONYMISED_TABLES:
                 db.execute(update(t).where(t.c.user_id == user_id).values(user_id=None))
             else:
                 db.execute(delete(t).where(t.c.user_id == user_id))
+        _delete_runs_mentioning(db, identifiers)
         db.execute(delete(User).where(User.id == user_id))
         audit(db, None, "account.delete")
         db.commit()

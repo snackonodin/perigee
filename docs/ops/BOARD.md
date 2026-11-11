@@ -29,20 +29,18 @@ Owners: `ca` build-astronaut-health-backend (main) · `f4` pankajkashyap-f4 (fea
 | CORE-7 | `fusion.score_night` → `FlagDraft` | f4 | csi-core | components dict explains priority; thresholds only from config.yaml | CORE-6 |  |
 | FE-2 | Frontend pages on existing API (fixture-tested, no new packages): AuthProvider, global SafetyOverlay (port local pre-check + 3 s ack), Overview (Today, FlagWhy, Guidance), Sleep, Psyche (CheckinForm from instrument JSON, Questionnaires), Settings (consents, export, delete) | 7a | frontend | vitest covers each page with typed fixtures from schema.d.ts; safety tests ported from test_demo_page; tsc clean | FE-1 |  |
 
-## review (8)
+## review (6)
 
 | ID | Task | Owner | Branch | Done when | Blockers | sha |
 |----|------|-------|--------|-----------|----------|-----|
 | CA-2 | `/api/v1/today` (night features, flags, guidance, due check-ins) | ca | main | e2e test with seeded user | CA-1, DB-5, SUR-6 | a08f660 |
 | CA-5 | Wire worker start/stop into main.py lifespan; persona seeding command once OPS-6 lands | ca | main | app starts worker; seed-personas produces 3 synthetic users with expected flags | DB-7 | f3cd03f |
-| QA-1 | Randomised testing: pytest-randomly + hypothesis pinned; tools/ops/stress.sh runs the suite under N random seeds; fix every order dependence (L2) | b0 | db-ingest | 10 consecutive random-order full runs green; failing seed printed and reproducible | — | dc12594 |
 | SCR-1 | Read-only survey of features script/ (team scripts): capture CSV format, breath/heart/motion entry points; plugins/ adapters wrapping them (no new algorithms); load.py reader for the real capture format | f4 | pipeline | report of formats + entry points; plugins.* specs pass the golden swap test on a real capture CSV (no data committed) | — | b8d7cb1 |
 | LEAK-1 | weekly_indices(..., until: datetime \| None) upper time bound; run_nightly passes the night end (L6) | cf | surveys | backfill test proves answers after the night never affect it | — | 7931346 |
 | LOOP-1 | Failure-learning loop: tools/ops/lessons.py (add/list/close), merge_ready + stress.sh auto-record failures as lesson stubs, prompts read LESSONS.md, check_merge lints tracked files only (L1) and warns on broad reformat (L3), metrics.sh shows recurrence | 7a | accounts | a simulated RED merge creates a lesson stub; lessons.py close refuses without a guard reference; tests in tmp repos | — | a00287e |
 | FE-1 | Frontend scaffold: React+TS+Vite in frontend/, builds to backend/static/app (served at /), no CDN, typed client from /openapi.json; space theme tokens; tab shell (Overview, Breathing, Heart, Sleep, Psyche, Settings) | 7a | frontend | npm run build offline; FastAPI serves it; generated client compiles | GATE-1 | 024ddaf |
-| FLAKY-1 | Root-cause the flaky tests/pipeline/test_personas.py failures on main (2-4 different tests per run) | b0 | db-ingest | test_personas.py green 10/10 runs alone and in the full suite; root cause + guard recorded as a lesson | — | cba0fa4 |
 
-## done (51)
+## done (53)
 
 | ID | Task | Owner | Branch | Done when | Blockers | sha |
 |----|------|-------|--------|-----------|----------|-----|
@@ -97,6 +95,8 @@ Owners: `ca` build-astronaut-health-backend (main) · `f4` pankajkashyap-f4 (fea
 | DB-8 | cli backup / restore: encrypted SQLite snapshot + raw manifest; restore test | b0 | db-ingest | backup -> wipe -> restore gives identical row counts and decryptable fields; key never in the archive | — | 100871e |
 | OPS-14 | Offline demo page backend/static/demo/ (vanilla JS, no CDN): login, Today, trend chart, check-in form from instrument JSON, safety screen | 7a | accounts | E2E flow drivable from the page; safety screen shown before scores; works with no internet | — | 7de3794 |
 | OPS-15 | Chrome walkthrough of /demo (3 personas + live PHQ-9 safety); fix UI bugs; demo_walkthrough.gif | 7a | accounts | all 3 personas render; safety screen verified live; GIF exported (user approval) | — | 7de3794 |
+| QA-1 | Randomised testing: pytest-randomly + hypothesis pinned; tools/ops/stress.sh runs the suite under N random seeds; fix every order dependence (L2) | b0 | db-ingest | 10 consecutive random-order full runs green; failing seed printed and reproducible | — | 9443bd8 |
+| FLAKY-1 | Root-cause the flaky tests/pipeline/test_personas.py failures on main (2-4 different tests per run) | b0 | db-ingest | test_personas.py green 10/10 runs alone and in the full suite; root cause + guard recorded as a lesson | — | 9443bd8 |
 
 ## proposed (0)
 

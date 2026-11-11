@@ -25,3 +25,4 @@ When a value is validated, record the data and date next to it.
 | auth.login_window_s | 900 | Login-failure counting window (s) | no |
 | auth.max_failures_per_email_ip | 5 | Failed logins per (email, IP) before 429 | no |
 | auth.max_failures_per_email | 20 | Failed logins per email across IPs before 429 | no |
+| baseline.mad_floor.* | rr_med 0.3, rr_var 0.05, presence_hours 0.2, restless_frac 0.01 | Lower bound on MAD in robust z; small-n MAD underestimates spread and, with FR13 excluding flagged nights, ratchets narrower | no |

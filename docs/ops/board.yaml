@@ -594,10 +594,12 @@ tasks:
   title: delete_user deletes the user's pipeline_runs (not anonymise); login rate limiting / lockout
   owner: 7a
   branch: feat/accounts
-  state: todo
+  state: review
   blockers: []
   done_when: delete leaves 0 pipeline_runs for the user; N failed logins -> 429 with Retry-After; limits in config.yaml (placeholder)
-  sha: null
+  sha: 313f450
+  times:
+    review: '2026-11-11T15:37:48Z'
 - id: PIPE-4
   title: services/personas.py + cli seed-personas per docs/ops/personas.md (option C)
   owner: f4
@@ -616,8 +618,8 @@ tasks:
   sha: null
 - id: OPS-14
   title: 'Offline demo page backend/static/demo/ (vanilla JS, no CDN): login, Today, trend chart, check-in form from instrument JSON, safety screen'
-  owner: ops
-  branch: feat/ops
+  owner: 7a
+  branch: feat/accounts
   state: todo
   blockers: []
   done_when: E2E flow drivable from the page; safety screen shown before scores; works with no internet

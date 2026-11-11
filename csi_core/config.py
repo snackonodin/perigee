@@ -55,6 +55,7 @@ class BaselineCfg(_Section):
     warmup_nights: int
     mature_nights: int
     alert_robust_z: float
+    mad_floor: dict[str, float] = Field(default_factory=dict)
 
 
 class SafetyCfg(_Section):

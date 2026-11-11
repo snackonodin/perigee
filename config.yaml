@@ -34,6 +34,11 @@ baseline:
   warmup_nights: 5                 # PLACEHOLDER: maturity = warm-up below this
   mature_nights: 14                # PLACEHOLDER: maturity = mature at/above this
   alert_robust_z: 2.5              # PLACEHOLDER: |x - median| / (1.4826*MAD)
+  mad_floor:                       # PLACEHOLDER: min MAD used in robust z (small-n MAD underestimates spread)
+    rr_med: 0.3                    # bpm
+    rr_var: 0.05
+    presence_hours: 0.2            # h
+    restless_frac: 0.01
 
 safety:
   severe_symptom_codes: [chest_pain_sudden, fainting, severe_breathlessness]

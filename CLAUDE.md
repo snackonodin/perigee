@@ -50,7 +50,7 @@ Folder ownership (parallel sessions, one branch each):
 - services/pipeline.py, services/fusion.py, services/personas.py
                                              -> branch feat/pipeline (f4)
 - api/v1/{sessions,jobs}.py, backend/worker.py -> branch feat/db-ingest
-- backend/static/                            -> branch feat/ops
+- backend/static/                            -> branch feat/accounts (7a, OPS-14)
 - Coordinator (main): backend/main.py, backend/schemas/, config.yaml, CLAUDE.md,
   docs/*.md, scripts/, plugins/, csi_core/config.py
 - seeds/, services/surveys.py, services/guidance.py, services/readouts.py,

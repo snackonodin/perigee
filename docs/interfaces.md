@@ -14,7 +14,9 @@ def unwrap_us(ts_us: np.ndarray, bits: int = 32) -> np.ndarray: ...       # int6
 # csi_core/synth.py  (deterministic: every function takes seed)
 def synth_night(out_dir: Path, *, start_utc: datetime, hours: float, rr_bpm: float | Callable[[float], float],
                 fs: float = 100.0, n_sub: int = 52, motion_bursts: int = 6,
-                absent_spans: list[tuple[float, float]] = (), seed: int = 0) -> list[Path]:
+                absent_spans: list[tuple[float, float]] = (), seed: int = 0,
+                extra_markers: list[tuple[datetime, str]] | None = None) -> list[Path]:
+    # motion_bursts: int | None = None -> 0.75 per hour
     """Writes hourly csi_HH.csv.gz files + meta.json + markers.csv in the capture format below."""
 # csi_core/load.py
 def read_rotating(files: list[Path]) -> pd.DataFrame: ...                  # columns: host_time_utc, ts_us, rate, a0..aN

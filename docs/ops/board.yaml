@@ -699,16 +699,18 @@ tasks:
   done_when: backfill test proves answers after the night never affect it
   sha: '7931346'
   times:
-    review: '2026-11-11T16:28:39Z'
+    review: '2026-11-11T20:13:06Z'
 - id: LOOP-1
   title: 'Failure-learning loop: tools/ops/lessons.py (add/list/close), merge_ready + stress.sh auto-record failures as lesson stubs, prompts read LESSONS.md, check_merge lints tracked files only (L1) and
     warns on broad reformat (L3), metrics.sh shows recurrence'
   owner: 7a
   branch: feat/accounts
-  state: todo
+  state: review
   blockers: []
   done_when: a simulated RED merge creates a lesson stub; lessons.py close refuses without a guard reference; tests in tmp repos
-  sha: null
+  sha: a00287e
+  times:
+    review: '2026-11-11T20:13:05Z'
 - id: GATE-1
   title: 'Backend gate: QA-1, INJ-1, LIVE-1, FUZZ-1, LEAK-1, LOOP-1 merged; e2e flow + seed-personas + backup/restore green on a fresh bootstrap'
   owner: ca
@@ -732,4 +734,12 @@ tasks:
   blockers:
   - GATE-1
   done_when: npm run build offline; FastAPI serves it; generated client compiles
+  sha: null
+- id: FLAKY-1
+  title: Root-cause the flaky tests/pipeline/test_personas.py failures on main (2-4 different tests per run)
+  owner: cf
+  branch: feat/surveys
+  state: doing
+  blockers: []
+  done_when: test_personas.py green 10/10 runs alone and in the full suite; root cause + guard recorded as a lesson
   sha: null

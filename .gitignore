@@ -15,3 +15,7 @@ __pycache__/
 *.egg-info/
 # os
 .DS_Store
+
+# Team's original scripts + raw captures (may contain personal breathing data).
+# Wrapped copies live in plugins/; originals stay local, never committed.
+features script/

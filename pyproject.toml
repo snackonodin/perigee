@@ -6,11 +6,14 @@ requires-python = ">=3.11"
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+# Team scripts dropped in for reference/wrapping are not linted as app code.
+extend-exclude = ["features script", "plugins/vendor"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "T20"]  # T20 bans print(): use logging
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+norecursedirs = ["features script", ".venv", "plugins/vendor"]
 addopts = "-q"
 markers = ["slow: end-to-end tests on a multi-hour synth night (run by default; skip with -m 'not slow')"]

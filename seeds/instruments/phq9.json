@@ -204,7 +204,10 @@
           "value": 3,
           "label": "Nearly every day"
         }
-      ]
+      ],
+      "safety_trigger": {
+        "min_value": 1
+      }
     }
   ],
   "scoring": {

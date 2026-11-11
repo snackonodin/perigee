@@ -1,0 +1,13 @@
+{
+  "version": "1.0",
+  "reviewed_by": null,
+  "note": "Generic, non-clinical signposting. Shown immediately whenever a safety trigger fires. Review with the mission's medical team before real use.",
+  "reasons": {
+    "safety_item": "You indicated thoughts of being better off dead or of hurting yourself. You do not have to handle this alone."
+  },
+  "resources": [
+    "Contact your flight surgeon or your designated support contact now.",
+    "If you are in immediate danger, call your local emergency number now.",
+    "If you can, stay with or reach out to someone you trust while you get support."
+  ]
+}

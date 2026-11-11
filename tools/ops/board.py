@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Team task board. docs/ops/board.yaml is the source of truth; BOARD.md is rendered from it.
 
-  board.py list [--owner X] [--state S] [--next [--exclude ID ...]] [--format text|tsv]
+  board.py list [--worktree] [--owner X] [--state S] [--next [--exclude ID ...]] [--format tsv]
   board.py move ID STATE [--sha SHA]          (coordinator; edits the working-tree file)
   board.py render [--out PATH]                (writes docs/ops/BOARD.md)
   board.py validate
@@ -9,7 +9,8 @@
 
 `list` reads the board committed on main (`git show main:docs/ops/board.yaml`) so a worker
 sees the coordinator's latest view from any worktree; it falls back to the working-tree file
-if main has none yet. `--file PATH` or `--ref REF` overrides the source.
+if main has none yet, and warns "uncommitted moves: N" when this worktree's file differs.
+`--worktree` reads this worktree's file instead; `--file PATH` / `--ref REF` override too.
 
 Next task for an owner: its first `doing` row (resume), else its first `todo` row whose
 blockers are all satisfied. A blocker is satisfied when it is `done`, or when it belongs to
@@ -257,17 +258,35 @@ def render(data: Board) -> str:
 
 # ---------------------------------------------------------------- CLI
 
+def diff_count(a: Board, b: Board) -> int:
+    """Number of task ids whose row differs between two boards (added/removed count too)."""
+    ia, ib = by_id(a), by_id(b)
+    return sum(ia.get(k) != ib.get(k) for k in set(ia) | set(ib))
+
+
 def _load_for_list(args: argparse.Namespace) -> Board:
     if args.file:
         return load(file=Path(args.file))
+    if getattr(args, "worktree", False):
+        return load()
     ref = args.ref or os.environ.get("BASE_BRANCH", "main")
     try:
-        return load(ref=ref)
+        data = load(ref=ref)
     except BoardError:
         if args.ref:
             raise
         _out(f"note: no board on {ref} yet; using working tree", file=sys.stderr)
         return load()
+    try:
+        local = load()
+    except BoardError:
+        return data
+    n = diff_count(data, local)
+    if n:
+        _out(f"note: uncommitted moves: {n} (working tree differs from {ref}); "
+             "this list shows the committed board; add --worktree to see them",
+             file=sys.stderr)
+    return data
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -277,6 +296,8 @@ def main(argv: list[str] | None = None) -> int:
 
     pl = sub.add_parser("list")
     pl.add_argument("--ref", help="read the board from this git ref (default main)")
+    pl.add_argument("--worktree", action="store_true",
+                    help="read this worktree's board file, including uncommitted moves")
     pl.add_argument("--owner")
     pl.add_argument("--state", choices=STATES)
     pl.add_argument("--next", action="store_true")

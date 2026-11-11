@@ -151,3 +151,30 @@ def test_cli_next_move_render(tmp_path: Path, capsys: pytest.CaptureFixture[str]
     assert (tmp_path / "BOARD.md").exists()
     saved = yaml.safe_load(f.read_text())
     assert saved["tasks"][0]["sha"] == "abc1234"
+
+
+def test_diff_count_counts_changed_added_removed() -> None:
+    a = _board({"id": "A-1", "owner": "f4", "state": "todo"},
+               {"id": "A-2", "owner": "f4", "state": "todo"})
+    b = _board({"id": "A-1", "owner": "f4", "state": "review"},
+               {"id": "A-3", "owner": "f4", "state": "todo"})
+    assert board.diff_count(a, a) == 0
+    assert board.diff_count(a, b) == 3
+
+
+def test_list_warns_on_uncommitted_moves(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    committed = _board({"id": "A-1", "owner": "f4", "state": "todo"})
+    local = _board({"id": "A-1", "owner": "f4", "state": "review"})
+
+    def fake_load(file=None, ref=None):
+        return committed if ref else local
+
+    monkeypatch.setattr(board, "load", fake_load)
+    assert board.main(["list", "--owner", "f4"]) == 0
+    out = capsys.readouterr()
+    assert "uncommitted moves: 1" in out.err and "todo" in out.out
+    assert board.main(["list", "--worktree", "--owner", "f4"]) == 0
+    out = capsys.readouterr()
+    assert "review" in out.out and "uncommitted" not in out.err

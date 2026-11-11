@@ -8,56 +8,36 @@ Next task for a worker: `tools/ops/board.py list --owner <id> --next`.
 
 Owners: `ca` build-astronaut-health-backend (main) · `f4` pankajkashyap-f4 (feat/csi-core, feat/pipeline) · `b0` pankajkashyap-b0 (feat/db-ingest) · `7a` pankajkashyap-7a (feat/accounts) · `cf` pankajkashyap-cf (feat/surveys) · `ops` claude-multiplayer server launch (feat/ops)
 
-## todo (16)
+## todo (9)
 
 | ID | Task | Owner | Branch | Done when | Blockers | sha |
 |----|------|-------|--------|-----------|----------|-----|
 | DB-6 | `tools/cli.py` ingest / process / reset-demo / seed-personas / export | b0 | db-ingest | each subcommand has a test on tmp DATA_DIR | DB-5 |  |
 | CORE-8 | Wrap user's real breathing / heart-rate / motion scripts into csi_core | f4 | csi-core | same outputs as scripts on a sample file; HR stays experimental | user supplies scripts |  |
-| PIPE-1 | `services/pipeline.py`: process_session / run_nightly glue (csi_core → DB rows with run_id) | f4 | pipeline | synth night → window_estimates + night_features rows for one user, isolated by user_id | DB-4, CORE-6 |  |
-| PIPE-2 | `services/fusion.py`: score_night → flags rows (+ guidance hook) | f4 | pipeline | flags carry components; thresholds only from config.yaml | PIPE-1, CORE-7 |  |
 | ACC-5 | `services/accounts.py` signup/login/refresh/logout/export/delete | 7a | accounts | logout + delete revoke refresh tokens; delete removes raw files | DB-3, ACC-4 |  |
 | ACC-6 | `api/v1/auth.py`, `api/v1/me.py` (routers, not mounted) | 7a | accounts | TestClient flow signup→login→me→logout | ACC-5 |  |
 | ACC-7 | Isolation test: user A cannot read user B | 7a | accounts | test over every user-owned table via `scoped` | ACC-5 |  |
-| SUR-5 | `weekly_indices` | cf | surveys | ranges from seed scoring only | SUR-4 |  |
-| SUR-6 | `seeds/guidance_cards.json` (5 cards) + `select_guidance` | cf | surveys | each card has source_note; `reviewed_by` null | DB-3 |  |
-| SUR-7 | `api/v1/responses.py` router (not mounted) | cf | surveys | TestClient: safety path returns `{show, reason, resources}` | SUR-4, ACC-4 |  |
 | CA-1 | Integrate routers in `backend/main.py` | ca | main | all routers mounted; /openapi.json lists them | ACC-6, SUR-7 |  |
 | CA-2 | `/api/v1/today` (night features, flags, guidance, due check-ins) | ca | main | e2e test with seeded user | CA-1, DB-5, SUR-6 |  |
 | CA-3 | Three synthetic personas (`is_synthetic`) via normal ingestion | ca | main | `cli seed-personas` → `/today` differs per persona | DB-6, CA-2, OPS-6 |  |
 | CA-4 | Demo HTML page (single file, localhost) | ca | main | login → today → check-in → safety screen shown in a dry run | CA-2 |  |
-| OPS-6 | Persona data spec `docs/ops/personas.md` (steady; breathing/sleep drift; mental dip + safety) | ops | ops | per persona: synth params, seeds, survey schedule, expected /today derived from config placeholders | — |  |
-| OPS-7 | `tests/e2e/curl_flow.sh` demo flow against BASE_URL (default http://127.0.0.1:8000) | ops | ops | signup→login→check-in→safety→/today→logout→token rejected, pass/fail per step | CA-2 |  |
 
-## doing (4)
+## doing (1)
 
 | ID | Task | Owner | Branch | Done when | Blockers | sha |
 |----|------|-------|--------|-----------|----------|-----|
-| DB-5 | `services/runs.py` `create_run`, `execute` (process_session, run_nightly) | b0 | db-ingest | output rows carry `run_id`; params + git SHA stored | DB-4, CORE-7 |  |
 | CORE-7 | `fusion.score_night` → `FlagDraft` | f4 | csi-core | components dict explains priority; thresholds only from config.yaml | CORE-6 |  |
-| ACC-4 | `backend/deps.py` `get_db`, `current_user` | 7a | accounts | 401 without token; returns user_id | DB-1, ACC-2 |  |
-| SUR-4 | `submit_response` (answers encrypted, safety first) | cf | surveys | safety object in response; answers never logged | SUR-2, SUR-3, ACC-3 |  |
 
-## review (14)
+## review (4)
 
 | ID | Task | Owner | Branch | Done when | Blockers | sha |
 |----|------|-------|--------|-----------|----------|-----|
-| SUR-1 | `seeds/instruments/*.json` (phq2, gad2, who5, phq9, daily_am, daily_pm) | cf | surveys | schema test; self-harm item has `safety_trigger`; license_note + source_url set | — |  |
-| SUR-2 | `safety_check` (pure) | cf | surveys | trigger at min_value always shows; severe codes from config.yaml | SUR-1 |  |
-| SUR-3 | `load_catalog` (idempotent), `get_instrument` | cf | surveys | 2nd load is a no-op | DB-3, SUR-1 |  |
-| OPS-1 | BOARD.md | ops | ops | seeded from interfaces.md | — |  |
-| OPS-2 | Role prompts `docs/ops/prompts/` | ops | ops | 6 files, each < 60 lines | — |  |
-| OPS-3 | PROTOCOL.md | ops | ops | loop, escalation, merge order, rebase rule, daily stop | — |  |
-| OPS-4 | `tools/ops/status.sh` | ops | ops | read-only; ≤ 1 line per worktree | — |  |
-| OPS-5 | `tools/ops/check_merge.sh <branch>` | ops | ops | dry-run merge + tests in scratch worktree, cleaned up | — |  |
-| OPS-8 | Portability: scripts resolve repo, venv from VENV/.venv/python3; check_merge no-summary fix + regression test | ops | ops | tests/test_portability.py passes | — |  |
-| OPS-9 | `docs/ops/board.yaml` + `tools/ops/board.py` (list --next, move, render, validate) | ops | ops | unit tests in tests/unit/test_ops_board.py | — |  |
-| OPS-10 | `tools/ops/merge_ready.sh <branch>`: check, merge --no-ff, test, auto-revert, board done | ops | ops | dry run on a throwaway repo: green and red paths | — |  |
-| OPS-11 | Report regex + `tools/ops/parse_report.py` | ops | ops | unit tests in tests/unit/test_ops_parse_report.py | — |  |
-| OPS-12 | Coordinator loop recipe (notify_when_idle + /loop heartbeat) in prompts and PROTOCOL | ops | ops | workers auto-pick via board.py | — |  |
-| OPS-13 | `tools/ops/metrics.sh`: cycle time, merges/day, reverts | ops | ops | fits one screen | — |  |
+| PIPE-1 | `services/pipeline.py`: process_session / run_nightly glue (csi_core → DB rows with run_id) | f4 | pipeline | synth night → window_estimates + night_features rows for one user, isolated by user_id | DB-4, CORE-6 |  |
+| PIPE-2 | `services/fusion.py`: score_night → flags rows (+ guidance hook) | f4 | pipeline | flags carry components; thresholds only from config.yaml | PIPE-1, CORE-7 |  |
+| SUR-6 | `seeds/guidance_cards.json` (5 cards) + `select_guidance` | cf | surveys | each card has source_note; `reviewed_by` null | DB-3 |  |
+| SUR-7 | `api/v1/responses.py` router (not mounted) | cf | surveys | TestClient: safety path returns `{show, reason, resources}` | SUR-4, ACC-4 |  |
 
-## done (15)
+## done (35)
 
 | ID | Task | Owner | Branch | Done when | Blockers | sha |
 |----|------|-------|--------|-----------|----------|-----|
@@ -65,6 +45,7 @@ Owners: `ca` build-astronaut-health-backend (main) · `f4` pankajkashyap-f4 (fea
 | DB-2 | `models/base.py` `Base`, `UserOwned`, `scoped()` + all tables in interfaces.md | b0 | db-ingest | every user-owned table has indexed `user_id` FK CASCADE; `scoped` test | DB-1 | 2fed093 |
 | DB-3 | First Alembic migration | b0 | db-ingest | `alembic upgrade head` on empty tmp DB; downgrade works | DB-2 | 2fed093 |
 | DB-4 | `services/ingestion.py` `ingest_session` | b0 | db-ingest | re-ingest of same dir is a no-op (sha256); stats stored; `usable` honors threshold | DB-3, CORE-3 | 2fed093 |
+| DB-5 | `services/runs.py` `create_run`, `execute` (process_session, run_nightly) | b0 | db-ingest | output rows carry `run_id`; params + git SHA stored | DB-4, CORE-7 | ba9c61a |
 | CORE-1 | `timebase.unwrap_us` | f4 | csi-core | wrap at 2^32 handled; monotonic; test over 3 wraps | — | 947de1e |
 | CORE-2 | `synth.synth_night` (seeded) | f4 | csi-core | writes hourly `csi_HH.csv.gz` + meta.json + markers.csv in interfaces.md format; same seed → same bytes | CORE-1 | 947de1e |
 | CORE-3 | `load.read_rotating`, `capture_stats` | f4 | csi-core | reads synth output; stats match known rate/gaps | CORE-2 | 947de1e |
@@ -74,7 +55,26 @@ Owners: `ca` build-astronaut-health-backend (main) · `f4` pankajkashyap-f4 (fea
 | ACC-1 | `security.py` `hash_password` / `verify_password` (Argon2) | 7a | accounts | wrong pw fails; hash never logged | — | 09ff38c |
 | ACC-2 | access JWT + `new_refresh_token` (plaintext, sha256) | 7a | accounts | expired token rejected; secret from env only | ACC-1 | 09ff38c |
 | ACC-3 | `encrypt` / `decrypt` (Fernet FIELD_KEY) + `EncryptedJSON` | 7a | accounts | round-trip test; ciphertext ≠ plaintext in DB | DB-2 | 09ff38c |
+| ACC-4 | `backend/deps.py` `get_db`, `current_user` | 7a | accounts | 401 without token; returns user_id | DB-1, ACC-2 | 7d9477d |
+| SUR-1 | `seeds/instruments/*.json` (phq2, gad2, who5, phq9, daily_am, daily_pm) | cf | surveys | schema test; self-harm item has `safety_trigger`; license_note + source_url set | — | 72732e5 |
+| SUR-2 | `safety_check` (pure) | cf | surveys | trigger at min_value always shows; severe codes from config.yaml | SUR-1 | 72732e5 |
+| SUR-3 | `load_catalog` (idempotent), `get_instrument` | cf | surveys | 2nd load is a no-op | DB-3, SUR-1 | 72732e5 |
+| SUR-4 | `submit_response` (answers encrypted, safety first) | cf | surveys | safety object in response; answers never logged | SUR-2, SUR-3, ACC-3 | 72732e5 |
+| SUR-5 | `weekly_indices` | cf | surveys | ranges from seed scoring only | SUR-4 | 72732e5 |
+| OPS-1 | BOARD.md | ops | ops | seeded from interfaces.md | — | 7a88fdf |
+| OPS-2 | Role prompts `docs/ops/prompts/` | ops | ops | 6 files, each < 60 lines | — | 7a88fdf |
+| OPS-3 | PROTOCOL.md | ops | ops | loop, escalation, merge order, rebase rule, daily stop | — | 7a88fdf |
+| OPS-4 | `tools/ops/status.sh` | ops | ops | read-only; ≤ 1 line per worktree | — | 7a88fdf |
+| OPS-5 | `tools/ops/check_merge.sh <branch>` | ops | ops | dry-run merge + tests in scratch worktree, cleaned up | — | 7a88fdf |
+| OPS-6 | Persona data spec `docs/ops/personas.md` (steady; breathing/sleep drift; mental dip + safety) | ops | ops | per persona: synth params, seeds, survey schedule, expected /today derived from config placeholders | — | 7a88fdf |
+| OPS-7 | `tests/e2e/curl_flow.sh` demo flow against BASE_URL (default http://127.0.0.1:8000) | ops | ops | signup→login→check-in→safety→/today→logout→token rejected, pass/fail per step | CA-2 | 7a88fdf |
 | CA-0 | Ownership for db.py, deps.py, logging.py, errors.py, ops in CLAUDE.md | ca | main | CLAUDE.md ownership updated | — | db5f64e |
+| OPS-8 | Portability: scripts resolve repo, venv from VENV/.venv/python3; check_merge no-summary fix + regression test | ops | ops | tests/test_portability.py passes | — | 7a88fdf |
+| OPS-9 | `docs/ops/board.yaml` + `tools/ops/board.py` (list --next, move, render, validate) | ops | ops | unit tests in tests/unit/test_ops_board.py | — | 7a88fdf |
+| OPS-10 | `tools/ops/merge_ready.sh <branch>`: check, merge --no-ff, test, auto-revert, board done | ops | ops | dry run on a throwaway repo: green and red paths | — | 7a88fdf |
+| OPS-11 | Report regex + `tools/ops/parse_report.py` | ops | ops | unit tests in tests/unit/test_ops_parse_report.py | — | 7a88fdf |
+| OPS-12 | Coordinator loop recipe (notify_when_idle + /loop heartbeat) in prompts and PROTOCOL | ops | ops | workers auto-pick via board.py | — | 7a88fdf |
+| OPS-13 | `tools/ops/metrics.sh`: cycle time, merges/day, reverts | ops | ops | fits one screen | — | 7a88fdf |
 | SCAF | Scaffold: layout, config, contracts, docs, health API | ca | main | scaffold merged | — | 7b576d3 |
 
 ## proposed (0)

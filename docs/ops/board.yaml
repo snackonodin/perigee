@@ -70,12 +70,14 @@ tasks:
   title: '`services/runs.py` `create_run`, `execute` (process_session, run_nightly)'
   owner: b0
   branch: feat/db-ingest
-  state: doing
+  state: done
   blockers:
   - DB-4
   - CORE-7
   done_when: output rows carry `run_id`; params + git SHA stored
-  sha: null
+  sha: ba9c61a
+  times:
+    done: '2026-11-11T11:05:42Z'
 - id: DB-6
   title: '`tools/cli.py` ingest / process / reset-demo / seed-personas / export'
   owner: b0
@@ -160,22 +162,26 @@ tasks:
   title: '`services/pipeline.py`: process_session / run_nightly glue (csi_core → DB rows with run_id)'
   owner: f4
   branch: feat/pipeline
-  state: todo
+  state: review
   blockers:
   - DB-4
   - CORE-6
   done_when: synth night → window_estimates + night_features rows for one user, isolated by user_id
   sha: null
+  times:
+    review: '2026-11-11T11:05:42Z'
 - id: PIPE-2
   title: '`services/fusion.py`: score_night → flags rows (+ guidance hook)'
   owner: f4
   branch: feat/pipeline
-  state: todo
+  state: review
   blockers:
   - PIPE-1
   - CORE-7
   done_when: flags carry components; thresholds only from config.yaml
   sha: null
+  times:
+    review: '2026-11-11T11:05:43Z'
 - id: ACC-1
   title: '`security.py` `hash_password` / `verify_password` (Argon2)'
   owner: 7a
@@ -206,12 +212,14 @@ tasks:
   title: '`backend/deps.py` `get_db`, `current_user`'
   owner: 7a
   branch: feat/accounts
-  state: doing
+  state: done
   blockers:
   - DB-1
   - ACC-2
   done_when: 401 without token; returns user_id
-  sha: null
+  sha: 7d9477d
+  times:
+    done: '2026-11-11T11:05:41Z'
 - id: ACC-5
   title: '`services/accounts.py` signup/login/refresh/logout/export/delete'
   owner: 7a
@@ -244,68 +252,82 @@ tasks:
   title: '`seeds/instruments/*.json` (phq2, gad2, who5, phq9, daily_am, daily_pm)'
   owner: cf
   branch: feat/surveys
-  state: review
+  state: done
   blockers: []
   done_when: schema test; self-harm item has `safety_trigger`; license_note + source_url set
-  sha: null
+  sha: 72732e5
+  times:
+    done: '2026-11-11T11:05:31Z'
 - id: SUR-2
   title: '`safety_check` (pure)'
   owner: cf
   branch: feat/surveys
-  state: review
+  state: done
   blockers:
   - SUR-1
   done_when: trigger at min_value always shows; severe codes from config.yaml
-  sha: null
+  sha: 72732e5
+  times:
+    done: '2026-11-11T11:05:40Z'
 - id: SUR-3
   title: '`load_catalog` (idempotent), `get_instrument`'
   owner: cf
   branch: feat/surveys
-  state: review
+  state: done
   blockers:
   - DB-3
   - SUR-1
   done_when: 2nd load is a no-op
-  sha: null
+  sha: 72732e5
+  times:
+    done: '2026-11-11T11:05:40Z'
 - id: SUR-4
   title: '`submit_response` (answers encrypted, safety first)'
   owner: cf
   branch: feat/surveys
-  state: doing
+  state: done
   blockers:
   - SUR-2
   - SUR-3
   - ACC-3
   done_when: safety object in response; answers never logged
-  sha: null
+  sha: 72732e5
+  times:
+    done: '2026-11-11T11:05:40Z'
 - id: SUR-5
   title: '`weekly_indices`'
   owner: cf
   branch: feat/surveys
-  state: todo
+  state: done
   blockers:
   - SUR-4
   done_when: ranges from seed scoring only
-  sha: null
+  sha: 72732e5
+  times:
+    done: '2026-11-11T11:05:41Z'
 - id: SUR-6
   title: '`seeds/guidance_cards.json` (5 cards) + `select_guidance`'
   owner: cf
   branch: feat/surveys
-  state: todo
+  state: review
   blockers:
   - DB-3
   done_when: each card has source_note; `reviewed_by` null
   sha: null
+  times:
+    review: '2026-11-11T11:05:42Z'
 - id: SUR-7
   title: '`api/v1/responses.py` router (not mounted)'
   owner: cf
   branch: feat/surveys
-  state: todo
+  state: review
   blockers:
   - SUR-4
   - ACC-4
   done_when: 'TestClient: safety path returns `{show, reason, resources}`'
   sha: null
+  times:
+    review: '2026-11-11T11:05:42Z'
 - id: CA-1
   title: Integrate routers in `backend/main.py`
   owner: ca
@@ -351,59 +373,73 @@ tasks:
   title: BOARD.md
   owner: ops
   branch: feat/ops
-  state: review
+  state: done
   blockers: []
   done_when: seeded from interfaces.md
-  sha: null
+  sha: 7a88fdf
+  times:
+    done: '2026-11-11T11:05:41Z'
 - id: OPS-2
   title: Role prompts `docs/ops/prompts/`
   owner: ops
   branch: feat/ops
-  state: review
+  state: done
   blockers: []
   done_when: 6 files, each < 60 lines
-  sha: null
+  sha: 7a88fdf
+  times:
+    done: '2026-11-11T11:05:41Z'
 - id: OPS-3
   title: PROTOCOL.md
   owner: ops
   branch: feat/ops
-  state: review
+  state: done
   blockers: []
   done_when: loop, escalation, merge order, rebase rule, daily stop
-  sha: null
+  sha: 7a88fdf
+  times:
+    done: '2026-11-11T11:05:41Z'
 - id: OPS-4
   title: '`tools/ops/status.sh`'
   owner: ops
   branch: feat/ops
-  state: review
+  state: done
   blockers: []
   done_when: read-only; ≤ 1 line per worktree
-  sha: null
+  sha: 7a88fdf
+  times:
+    done: '2026-11-11T11:05:41Z'
 - id: OPS-5
   title: '`tools/ops/check_merge.sh <branch>`'
   owner: ops
   branch: feat/ops
-  state: review
+  state: done
   blockers: []
   done_when: dry-run merge + tests in scratch worktree, cleaned up
-  sha: null
+  sha: 7a88fdf
+  times:
+    done: '2026-11-11T11:05:41Z'
 - id: OPS-6
   title: Persona data spec `docs/ops/personas.md` (steady; breathing/sleep drift; mental dip + safety)
   owner: ops
   branch: feat/ops
-  state: todo
+  state: done
   blockers: []
   done_when: 'per persona: synth params, seeds, survey schedule, expected /today derived from config placeholders'
-  sha: null
+  sha: 7a88fdf
+  times:
+    done: '2026-11-11T11:05:25Z'
 - id: OPS-7
   title: '`tests/e2e/curl_flow.sh` demo flow against BASE_URL (default http://127.0.0.1:8000)'
   owner: ops
   branch: feat/ops
-  state: todo
+  state: done
   blockers:
   - CA-2
   done_when: signup→login→check-in→safety→/today→logout→token rejected, pass/fail per step
-  sha: null
+  sha: 7a88fdf
+  times:
+    done: '2026-11-11T11:05:25Z'
 - id: CA-0
   title: Ownership for db.py, deps.py, logging.py, errors.py, ops in CLAUDE.md
   owner: ca
@@ -416,62 +452,68 @@ tasks:
   title: 'Portability: scripts resolve repo, venv from VENV/.venv/python3; check_merge no-summary fix + regression test'
   owner: ops
   branch: feat/ops
-  state: review
+  state: done
   blockers: []
   done_when: tests/test_portability.py passes
-  sha: null
+  sha: 7a88fdf
   times:
     review: '2026-11-11T11:01:31Z'
+    done: '2026-11-11T11:05:41Z'
 - id: OPS-9
   title: '`docs/ops/board.yaml` + `tools/ops/board.py` (list --next, move, render, validate)'
   owner: ops
   branch: feat/ops
-  state: review
+  state: done
   blockers: []
   done_when: unit tests in tests/unit/test_ops_board.py
-  sha: null
+  sha: 7a88fdf
   times:
     review: '2026-11-11T11:01:31Z'
+    done: '2026-11-11T11:05:42Z'
 - id: OPS-10
   title: '`tools/ops/merge_ready.sh <branch>`: check, merge --no-ff, test, auto-revert, board done'
   owner: ops
   branch: feat/ops
-  state: review
+  state: done
   blockers: []
   done_when: 'dry run on a throwaway repo: green and red paths'
-  sha: null
+  sha: 7a88fdf
   times:
     review: '2026-11-11T11:01:31Z'
+    done: '2026-11-11T11:05:42Z'
 - id: OPS-11
   title: Report regex + `tools/ops/parse_report.py`
   owner: ops
   branch: feat/ops
-  state: review
+  state: done
   blockers: []
   done_when: unit tests in tests/unit/test_ops_parse_report.py
-  sha: null
+  sha: 7a88fdf
   times:
     review: '2026-11-11T11:01:31Z'
+    done: '2026-11-11T11:05:42Z'
 - id: OPS-12
   title: Coordinator loop recipe (notify_when_idle + /loop heartbeat) in prompts and PROTOCOL
   owner: ops
   branch: feat/ops
-  state: review
+  state: done
   blockers: []
   done_when: workers auto-pick via board.py
-  sha: null
+  sha: 7a88fdf
   times:
     review: '2026-11-11T11:01:31Z'
+    done: '2026-11-11T11:05:42Z'
 - id: OPS-13
   title: '`tools/ops/metrics.sh`: cycle time, merges/day, reverts'
   owner: ops
   branch: feat/ops
-  state: review
+  state: done
   blockers: []
   done_when: fits one screen
-  sha: null
+  sha: 7a88fdf
   times:
     review: '2026-11-11T11:01:32Z'
+    done: '2026-11-11T11:05:42Z'
 - id: SCAF
   title: 'Scaffold: layout, config, contracts, docs, health API'
   owner: ca

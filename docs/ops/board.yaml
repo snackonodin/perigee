@@ -227,30 +227,36 @@ tasks:
   title: '`services/accounts.py` signup/login/refresh/logout/export/delete'
   owner: 7a
   branch: feat/accounts
-  state: todo
+  state: review
   blockers:
   - DB-3
   - ACC-4
   done_when: logout + delete revoke refresh tokens; delete removes raw files
-  sha: null
+  sha: 297664b
+  times:
+    review: '2026-11-11T15:01:13Z'
 - id: ACC-6
   title: '`api/v1/auth.py`, `api/v1/me.py` (routers, not mounted)'
   owner: 7a
   branch: feat/accounts
-  state: todo
+  state: review
   blockers:
   - ACC-5
   done_when: TestClient flow signup→login→me→logout
-  sha: null
+  sha: 98777e7
+  times:
+    review: '2026-11-11T15:01:13Z'
 - id: ACC-7
   title: 'Isolation test: user A cannot read user B'
   owner: 7a
   branch: feat/accounts
-  state: todo
+  state: review
   blockers:
   - ACC-5
   done_when: test over every user-owned table via `scoped`
-  sha: null
+  sha: 297664b
+  times:
+    review: '2026-11-11T15:01:13Z'
 - id: SUR-1
   title: '`seeds/instruments/*.json` (phq2, gad2, who5, phq9, daily_am, daily_pm)'
   owner: cf
@@ -428,23 +434,25 @@ tasks:
   title: Persona data spec `docs/ops/personas.md` (steady; breathing/sleep drift; mental dip + safety)
   owner: ops
   branch: feat/ops
-  state: done
+  state: review
   blockers: []
   done_when: 'per persona: synth params, seeds, survey schedule, expected /today derived from config placeholders'
-  sha: 7a88fdf
+  sha: 9f816a0
   times:
     done: '2026-11-11T11:05:25Z'
+    review: '2026-11-11T15:01:13Z'
 - id: OPS-7
   title: '`tests/e2e/curl_flow.sh` demo flow against BASE_URL (default http://127.0.0.1:8000)'
   owner: ops
   branch: feat/ops
-  state: done
+  state: review
   blockers:
   - CA-2
   done_when: signup→login→check-in→safety→/today→logout→token rejected, pass/fail per step
-  sha: 7a88fdf
+  sha: 94d71d2
   times:
     done: '2026-11-11T11:05:25Z'
+    review: '2026-11-11T15:01:13Z'
 - id: CA-0
   title: Ownership for db.py, deps.py, logging.py, errors.py, ops in CLAUDE.md
   owner: ca
@@ -549,11 +557,13 @@ tasks:
   title: runs.py lazy builtin registration (one-off ownership exception) + slow marker
   owner: f4
   branch: feat/pipeline
-  state: doing
+  state: review
   blockers:
   - PIPE-2
   done_when: test_builtin_kinds_registered passes; full suite green
-  sha: null
+  sha: 076136f
+  times:
+    review: '2026-11-11T15:01:13Z'
 - id: CA-5
   title: Wire worker start/stop into main.py lifespan; persona seeding command once OPS-6 lands
   owner: ca

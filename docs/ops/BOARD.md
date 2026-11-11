@@ -8,37 +8,39 @@ Next task for a worker: `tools/ops/board.py list --owner <id> --next`.
 
 Owners: `ca` build-astronaut-health-backend (main) · `f4` pankajkashyap-f4 (feat/csi-core, feat/pipeline) · `b0` pankajkashyap-b0 (feat/db-ingest) · `7a` pankajkashyap-7a (feat/accounts) · `cf` pankajkashyap-cf (feat/surveys) · `ops` claude-multiplayer server launch (feat/ops)
 
-## todo (9)
+## todo (6)
 
 | ID | Task | Owner | Branch | Done when | Blockers | sha |
 |----|------|-------|--------|-----------|----------|-----|
 | CORE-8 | Wrap user's real breathing / heart-rate / motion scripts into csi_core | f4 | csi-core | same outputs as scripts on a sample file; HR stays experimental | user supplies scripts |  |
-| ACC-5 | `services/accounts.py` signup/login/refresh/logout/export/delete | 7a | accounts | logout + delete revoke refresh tokens; delete removes raw files | DB-3, ACC-4 |  |
-| ACC-6 | `api/v1/auth.py`, `api/v1/me.py` (routers, not mounted) | 7a | accounts | TestClient flow signup→login→me→logout | ACC-5 |  |
-| ACC-7 | Isolation test: user A cannot read user B | 7a | accounts | test over every user-owned table via `scoped` | ACC-5 |  |
 | CA-1 | Integrate routers in `backend/main.py` | ca | main | all routers mounted; /openapi.json lists them | ACC-6, SUR-7 |  |
 | CA-2 | `/api/v1/today` (night features, flags, guidance, due check-ins) | ca | main | e2e test with seeded user | CA-1, DB-5, SUR-6 |  |
 | CA-3 | Three synthetic personas (`is_synthetic`) via normal ingestion | ca | main | `cli seed-personas` → `/today` differs per persona | DB-6, CA-2, OPS-6 |  |
 | CA-4 | Demo HTML page (single file, localhost) | ca | main | login → today → check-in → safety screen shown in a dry run | CA-2 |  |
 | CA-5 | Wire worker start/stop into main.py lifespan; persona seeding command once OPS-6 lands | ca | main | app starts worker; seed-personas produces 3 synthetic users with expected flags | DB-7 |  |
 
-## doing (4)
+## doing (3)
 
 | ID | Task | Owner | Branch | Done when | Blockers | sha |
 |----|------|-------|--------|-----------|----------|-----|
 | CORE-7 | `fusion.score_night` → `FlagDraft` | f4 | csi-core | components dict explains priority; thresholds only from config.yaml | CORE-6 |  |
 | DB-7 | `api/v1/sessions.py` (POST from DATA_DIR/inbox, list, get, /windows) + `api/v1/jobs.py` + `backend/worker.py` | b0 | db-ingest | TestClient covers register/list/get/windows/jobs; path traversal rejected; worker start/stop safe; isolation A/B | DB-6 |  |
 | SUR-8 | `api/v1/nights.py` (nights, flags, indices, checkins) + `api/v1/today.py` | cf | surveys | TestClient for every route; /today returns latest night, top-3 flags with guidance, pending check-ins, maturity; isolation A/B | SUR-7 |  |
-| PIPE-3 | runs.py lazy builtin registration (one-off ownership exception) + slow marker | f4 | pipeline | test_builtin_kinds_registered passes; full suite green | PIPE-2 |  |
 
-## review (2)
+## review (8)
 
 | ID | Task | Owner | Branch | Done when | Blockers | sha |
 |----|------|-------|--------|-----------|----------|-----|
 | PIPE-1 | `services/pipeline.py`: process_session / run_nightly glue (csi_core → DB rows with run_id) | f4 | pipeline | synth night → window_estimates + night_features rows for one user, isolated by user_id | DB-4, CORE-6 |  |
 | PIPE-2 | `services/fusion.py`: score_night → flags rows (+ guidance hook) | f4 | pipeline | flags carry components; thresholds only from config.yaml | PIPE-1, CORE-7 |  |
+| ACC-5 | `services/accounts.py` signup/login/refresh/logout/export/delete | 7a | accounts | logout + delete revoke refresh tokens; delete removes raw files | DB-3, ACC-4 | 297664b |
+| ACC-6 | `api/v1/auth.py`, `api/v1/me.py` (routers, not mounted) | 7a | accounts | TestClient flow signup→login→me→logout | ACC-5 | 98777e7 |
+| ACC-7 | Isolation test: user A cannot read user B | 7a | accounts | test over every user-owned table via `scoped` | ACC-5 | 297664b |
+| OPS-6 | Persona data spec `docs/ops/personas.md` (steady; breathing/sleep drift; mental dip + safety) | ops | ops | per persona: synth params, seeds, survey schedule, expected /today derived from config placeholders | — | 9f816a0 |
+| OPS-7 | `tests/e2e/curl_flow.sh` demo flow against BASE_URL (default http://127.0.0.1:8000) | ops | ops | signup→login→check-in→safety→/today→logout→token rejected, pass/fail per step | CA-2 | 94d71d2 |
+| PIPE-3 | runs.py lazy builtin registration (one-off ownership exception) + slow marker | f4 | pipeline | test_builtin_kinds_registered passes; full suite green | PIPE-2 | 076136f |
 
-## done (38)
+## done (36)
 
 | ID | Task | Owner | Branch | Done when | Blockers | sha |
 |----|------|-------|--------|-----------|----------|-----|
@@ -70,8 +72,6 @@ Owners: `ca` build-astronaut-health-backend (main) · `f4` pankajkashyap-f4 (fea
 | OPS-3 | PROTOCOL.md | ops | ops | loop, escalation, merge order, rebase rule, daily stop | — | 7a88fdf |
 | OPS-4 | `tools/ops/status.sh` | ops | ops | read-only; ≤ 1 line per worktree | — | 7a88fdf |
 | OPS-5 | `tools/ops/check_merge.sh <branch>` | ops | ops | dry-run merge + tests in scratch worktree, cleaned up | — | 7a88fdf |
-| OPS-6 | Persona data spec `docs/ops/personas.md` (steady; breathing/sleep drift; mental dip + safety) | ops | ops | per persona: synth params, seeds, survey schedule, expected /today derived from config placeholders | — | 7a88fdf |
-| OPS-7 | `tests/e2e/curl_flow.sh` demo flow against BASE_URL (default http://127.0.0.1:8000) | ops | ops | signup→login→check-in→safety→/today→logout→token rejected, pass/fail per step | CA-2 | 7a88fdf |
 | CA-0 | Ownership for db.py, deps.py, logging.py, errors.py, ops in CLAUDE.md | ca | main | CLAUDE.md ownership updated | — | db5f64e |
 | OPS-8 | Portability: scripts resolve repo, venv from VENV/.venv/python3; check_merge no-summary fix + regression test | ops | ops | tests/test_portability.py passes | — | 7a88fdf |
 | OPS-9 | `docs/ops/board.yaml` + `tools/ops/board.py` (list --next, move, render, validate) | ops | ops | unit tests in tests/unit/test_ops_board.py | — | 7a88fdf |

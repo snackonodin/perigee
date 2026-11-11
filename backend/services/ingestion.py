@@ -198,7 +198,8 @@ def _remove_tree(path: Path) -> None:
 # ----------------------------------------------------------------- records
 
 
-def _to_record(db: Session, s: CaptureSession) -> SessionRecord:
+def session_record(db: Session, s: CaptureSession) -> SessionRecord:
+    """SessionRecord (with files and stats) for a sessions row."""
     files = db.scalars(
         scoped(select(RawFile), RawFile, s.user_id)
         .where(RawFile.session_id == s.id)
@@ -258,7 +259,7 @@ def ingest_session(db: Session, user_id: str, src_dir: Path) -> SessionRecord:
     found = _existing(db, user_id, sess_hash)
     if found is not None:
         log.info("ingest: session %s already ingested, skipping", found.id)
-        return _to_record(db, found)
+        return session_record(db, found)
 
     hashes = [f.sha256 for f in files]
     known = db.scalars(
@@ -324,11 +325,11 @@ def ingest_session(db: Session, user_id: str, src_dir: Path) -> SessionRecord:
             # Lost a race with a concurrent ingest of the same folder.
             found = _existing(db, user_id, sess_hash)
             if found is not None:
-                return _to_record(db, found)
+                return session_record(db, found)
         raise
 
     log.info(
         "ingest: session %s, %d files, %d rows, usable=%s",
         session_id, len(files), stats.rows, usable,
     )  # fmt: skip
-    return _to_record(db, row)
+    return session_record(db, row)

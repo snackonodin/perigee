@@ -10,6 +10,9 @@ from backend.schemas.contracts import BaselineState, Maturity, NightFeatures, Wi
 from csi_core.config import CoreConfig
 
 MAD_SCALE = 1.4826  # MAD -> standard deviation for Gaussian data
+# Numerical guard, not a tuned threshold: a MAD this small relative to the median's
+# magnitude is float round-off (e.g. np.var of identical values), so z is undefined.
+MAD_REL_EPS = 1e-9
 
 
 def _union_seconds(spans: list[tuple[datetime, datetime]]) -> float:
@@ -107,8 +110,11 @@ def update_baseline(prev: BaselineState, history: list[float], cfg: CoreConfig) 
 
 
 def robust_z(value: float, b: BaselineState) -> float | None:
-    """(value - median) / (1.4826 * MAD); None when undefined (no data or MAD 0)."""
-    if value is None or b.median is None or b.mad is None or b.mad <= 0:
+    """(value - median) / (1.4826 * MAD); None when undefined (no data, or MAD 0 up
+    to float round-off)."""
+    if value is None or b.median is None or b.mad is None:
+        return None
+    if b.mad <= MAD_REL_EPS * max(1.0, abs(b.median)):
         return None
     if not np.isfinite(value):
         return None

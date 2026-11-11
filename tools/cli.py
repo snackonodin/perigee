@@ -4,7 +4,7 @@
     python -m tools.cli process SESSION_ID
     python -m tools.cli process --nightly --user <id|email> --date YYYY-MM-DD
     python -m tools.cli reset-demo --yes
-    python -m tools.cli seed-personas            (stub until the OPS-6 persona spec lands)
+    python -m tools.cli seed-personas [--anchor YYYY-MM-DD] [--include-final-phq9]
     python -m tools.cli export --user <id|email> --out FILE.json
 
 The DB comes from DATABASE_URL (settings) unless --db-url is given. Results are written
@@ -131,12 +131,16 @@ def cmd_reset_demo(db: Session, args: argparse.Namespace) -> int:
 
 
 def cmd_seed_personas(db: Session, args: argparse.Namespace) -> int:
-    # Planned (coordinator, pending OPS-6 spec): synthetic is_synthetic users; historical
-    # nights as synthetic night_features/window_estimates (source_kind=synthetic); only
-    # the final demo night per persona through ingest_session at full rate.
-    log.error("seed-personas is not implemented yet (waiting for the OPS-6 persona spec)")
-    _out({"status": "not_implemented", "reason": "pending OPS-6 persona spec"})
-    return 2
+    """Seed the three demo personas (docs/ops/personas.md). Idempotent.
+
+    A generated password is printed once in the JSON result, never logged.
+    """
+    from backend.services import personas
+
+    _load_pipeline()
+    anchor = date.fromisoformat(args.anchor) if args.anchor else date.today()
+    _out(personas.seed(db, anchor=anchor, include_final_phq9=args.include_final_phq9))
+    return 0
 
 
 def cmd_export(db: Session, args: argparse.Namespace) -> int:
@@ -178,7 +182,13 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--yes", action="store_true", help="actually delete")
     s.set_defaults(fn=cmd_reset_demo)
 
-    s = sub.add_parser("seed-personas", help="(stub) create demo personas")
+    s = sub.add_parser("seed-personas", help="create the demo personas (idempotent)")
+    s.add_argument("--anchor", help="demo day YYYY-MM-DD (default: today, local)")
+    s.add_argument(
+        "--include-final-phq9",
+        action="store_true",
+        help="also seed P3's final PHQ-9 (normally submitted live in the demo)",
+    )
     s.set_defaults(fn=cmd_seed_personas)
 
     s = sub.add_parser("export", help="export one user's data to a JSON file")

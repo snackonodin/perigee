@@ -61,6 +61,7 @@ def synth_night(
     motion_bursts: int | None = None,
     absent_spans: list[tuple[float, float]] = (),
     seed: int = 0,
+    extra_markers: list[tuple[float, str]] = (),
 ) -> list[Path]:
     """Write a synthetic capture to ``out_dir`` and return the paths written.
 
@@ -68,6 +69,7 @@ def synth_night(
     are (start_s, end_s) offsets with nobody in the room (no breathing).
     ``motion_bursts`` defaults to ``MOTION_BURSTS_PER_H * hours`` (rounded), so a
     short capture is not dominated by motion; pass an int to set it exactly.
+    ``extra_markers`` are additional (offset_s, label) rows for markers.csv.
     """
     rng = np.random.default_rng(seed)
     out_dir = Path(out_dir)
@@ -156,6 +158,7 @@ def synth_night(
     for label, spans in (("motion", motion_spans), ("absent", list(absent_spans))):
         for a, b in spans:
             rows += [(a, f"{label}_start"), (min(b, duration_s), f"{label}_end")]
+    rows += [(float(t), str(lab)) for t, lab in extra_markers]
     rows.sort()
     mk = pd.DataFrame(
         {

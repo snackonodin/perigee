@@ -89,3 +89,11 @@ def test_robust_z(cfg) -> None:
     flat = update_baseline(_prev(cfg), [15.0] * 5, cfg)
     assert robust_z(16.0, flat) is None  # MAD 0: undefined
     assert robust_z(16.0, _prev(cfg)) is None
+
+
+def test_robust_z_ignores_float_noise_mad(cfg) -> None:
+    import numpy as np
+
+    noise = [float(np.var([14.2] * 7)) for _ in range(5)] + [1e-29, 3e-30, 0.0, 1e-29]
+    st = update_baseline(_prev(cfg), noise, cfg)
+    assert robust_z(1e-5, st) is None

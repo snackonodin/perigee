@@ -105,16 +105,26 @@ def test_timestamps_roundtrip_as_utc_text(schema: Engine, db: Session) -> None:
 
 def test_naive_datetime_rejected(schema: Engine, db: Session) -> None:
     u = _user(db, "a@x")
-    db.add(CaptureSession(user_id=u.id, start_utc=datetime(2026, 1, 1), end_utc=T0,
-                          raw_path="p", raw_sha256="c" * 64))
+    db.add(
+        CaptureSession(
+            user_id=u.id,
+            start_utc=datetime(2026, 1, 1),
+            end_utc=T0,
+            raw_path="p",
+            raw_sha256="c" * 64,
+        )
+    )
     with pytest.raises(StatementError, match="naive"):
         db.flush()
 
 
 def test_night_features_source_kind_check(schema: Engine, db: Session) -> None:
     u = _user(db, "a@x")
-    db.add(NightFeaturesRow(user_id=u.id, date=date(2026, 11, 1), source_kind="synthetic",
-                            session_ids=["s1"]))
+    db.add(
+        NightFeaturesRow(
+            user_id=u.id, date=date(2026, 11, 1), source_kind="synthetic", session_ids=["s1"]
+        )
+    )
     db.flush()
     db.add(NightFeaturesRow(user_id=u.id, date=date(2026, 11, 2), source_kind="bogus"))
     with pytest.raises(IntegrityError, match="CHECK"):
@@ -126,16 +136,24 @@ def test_heart_estimates_must_be_experimental(schema: Engine, db: Session) -> No
     s = _session(db, u)
     db.add(HeartEstimateRow(user_id=u.id, session_id=s.id, t_start=T0, t_end=T0))
     db.flush()
-    db.add(HeartEstimateRow(user_id=u.id, session_id=s.id, t_start=T0, t_end=T0,
-                            experimental=False))
+    db.add(
+        HeartEstimateRow(user_id=u.id, session_id=s.id, t_start=T0, t_end=T0, experimental=False)
+    )
     with pytest.raises(IntegrityError, match="CHECK"):
         db.flush()
 
 
 def test_survey_answers_stored_as_bytes_in_answers_enc(schema: Engine, db: Session) -> None:
     u = _user(db, "a@x")
-    db.add(SurveyResponseRow(user_id=u.id, instrument_id="phq2", instrument_version="1",
-                             administered_at=T0, answers=b"\x00ciphertext"))
+    db.add(
+        SurveyResponseRow(
+            user_id=u.id,
+            instrument_id="phq2",
+            instrument_version="1",
+            administered_at=T0,
+            answers=b"\x00ciphertext",
+        )
+    )
     db.commit()
     cols = {c["name"] for c in inspect(db.get_bind()).get_columns("survey_responses")}
     assert "answers_enc" in cols and "answers" not in cols

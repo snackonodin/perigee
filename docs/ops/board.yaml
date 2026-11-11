@@ -254,14 +254,14 @@ tasks:
   title: 'Isolation test: user A cannot read user B'
   owner: 7a
   branch: feat/accounts
-  state: review
+  state: done
   blockers:
   - ACC-5
   done_when: test over every user-owned table via `scoped`
-  sha: 48f4467
+  sha: a4ccf23
   times:
     review: '2026-11-11T15:08:33Z'
-    done: '2026-11-11T15:02:53Z'
+    done: '2026-11-11T15:13:05Z'
 - id: SUR-1
   title: '`seeds/instruments/*.json` (phq2, gad2, who5, phq9, daily_am, daily_pm)'
   owner: cf

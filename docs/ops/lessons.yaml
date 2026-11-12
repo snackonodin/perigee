@@ -21,8 +21,11 @@ lessons:
   symptom: '"1 failed" appears once in ~5 full runs, never reproducible'
   cause: 'Order dependence: lazy `_load_builtins()` imports re-register handlers over monkeypatched `runs._HANDLERS`'
   guard: RUN_KINDS + `setdefault`; conftest imports builtins up front; random-order runs (QA-1 stress.sh)
-  status: open
+  status: closed
   key: flaky:runs-handlers-order
+  guard_refs:
+  - test:tests/db/test_runs.py
+  closed: '2026-11-12T01:35:24Z'
 - id: L3
   created: '2026-11-11'
   surfaced: f4, cf, 7a (3 times)
@@ -60,7 +63,10 @@ lessons:
   symptom: Backfilled nights saw surveys answered later that week
   cause: '`weekly_indices(week_start)` has no upper time bound'
   guard: '`weekly_indices(..., until=)` (LEAK-1)'
-  status: open
+  status: closed
+  guard_refs:
+  - test:tests/pipeline/test_leak.py
+  closed: '2026-11-12T01:35:24Z'
 - id: L7
   created: '2026-11-11'
   surfaced: f4 PIPE-4
@@ -113,3 +119,66 @@ lessons:
   - test:tests/unit/test_ops_scripts.py::test_merge_ready_frontend_red_reverts_and_records_lesson
   - test:tests/unit/test_ops_scripts.py::test_check_merge_fails_on_frontend_errors
   closed: '2026-11-12T01:08:19Z'
+- id: L12
+  created: '2026-11-12T01:35:18Z'
+  surfaced: b0 FLAKY-1
+  symptom: test_personas fails 2-4 different tests per run
+  cause: module-scoped seeded fixture mutated by 4 tests; exposed once pytest-randomly randomised order
+  guard: mutating tests use function-scoped seeded_copy; stress.sh 10 seeds
+  status: closed
+  key: flaky:test_personas
+  guard_refs:
+  - test:tests/pipeline/test_personas.py
+  closed: '2026-11-12T01:35:24Z'
+- id: L13
+  created: '2026-11-12T01:35:18Z'
+  surfaced: f4 SCR-1
+  symptom: reading files still syncing from Google Drive hung > 2 min
+  cause: Drive placeholders block reads until download completes
+  guard: copy with per-file timeout + size-stable check into DATA_DIR/cache; tests never read Drive paths
+  status: open
+  key: drive:sync-hang
+- id: L14
+  created: '2026-11-12T01:35:19Z'
+  surfaced: cf FUZZ-1
+  symptom: malformed POST /responses returned 422 with no safety object
+  cause: strict request-model types failed validation before safety_check ran
+  guard: safety-critical fields typed Any at the edge, validated after safety; property test 1 test_surveys_fuzz.py
+  status: closed
+  key: safety:422-before-check
+  guard_refs:
+  - test:tests/unit/test_surveys_fuzz.py
+  closed: '2026-11-12T01:35:24Z'
+- id: L15
+  created: '2026-11-12T01:35:19Z'
+  surfaced: b0 review of cf
+  symptom: stale answers HMAC key after FIELD_KEY rotation
+  cause: zero-arg lru_cache of a value derived from a rotatable secret
+  guard: cache keyed by input key material
+  status: closed
+  key: cache:secret-derived
+  guard_refs:
+  - test:tests/unit/test_surveys_db.py
+  closed: '2026-11-12T01:35:31Z'
+- id: L16
+  created: '2026-11-12T01:35:19Z'
+  surfaced: cf FUZZ-1 note
+  symptom: bound SQL params (check-in answers) would log with echo/INFO and appear in exception text
+  cause: engine created without hide_parameters
+  guard: hide_parameters=True + sentinel log/exception test with leaking control
+  status: closed
+  key: log:sql-params
+  guard_refs:
+  - test:tests/db/test_engine.py
+  closed: '2026-11-12T01:35:24Z'
+- id: L17
+  created: '2026-11-12T01:35:19Z'
+  surfaced: coordinator merge batch
+  symptom: loop of merge_ready calls printed nothing and merged nothing, exit 0
+  cause: word-split for-loop + grep filter hid merge_ready's refusal output
+  guard: run merge_ready one branch per call and read its tail; never filter its output to empty
+  status: closed
+  key: coord:silent-batch
+  guard_refs:
+  - rule:docs/ops/prompts/coordinator.md:Never let a pipe hide a failing exit code
+  closed: '2026-11-12T01:35:24Z'

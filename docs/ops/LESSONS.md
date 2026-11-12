@@ -7,25 +7,31 @@ coordination mistake gets one entry. An entry closes only when its **guard** exi
 (`lessons.py close ID --guard test:…|config:…|rule:…` checks it). Every worker reads
 this file before starting each task (docs/ops/prompts/*.md).
 
-11 lessons · 2 open · 9 closed · 0 recurrences · mean time to guard: 17.0 h
+17 lessons · 1 open · 16 closed · 0 recurrences · mean time to guard: 12.8 h
 
-## open (2)
+## open (1)
 
 | ID | Date | Surfaced in | Symptom | Root cause | Guard | Recurred |
 |---|---|---|---|---|---|---|
-| L2 | 2026-11-11 | b0 DB-6, cf, coordinator | "1 failed" appears once in ~5 full runs, never reproducible | Order dependence: lazy `_load_builtins()` imports re-register handlers over monkeypatched `runs._HANDLERS` | RUN_KINDS + `setdefault`; conftest imports builtins up front; random-order runs (QA-1 stress.sh) |  |
-| L6 | 2026-11-11 | f4 PIPE-4 | Backfilled nights saw surveys answered later that week | `weekly_indices(week_start)` has no upper time bound | `weekly_indices(..., until=)` (LEAK-1) |  |
+| L13 | 2026-11-12 | f4 SCR-1 | reading files still syncing from Google Drive hung > 2 min | Drive placeholders block reads until download completes | copy with per-file timeout + size-stable check into DATA_DIR/cache; tests never read Drive paths |  |
 
-## closed (9)
+## closed (16)
 
 | ID | Date | Surfaced in | Symptom | Root cause | Guard | Recurred |
 |---|---|---|---|---|---|---|
 | L1 | 2026-11-11 | merge_ready (PIPE-4) | Merge auto-reverted: tests 460 pass, ruff 124 errors | Untracked `features script/` folder in main was linted as app code | pyproject `extend-exclude` + `norecursedirs`; merge_ready/check_merge test and lint a scratch checkout of the commit (tracked files only) — `test:tests/unit/test_ops_scripts.py::test_merge_ready_ignores_untracked_files_in_main`, `config:pyproject.toml:tool.ruff.extend-exclude` |  |
+| L2 | 2026-11-11 | b0 DB-6, cf, coordinator | "1 failed" appears once in ~5 full runs, never reproducible | Order dependence: lazy `_load_builtins()` imports re-register handlers over monkeypatched `runs._HANDLERS` | RUN_KINDS + `setdefault`; conftest imports builtins up front; random-order runs (QA-1 stress.sh) — `test:tests/db/test_runs.py` |  |
 | L3 | 2026-11-11 | f4, cf, 7a (3 times) | Other teams' files reformatted in a worktree | Broad `ruff format <dir>` over shared paths | Rule: format only files you changed; check_merge warns on reformat-only changes outside ownership — `test:tests/unit/test_ops_scripts.py::test_check_merge_warns_on_reformat_outside_ownership`, `rule:docs/ops/prompts/accounts.md:never `ruff format <dir>` over shared paths (L3)` |  |
 | L4 | 2026-11-11 | coordinator → 7a | Bug report about relative raw_path was wrong | Coordinator inferred behaviour without reading the code | Rule: reproduce or cite file:line before filing a bug to a worker — `rule:docs/ops/prompts/coordinator.md:reproduce it or cite file:line in the code (L4)` |  |
 | L5 | 2026-11-11 | merge_ready (DB-8) | FK IntegrityError in another team's test | New fallback copied a non-user id from params into an FK column | Fallback only if the referenced row exists; test with bogus id — `test:tests/db/test_runs.py::test_bogus_params_user_id_leaves_owner_null` |  |
+| L6 | 2026-11-11 | f4 PIPE-4 | Backfilled nights saw surveys answered later that week | `weekly_indices(week_start)` has no upper time bound | `weekly_indices(..., until=)` (LEAK-1) — `test:tests/pipeline/test_leak.py` |  |
 | L7 | 2026-11-11 | f4 PIPE-4 | Steady persona flagged on normal nights | Small-n MAD too narrow + FR13 excludes flagged nights → baseline ratchets narrower | `baseline.mad_floor` (config) + persona calibration test — `config:config.yaml:baseline.mad_floor` |  |
 | L8 | 2026-11-11 | coordinator | Ran `git rebase` inside a worker's worktree | Coordinator used worker tree to test a merge | Rule: coordinator tests merges only in scratch worktrees (check_merge.sh) — `rule:docs/ops/prompts/coordinator.md:Test merges only in scratch worktrees (check_merge.sh)` |  |
 | L9 | 2026-11-11 | coordinator | pytest failure hidden: `pytest \| tail -1 && next` continued | Pipe masks exit code | Rule: `set -o pipefail` or check `${PIPESTATUS[0]}` / `${pipestatus[1]}` — `rule:docs/ops/prompts/coordinator.md:Never let a pipe hide a failing exit code` |  |
 | L10 | 2026-11-11 | ops session | Session ended at usage limit; messages to its socket failed | Single owner for a whole workstream | Board rows are owner-reassignable; prompts are self-contained so any session can resume a row — `rule:docs/ops/prompts/coordinator.md:reassign a row's owner when its session is gone (L10)` |  |
 | L11 | 2026-11-12 | coordinator review (FE-1/FE-2 merge) | merge_ready ran only pytest + ruff: a frontend type or test regression could merge green | merge checks predate frontend/; nothing ran tsc or vitest | check_merge/merge_ready run npm ci --offline + tsc + vitest when frontend/ changes (LOOP-2) — `test:tests/unit/test_ops_scripts.py::test_merge_ready_frontend_red_reverts_and_records_lesson`, `test:tests/unit/test_ops_scripts.py::test_check_merge_fails_on_frontend_errors` |  |
+| L12 | 2026-11-12 | b0 FLAKY-1 | test_personas fails 2-4 different tests per run | module-scoped seeded fixture mutated by 4 tests; exposed once pytest-randomly randomised order | mutating tests use function-scoped seeded_copy; stress.sh 10 seeds — `test:tests/pipeline/test_personas.py` |  |
+| L14 | 2026-11-12 | cf FUZZ-1 | malformed POST /responses returned 422 with no safety object | strict request-model types failed validation before safety_check ran | safety-critical fields typed Any at the edge, validated after safety; property test 1 test_surveys_fuzz.py — `test:tests/unit/test_surveys_fuzz.py` |  |
+| L15 | 2026-11-12 | b0 review of cf | stale answers HMAC key after FIELD_KEY rotation | zero-arg lru_cache of a value derived from a rotatable secret | cache keyed by input key material — `test:tests/unit/test_surveys_db.py` |  |
+| L16 | 2026-11-12 | cf FUZZ-1 note | bound SQL params (check-in answers) would log with echo/INFO and appear in exception text | engine created without hide_parameters | hide_parameters=True + sentinel log/exception test with leaking control — `test:tests/db/test_engine.py` |  |
+| L17 | 2026-11-12 | coordinator merge batch | loop of merge_ready calls printed nothing and merged nothing, exit 0 | word-split for-loop + grep filter hid merge_ready's refusal output | run merge_ready one branch per call and read its tail; never filter its output to empty — `rule:docs/ops/prompts/coordinator.md:Never let a pipe hide a failing exit code` |  |

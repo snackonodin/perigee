@@ -49,3 +49,4 @@ Schedule the next wakeup in 1200–1800 s.
 
 ## Daily
 `tools/ops/metrics.sh --days 1` at end of day → one line to the user with cycle time, merges, reverts.
+- Run merge_ready one branch per call and read its tail; never filter its output to empty (L17).

@@ -8,7 +8,7 @@ Next task for a worker: `tools/ops/board.py list --owner <id> --next`.
 
 Owners: `ca` build-astronaut-health-backend (main) · `f4` pankajkashyap-f4 (feat/csi-core, feat/pipeline) · `b0` pankajkashyap-b0 (feat/db-ingest) · `7a` pankajkashyap-7a (feat/accounts) · `cf` pankajkashyap-cf (feat/surveys) · `ops` claude-multiplayer server launch (feat/ops)
 
-## todo (5)
+## todo (9)
 
 | ID | Task | Owner | Branch | Done when | Blockers | sha |
 |----|------|-------|--------|-----------|----------|-----|
@@ -16,7 +16,11 @@ Owners: `ca` build-astronaut-health-backend (main) · `f4` pankajkashyap-f4 (fea
 | CA-1 | Integrate routers in `backend/main.py` | ca | main | all routers mounted; /openapi.json lists them | ACC-6, SUR-7 |  |
 | CA-3 | Three synthetic personas (`is_synthetic`) via normal ingestion | ca | main | `cli seed-personas` → `/today` differs per persona | DB-6, CA-2, OPS-6 |  |
 | CA-4 | Demo HTML page (single file, localhost) | ca | main | login → today → check-in → safety screen shown in a dry run | CA-2 |  |
-| GATE-1 | Backend gate: QA-1, INJ-1, LIVE-1, FUZZ-1, LEAK-1, LOOP-1 merged; e2e flow + seed-personas + backup/restore green on a fresh bootstrap | ca | main | all green; frontend work starts | QA-1, INJ-1, LIVE-1, FUZZ-1, LEAK-1, LOOP-1 |  |
+| BRIDGE-1 | Device bridge: tools/device_bridge.py tails a growing team capture CSV, runs team cores per window, POSTs batches to /ingest/estimates (retry + local spool when offline); copy_stable helper for Drive (L13); fill motion_score everywhere | f4 | pipeline | a replayed team CSV streamed by the bridge appears in /live/vitals; spool survives API restart; L13 closed against a test | — |  |
+| PERF-1 | Load + perf: injection while SSE streams + nightly run concurrently on SQLite WAL; index check for live tail; night processing under 10 min target measured; results in docs/perf.md | b0 | db-ingest | no "database is locked" under load test; timings recorded; any fix covered by a test | — |  |
+| F6-SLEEP | Sleep regularity (F6): midsleep drift + weekly regularity score service + GET /sleep/regularity + Sleep tab panel | cf | surveys | computed from night_features only; isolation case; vitest panel | — |  |
+| F4-SYMPTOM | Symptom episodes (F4): open/close + severe-symptom safety (config codes) through the same safety-first pattern; Psyche/Overview log card | cf | surveys | severe code always returns safety.show before storage; fuzz property; isolation; note encrypted | F6-SLEEP |  |
+| FE-5 | Overview dynamic space dashboard: live mini-monitors (SSE), last night, flags, maturity orbit; motion/animation within reduced-motion prefs; release build into backend/static/app served at / | 7a | frontend | / serves the built app offline; prefers-reduced-motion honoured; vitest + browser pass | — |  |
 
 ## doing (1)
 
@@ -31,7 +35,7 @@ Owners: `ca` build-astronaut-health-backend (main) · `f4` pankajkashyap-f4 (fea
 | CA-2 | `/api/v1/today` (night features, flags, guidance, due check-ins) | ca | main | e2e test with seeded user | CA-1, DB-5, SUR-6 | a08f660 |
 | CA-5 | Wire worker start/stop into main.py lifespan; persona seeding command once OPS-6 lands | ca | main | app starts worker; seed-personas produces 3 synthetic users with expected flags | DB-7 | f3cd03f |
 
-## done (67)
+## done (68)
 
 | ID | Task | Owner | Branch | Done when | Blockers | sha |
 |----|------|-------|--------|-----------|----------|-----|
@@ -93,6 +97,7 @@ Owners: `ca` build-astronaut-health-backend (main) · `f4` pankajkashyap-f4 (fea
 | FUZZ-1 | Hypothesis API invariants: safety object on every survey/symptom response, isolation for random users/data, consent gating, no answer values in logs | cf | surveys | property tests with >=200 examples each, deterministic seed | — | e57843c |
 | LEAK-1 | weekly_indices(..., until: datetime \| None) upper time bound; run_nightly passes the night end (L6) | cf | surveys | backfill test proves answers after the night never affect it | — | e57843c |
 | LOOP-1 | Failure-learning loop: tools/ops/lessons.py (add/list/close), merge_ready + stress.sh auto-record failures as lesson stubs, prompts read LESSONS.md, check_merge lints tracked files only (L1) and warns on broad reformat (L3), metrics.sh shows recurrence | 7a | accounts | a simulated RED merge creates a lesson stub; lessons.py close refuses without a guard reference; tests in tmp repos | — | 0bf3c21 |
+| GATE-1 | Backend gate: QA-1, INJ-1, LIVE-1, FUZZ-1, LEAK-1, LOOP-1 merged; e2e flow + seed-personas + backup/restore green on a fresh bootstrap | ca | main | all green; frontend work starts | QA-1, INJ-1, LIVE-1, FUZZ-1, LEAK-1, LOOP-1 | 152f56e |
 | FE-1 | Frontend scaffold: React+TS+Vite in frontend/, builds to backend/static/app (served at /), no CDN, typed client from /openapi.json; space theme tokens; tab shell (Overview, Breathing, Heart, Sleep, Psyche, Settings) | 7a | frontend | npm run build offline; FastAPI serves it; generated client compiles | GATE-1 | b0cf419 |
 | FLAKY-1 | Root-cause the flaky tests/pipeline/test_personas.py failures on main (2-4 different tests per run) | b0 | db-ingest | test_personas.py green 10/10 runs alone and in the full suite; root cause + guard recorded as a lesson | — | 9443bd8 |
 | FE-2 | Frontend pages on existing API (fixture-tested, no new packages): AuthProvider, global SafetyOverlay (port local pre-check + 3 s ack), Overview (Today, FlagWhy, Guidance), Sleep, Psyche (CheckinForm from instrument JSON, Questionnaires), Settings (consents, export, delete) | 7a | frontend | vitest covers each page with typed fixtures from schema.d.ts; safety tests ported from test_demo_page; tsc clean | FE-1 | b0cf419 |

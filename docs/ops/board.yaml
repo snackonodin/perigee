@@ -732,7 +732,7 @@ tasks:
   title: 'Backend gate: QA-1, INJ-1, LIVE-1, FUZZ-1, LEAK-1, LOOP-1 merged; e2e flow + seed-personas + backup/restore green on a fresh bootstrap'
   owner: ca
   branch: main
-  state: todo
+  state: done
   blockers:
   - QA-1
   - INJ-1
@@ -741,7 +741,9 @@ tasks:
   - LEAK-1
   - LOOP-1
   done_when: all green; frontend work starts
-  sha: null
+  sha: 152f56e
+  times:
+    done: '2026-11-12T01:52:06Z'
 - id: FE-1
   title: 'Frontend scaffold: React+TS+Vite in frontend/, builds to backend/static/app (served at /), no CDN, typed client from /openapi.json; space theme tokens; tab shell (Overview, Breathing, Heart, Sleep,
     Psyche, Settings)'
@@ -844,3 +846,45 @@ tasks:
   sha: '6044344'
   times:
     done: '2026-11-12T01:41:56Z'
+- id: BRIDGE-1
+  title: 'Device bridge: tools/device_bridge.py tails a growing team capture CSV, runs team cores per window, POSTs batches to /ingest/estimates (retry + local spool when offline); copy_stable helper for
+    Drive (L13); fill motion_score everywhere'
+  owner: f4
+  branch: feat/pipeline
+  state: todo
+  blockers: []
+  done_when: a replayed team CSV streamed by the bridge appears in /live/vitals; spool survives API restart; L13 closed against a test
+  sha: null
+- id: PERF-1
+  title: 'Load + perf: injection while SSE streams + nightly run concurrently on SQLite WAL; index check for live tail; night processing under 10 min target measured; results in docs/perf.md'
+  owner: b0
+  branch: feat/db-ingest
+  state: todo
+  blockers: []
+  done_when: no "database is locked" under load test; timings recorded; any fix covered by a test
+  sha: null
+- id: F6-SLEEP
+  title: 'Sleep regularity (F6): midsleep drift + weekly regularity score service + GET /sleep/regularity + Sleep tab panel'
+  owner: cf
+  branch: feat/surveys
+  state: todo
+  blockers: []
+  done_when: computed from night_features only; isolation case; vitest panel
+  sha: null
+- id: F4-SYMPTOM
+  title: 'Symptom episodes (F4): open/close + severe-symptom safety (config codes) through the same safety-first pattern; Psyche/Overview log card'
+  owner: cf
+  branch: feat/surveys
+  state: todo
+  blockers:
+  - F6-SLEEP
+  done_when: severe code always returns safety.show before storage; fuzz property; isolation; note encrypted
+  sha: null
+- id: FE-5
+  title: 'Overview dynamic space dashboard: live mini-monitors (SSE), last night, flags, maturity orbit; motion/animation within reduced-motion prefs; release build into backend/static/app served at /'
+  owner: 7a
+  branch: feat/frontend
+  state: todo
+  blockers: []
+  done_when: / serves the built app offline; prefers-reduced-motion honoured; vitest + browser pass
+  sha: null

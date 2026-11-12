@@ -101,3 +101,15 @@ lessons:
   guard_refs:
   - rule:docs/ops/prompts/coordinator.md:reassign a row's owner when its session is gone (L10)
   closed: '2026-11-11T20:02:25Z'
+- id: L11
+  created: '2026-11-12T01:08:19Z'
+  surfaced: coordinator review (FE-1/FE-2 merge)
+  symptom: 'merge_ready ran only pytest + ruff: a frontend type or test regression could merge green'
+  cause: merge checks predate frontend/; nothing ran tsc or vitest
+  guard: check_merge/merge_ready run npm ci --offline + tsc + vitest when frontend/ changes (LOOP-2)
+  status: closed
+  key: gap:frontend-unchecked
+  guard_refs:
+  - test:tests/unit/test_ops_scripts.py::test_merge_ready_frontend_red_reverts_and_records_lesson
+  - test:tests/unit/test_ops_scripts.py::test_check_merge_fails_on_frontend_errors
+  closed: '2026-11-12T01:08:19Z'

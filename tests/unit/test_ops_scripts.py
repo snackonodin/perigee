@@ -226,3 +226,140 @@ def test_metrics_reports_lessons(repo: Path, tmp_path: Path) -> None:
     assert "reverts=1" in p.stdout
     assert ("lessons: lessons=2 open=2 closed=0 recurrences=0 recurred=0 "
             "mean_hours_to_guard=None") in p.stdout
+
+
+# ---------------------------------------------------------------- LOOP-2: frontend checks
+
+FAKE_NPM = """#!/bin/sh
+# fake npm: `npm ci ...` builds node_modules in cwd and logs the call
+echo "npm $* @ $(pwd)" >> "$FAKE_LOG"
+[ -n "$FAKE_NPM_MISS" ] && { echo "npm error code ENOTCACHED" >&2; exit 1; }
+mkdir -p node_modules/.bin && echo ok > node_modules/marker
+"""
+
+FAKE_NPX = """#!/bin/sh
+# fake npx: `npx --no-install tsc|vitest ...`, run in frontend/
+echo "npx $* @ $(pwd)" >> "$FAKE_LOG"
+[ -f node_modules/marker ] || { echo "node_modules missing" >&2; exit 1; }
+case "$2" in
+  tsc)
+    if grep -rl TYPE_ERROR src >/dev/null 2>&1; then
+      f=$(grep -rl TYPE_ERROR src | head -1); echo "$f(1,1): error TS2322: bad type"; exit 2; fi ;;
+  vitest)
+    if grep -rl TEST_FAIL src >/dev/null 2>&1; then
+      f=$(grep -rl TEST_FAIL src | head -1); echo " FAIL  $f > it breaks"; exit 1; fi
+    if [ -n "$FLAKY_COUNTER" ] && grep -rl FLAKY src >/dev/null 2>&1; then
+      n=$(cat "$FLAKY_COUNTER" 2>/dev/null || echo 0); echo $((n + 1)) > "$FLAKY_COUNTER"
+      if [ "$n" -gt 0 ]; then echo " FAIL  src/flaky.test.tsx > flaky"; exit 1; fi
+    fi
+    echo " Tests  1 passed (1)" ;;
+esac
+"""
+
+
+@pytest.fixture()
+def fe_env(tmp_path: Path) -> dict[str, str]:
+    bin_dir = tmp_path / "fakebin"
+    _write(bin_dir / "npm", FAKE_NPM)
+    _write(bin_dir / "npx", FAKE_NPX)
+    for f in ("npm", "npx"):
+        (bin_dir / f).chmod(0o755)
+    return {"NPM": str(bin_dir / "npm"), "NPX": str(bin_dir / "npx"),
+            "FAKE_LOG": str(tmp_path / "fake.log"), "ASTRO_NODE_CACHE": str(tmp_path / "nodecache")}
+
+
+def _frontend_branch(repo: Path, name: str, extra: dict[str, str] | None = None) -> None:
+    _git(repo, "checkout", "-q", "-b", name, "main")
+    _write(repo / "frontend/package.json", '{"name": "fe", "private": true}\n')
+    _write(repo / "frontend/package-lock.json", '{"lockfileVersion": 3}\n')
+    _write(repo / "frontend/src/ok.test.tsx", "// fine\n")
+    for path, text in (extra or {}).items():
+        _write(repo / path, text)
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-qm", f"{name}: frontend")
+    _git(repo, "checkout", "-q", "main")
+
+
+def _log(env: dict[str, str]) -> list[str]:
+    p = Path(env["FAKE_LOG"])
+    return p.read_text().splitlines() if p.exists() else []
+
+
+def test_check_merge_skips_frontend_when_untouched(repo: Path, fe_env: dict[str, str]) -> None:
+    p = _run(repo, "check_merge.sh", "feat/csi-core", extra_env=fe_env)
+    assert p.returncode == 0, p.stdout + p.stderr
+    assert "frontend=n/a" in p.stdout
+    assert _log(fe_env) == []
+
+
+def test_check_merge_runs_frontend_with_cache_outside_repo(
+    repo: Path, fe_env: dict[str, str]
+) -> None:
+    _frontend_branch(repo, "feat/frontend")
+    p = _run(repo, "check_merge.sh", "feat/frontend", extra_env=fe_env)
+    assert p.returncode == 0, p.stdout + p.stderr
+    assert "frontend=pass" in p.stdout and "MERGE OK feat/frontend" in p.stdout
+    log = _log(fe_env)
+    assert [line.split(" @ ")[0] for line in log] == [
+        "npm ci --ignore-scripts --offline --no-audit --no-fund",
+        "npx --no-install tsc --noEmit",
+        "npx --no-install vitest run",
+    ]
+    cache = Path(fe_env["ASTRO_NODE_CACHE"])
+    (key_dir,) = [d for d in cache.iterdir() if not d.name.startswith(".")]
+    assert len(key_dir.name) == 64 and (key_dir / "node_modules/marker").exists()
+    assert not (repo / "frontend").exists()  # nothing written into the main checkout
+    # same lockfile: the cached node_modules is reused, npm ci does not run again
+    p = _run(repo, "check_merge.sh", "feat/frontend", extra_env=fe_env)
+    assert p.returncode == 0, p.stdout + p.stderr
+    assert sum(line.startswith("npm ci") for line in _log(fe_env)) == 1
+
+
+@pytest.mark.parametrize("marker,res,shown", [
+    ("TYPE_ERROR", "FAIL(tsc)", "error TS2322"),
+    ("TEST_FAIL", "FAIL(vitest)", "FAIL  src/bad.test.tsx"),
+])
+def test_check_merge_fails_on_frontend_errors(
+    repo: Path, fe_env: dict[str, str], marker: str, res: str, shown: str
+) -> None:
+    _frontend_branch(repo, "feat/frontend", {"frontend/src/bad.test.tsx": f"// {marker}\n"})
+    p = _run(repo, "check_merge.sh", "feat/frontend", extra_env=fe_env)
+    assert p.returncode == 1, p.stdout + p.stderr
+    assert f"frontend={res}" in p.stdout and shown in p.stdout
+    assert "MERGE FAIL feat/frontend" in p.stdout
+
+
+def test_check_merge_offline_npm_ci_miss_is_a_clear_failure(
+    repo: Path, fe_env: dict[str, str]
+) -> None:
+    _frontend_branch(repo, "feat/frontend")
+    p = _run(repo, "check_merge.sh", "feat/frontend", extra_env={**fe_env, "FAKE_NPM_MISS": "1"})
+    assert p.returncode == 1, p.stdout + p.stderr
+    assert "frontend=FAIL(npm ci)" in p.stdout
+    assert "Run `npm ci` in frontend/ once" in p.stdout
+    cache = Path(fe_env["ASTRO_NODE_CACHE"])
+    assert not [d for d in cache.iterdir() if not d.name.startswith(".")]  # no half-built cache
+
+
+def test_merge_ready_frontend_red_reverts_and_records_lesson(
+    repo: Path, fe_env: dict[str, str], tmp_path: Path
+) -> None:
+    _frontend_branch(repo, "feat/frontend", {"frontend/src/flaky.test.tsx": "// FLAKY\n"})
+    env = {**fe_env, "FLAKY_COUNTER": str(tmp_path / "counter")}
+    p = _run(repo, "merge_ready.sh", "feat/frontend", extra_env=env)
+    assert p.returncode == 1, p.stdout + p.stderr
+    assert "RED: tests=pass" in p.stdout and "frontend=FAIL(vitest)" in p.stdout
+    assert "REVERTED" in p.stdout
+    assert not (repo / "frontend").exists()  # the revert removed it from main
+    lessons = yaml.safe_load((repo / "docs/ops/lessons.yaml").read_text())["lessons"]
+    stub = lessons[-1]
+    assert stub["key"] == "red:frontend:vitest:src/flaky.test.tsx"
+    assert "frontend=FAIL(vitest)" in stub["symptom"]
+    assert stub["origin"]["failing"] == ["FAIL  src/flaky.test.tsx > flaky"]
+
+
+def test_merge_ready_green_with_frontend(repo: Path, fe_env: dict[str, str]) -> None:
+    _frontend_branch(repo, "feat/frontend")
+    p = _run(repo, "merge_ready.sh", "feat/frontend", extra_env=fe_env)
+    assert p.returncode == 0, p.stdout + p.stderr
+    assert "MERGED feat/frontend" in p.stdout and "frontend=pass" in p.stdout

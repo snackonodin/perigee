@@ -5,6 +5,7 @@
 #      changes there that are ONLY reformatting (L3: broad `ruff format <dir>`)
 #   3. check out the merged tree in a detached scratch worktree, run pytest + ruff.
 #      The scratch tree holds tracked files only, so untracked files never count (L1).
+#      If the diff touches frontend/: npm ci (lockfile, offline) + tsc + vitest too (LOOP-2).
 #   4. remove the scratch worktree (trap, also on Ctrl-C / failure)
 # Exit: 0 MERGE OK · 1 conflict or checks failed · 2 usage error.
 # Creates no commits and moves no branch. No network, no secrets.
@@ -13,7 +14,7 @@ set -uo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/_lib.sh"
 
 BR="${1:-}"
-[[ -z "$BR" || "$BR" == "-h" || "$BR" == "--help" ]] && { sed -n 2,11p "$0"; exit 2; }
+[[ -z "$BR" || "$BR" == "-h" || "$BR" == "--help" ]] && { sed -n 2,12p "$0"; exit 2; }
 g rev-parse --verify -q "$BR^{commit}" >/dev/null || { echo "no such branch: $BR" >&2; exit 2; }
 g rev-parse --verify -q "$BASE^{commit}" >/dev/null || { echo "no such base: $BASE" >&2; exit 2; }
 pick_python
@@ -90,11 +91,14 @@ g worktree add --quiet --detach "$WT" "$BASE" >/dev/null 2>&1 \
 git -C "$WT" read-tree -u --reset "$tree" || { echo "MERGE FAIL: cannot check out merged tree"; exit 1; }
 
 run_checks "$WT"
+F_RES="n/a"; F_OUT=""
+if printf '%s\n' "$files" | grep -q '^frontend/'; then frontend_checks "$WT"; fi
 ok=1
 if [[ "$T_RES" != pass* && "$T_RES" != none ]]; then ok=0; show_test_failure; fi
 if [[ "$R_RES" == FAIL* ]]; then ok=0
   printf '%s\n' "$R_OUT" | grep -E ':[0-9]+:[0-9]+:' | head -10 | sed 's/^/  /'; fi
+if [[ "$F_RES" == FAIL* ]]; then ok=0; show_frontend_failure; fi
 
-echo "tests=$T_RES (${T_SUMMARY:-no summary}) ruff=$R_RES python=$PY"
+echo "tests=$T_RES (${T_SUMMARY:-no summary}) ruff=$R_RES frontend=$F_RES python=$PY"
 if [[ $ok -eq 1 ]]; then echo "MERGE OK $BR tree=${tree:0:7}"; exit 0
 else echo "MERGE FAIL $BR: checks fail on the merged tree"; exit 1; fi

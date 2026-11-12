@@ -81,6 +81,8 @@ checks_in_scratch() {
     return 1
   fi
   run_checks "$wt"
+  F_RES="n/a"; F_OUT=""
+  if [[ "${CHECK_FRONTEND:-0}" == 1 ]]; then frontend_checks "$wt"; fi
   g worktree remove --force "$wt" >/dev/null 2>&1
   rm -rf "$scratch"
   g worktree prune >/dev/null 2>&1
@@ -90,7 +92,9 @@ checks_in_scratch() {
 # failing_lines: FAILED/ERROR test lines and ruff findings from the last run_checks.
 failing_lines() {
   { printf '%s\n' "${T_OUT:-}" | grep -E '^(FAILED|ERROR) ' | head -15
-    printf '%s\n' "${R_OUT:-}" | grep -E ':[0-9]+:[0-9]+:' | head -10; } | sed 's/ - .*//'
+    printf '%s\n' "${R_OUT:-}" | grep -E ':[0-9]+:[0-9]+:' | head -10
+    [[ "${F_RES:-}" == FAIL* ]] && printf '%s\n' "${F_OUT:-}" \
+      | grep -E 'error TS|FAIL |npm ci --offline failed' | head -10; } | sed 's/ - .*//; s/^[[:space:]]*//'
 }
 
 # add_lesson_stub FILE SOURCE SURFACED SYMPTOM BRANCH SHA KEY [FAILING LINE ...]
@@ -112,5 +116,65 @@ lesson_key() {
   t="$(printf '%s\n' "${T_OUT:-}" | grep -E '^(FAILED|ERROR) ' | head -1 | awk '{print $2}')"
   if [[ -n "$t" ]]; then echo "red:$t"; return; fi
   r="$(printf '%s\n' "${R_OUT:-}" | grep -E ':[0-9]+:[0-9]+:' | head -1 | cut -d: -f1)"
-  [[ -n "$r" ]] && echo "red:ruff:$r" || echo ""
+  if [[ -n "$r" ]]; then echo "red:ruff:$r"; return; fi
+  if [[ "${F_RES:-}" == FAIL* ]]; then
+    local tool="${F_RES#FAIL(}"; tool="${tool%)}"; tool="${tool// /-}"
+    r="$(printf '%s\n' "${F_OUT:-}" | grep -oE 'src/[A-Za-z0-9_./-]+\.tsx?' | head -1)"
+    echo "red:frontend:$tool${r:+:$r}"; return
+  fi
+  echo ""
+}
+
+# ---------------------------------------------------------------- frontend (LOOP-2)
+# frontend_checks DIR: npm ci (lockfile, --ignore-scripts, --offline: local npm cache only,
+# no network) + `tsc --noEmit` + `vitest run` for DIR/frontend. node_modules lives OUTSIDE
+# the repo, keyed by the lockfile's sha256: $ASTRO_NODE_CACHE (default
+# ~/.cache/astro-node-modules)/<hash>/node_modules, symlinked into DIR/frontend.
+# Sets F_RES (n/a | pass | FAIL(npm ci|tsc|vitest)), F_OUT. NPM / NPX override the binaries.
+NPM="${NPM:-npm}"
+NPX="${NPX:-npx}"
+
+node_cache_root() { echo "${ASTRO_NODE_CACHE:-${XDG_CACHE_HOME:-$HOME/.cache}/astro-node-modules}"; }
+
+lock_hash() {
+  if command -v shasum >/dev/null 2>&1; then shasum -a 256 "$1" | awk '{print $1}'
+  else sha256sum "$1" | awk '{print $1}'; fi
+}
+
+frontend_checks() {
+  local fe="$1/frontend" cache tmp out
+  F_RES="n/a"; F_OUT=""
+  [[ -f "$fe/package-lock.json" ]] || return 0
+  cache="$(node_cache_root)/$(lock_hash "$fe/package-lock.json")"
+  if [[ ! -d "$cache/node_modules" ]]; then
+    mkdir -p "$(node_cache_root)"
+    tmp="$(mktemp -d "$(node_cache_root)/.build.XXXXXX")"
+    cp "$fe/package.json" "$fe/package-lock.json" "$tmp/"
+    [[ -f "$fe/.npmrc" ]] && cp "$fe/.npmrc" "$tmp/"
+    if ! out="$(cd "$tmp" && "$NPM" ci --ignore-scripts --offline --no-audit --no-fund 2>&1)"; then
+      rm -rf "$tmp"
+      F_RES="FAIL(npm ci)"
+      F_OUT="$out"$'\n'"npm ci --offline failed: packages missing from the local npm cache? Run \`npm ci\` in frontend/ once (new packages need approval first)."
+      return 1
+    fi
+    mv "$tmp" "$cache" 2>/dev/null || rm -rf "$tmp"  # another run won the race: use theirs
+  fi
+  rm -rf "$fe/node_modules"
+  ln -s "$cache/node_modules" "$fe/node_modules"
+  if ! out="$(cd "$fe" && "$NPX" --no-install tsc --noEmit 2>&1)"; then
+    F_RES="FAIL(tsc)"; F_OUT="$out"; return 1
+  fi
+  if ! out="$(cd "$fe" && "$NPX" --no-install vitest run 2>&1)"; then
+    F_RES="FAIL(vitest)"; F_OUT="$out"; return 1
+  fi
+  F_RES="pass"; F_OUT="$out"
+  return 0
+}
+
+# frontend_touched BASE_REF HEAD_REF: 0 when the diff between them touches frontend/.
+frontend_touched() { g diff --name-only "$1" "$2" -- frontend/ | grep -q .; }
+
+show_frontend_failure() {
+  printf '%s\n' "${F_OUT:-}" | grep -E 'error TS|FAIL |✗|×|npm (ERR|error)|npm ci --offline failed' \
+    | head -15 | sed 's/^/  /'
 }

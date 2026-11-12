@@ -7,7 +7,7 @@ coordination mistake gets one entry. An entry closes only when its **guard** exi
 (`lessons.py close ID --guard test:…|config:…|rule:…` checks it). Every worker reads
 this file before starting each task (docs/ops/prompts/*.md).
 
-10 lessons · 2 open · 8 closed · 0 recurrences · mean time to guard: 19.1 h
+11 lessons · 2 open · 9 closed · 0 recurrences · mean time to guard: 17.0 h
 
 ## open (2)
 
@@ -16,7 +16,7 @@ this file before starting each task (docs/ops/prompts/*.md).
 | L2 | 2026-11-11 | b0 DB-6, cf, coordinator | "1 failed" appears once in ~5 full runs, never reproducible | Order dependence: lazy `_load_builtins()` imports re-register handlers over monkeypatched `runs._HANDLERS` | RUN_KINDS + `setdefault`; conftest imports builtins up front; random-order runs (QA-1 stress.sh) |  |
 | L6 | 2026-11-11 | f4 PIPE-4 | Backfilled nights saw surveys answered later that week | `weekly_indices(week_start)` has no upper time bound | `weekly_indices(..., until=)` (LEAK-1) |  |
 
-## closed (8)
+## closed (9)
 
 | ID | Date | Surfaced in | Symptom | Root cause | Guard | Recurred |
 |---|---|---|---|---|---|---|
@@ -28,3 +28,4 @@ this file before starting each task (docs/ops/prompts/*.md).
 | L8 | 2026-11-11 | coordinator | Ran `git rebase` inside a worker's worktree | Coordinator used worker tree to test a merge | Rule: coordinator tests merges only in scratch worktrees (check_merge.sh) — `rule:docs/ops/prompts/coordinator.md:Test merges only in scratch worktrees (check_merge.sh)` |  |
 | L9 | 2026-11-11 | coordinator | pytest failure hidden: `pytest \| tail -1 && next` continued | Pipe masks exit code | Rule: `set -o pipefail` or check `${PIPESTATUS[0]}` / `${pipestatus[1]}` — `rule:docs/ops/prompts/coordinator.md:Never let a pipe hide a failing exit code` |  |
 | L10 | 2026-11-11 | ops session | Session ended at usage limit; messages to its socket failed | Single owner for a whole workstream | Board rows are owner-reassignable; prompts are self-contained so any session can resume a row — `rule:docs/ops/prompts/coordinator.md:reassign a row's owner when its session is gone (L10)` |  |
+| L11 | 2026-11-12 | coordinator review (FE-1/FE-2 merge) | merge_ready ran only pytest + ruff: a frontend type or test regression could merge green | merge checks predate frontend/; nothing ran tsc or vitest | check_merge/merge_ready run npm ci --offline + tsc + vitest when frontend/ changes (LOOP-2) — `test:tests/unit/test_ops_scripts.py::test_merge_ready_frontend_red_reverts_and_records_lesson`, `test:tests/unit/test_ops_scripts.py::test_check_merge_fails_on_frontend_errors` |  |

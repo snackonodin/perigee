@@ -88,7 +88,8 @@ and only through merge_ready.sh, so every merge is `--no-ff` and can be reverted
 | Product, safety or medical content | `question`; never guess a threshold | ask the user; never weaken the safety path | user |
 | Ownership conflict | stop; report | decide the owner, update CLAUDE.md | 1 loop |
 
-Workers never message each other. All cross-team traffic goes through the coordinator.
+Workers may send each other one-line coordination heads-ups ("I'm editing X now", "not touching Y").
+Design questions, contract changes, ownership and task assignment go through the coordinator.
 
 ## 6. Daily stop conditions
 A day ends at the earlier of (a) its goal being met, or (b) the hour the user sets. At (b)
@@ -114,8 +115,8 @@ without (a), the coordinator re-plans the board before stopping.
 | Tool | Who | Writes? | What |
 |---|---|---|---|
 | `status.sh [--fast]` | anyone | no | one line per worktree: branch, sha, age, ±main, dirty, tests, ruff |
-| `check_merge.sh <br>` | anyone | no | merge-tree conflicts, ownership + reformat-only warnings (L3), tests on the merged tree in a scratch worktree (tracked files only, L1) |
-| `merge_ready.sh <br> [ID…]` | coordinator | main + board + lessons | check → merge → test the merge commit in a scratch checkout → auto-revert + lesson stub, or board done + broadcast |
+| `check_merge.sh <br>` | anyone | no | merge-tree conflicts, ownership + reformat-only warnings (L3), tests on the merged tree in a scratch worktree (tracked files only, L1); if `frontend/` changed, `npm ci --offline` + `tsc` + `vitest` too (LOOP-2) |
+| `merge_ready.sh <br> [ID…]` | coordinator | main + board + lessons | check → merge → test the merge commit in a scratch checkout (pytest, ruff, and the frontend checks when `frontend/` changed) → auto-revert + lesson stub, or board done + broadcast |
 | `lessons.py add/list/close/render/stats` | coordinator (stubs: merge_ready, stress) | lessons | source of truth for lessons; `close` refuses unless the guard exists |
 | `board.py list/move/render/validate/owners` | list: anyone; move/render: coordinator | board | source of truth for tasks |
 | `parse_report.py [--board] "<line>"` | coordinator | no | validates a report, prints the board command |
@@ -123,6 +124,11 @@ without (a), the coordinator re-plans the board before stopping.
 
 All tools exit 2 with a clear message when the chosen Python lacks pytest; this is never
 reported as a test failure.
+
+Frontend checks (LOOP-2) keep `node_modules` outside the repo, keyed by the lockfile hash:
+`$ASTRO_NODE_CACHE` (default `~/.cache/astro-node-modules/<sha256>`). `npm ci` runs with
+`--offline --ignore-scripts`: a lockfile whose packages are not in the local npm cache fails
+loudly (run `npm ci` in `frontend/` once; new packages need approval first).
 
 ## 8. Lessons: the loop learns from every failure
 `docs/ops/lessons.yaml` is the source of truth; `LESSONS.md` is rendered from it by

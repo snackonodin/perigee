@@ -10,12 +10,32 @@ import { useSafety } from "../safety/SafetyProvider";
 export function CheckinForm({ instrument, onDone }: { instrument: Instrument; onDone?(): void }) {
   const { showSafety } = useSafety();
   const [answers, setAnswers] = useState<Record<string, number>>({});
+  const [step, setStep] = useState(0);
   const [result, setResult] = useState<ResponseOut | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const item = instrument.items[step];
+
+  function next() {
+    if (answers[item.key] === undefined) {
+      setError("Choose one response to continue.");
+      return;
+    }
+    setError(null);
+    setStep((current) => Math.min(current + 1, instrument.items.length - 1));
+  }
+
+  function previous() {
+    setError(null);
+    setStep((current) => Math.max(0, current - 1));
+  }
 
   async function submit(e: FormEvent) {
     e.preventDefault();
+    if (instrument.items.some((question) => answers[question.key] === undefined)) {
+      setError("Please answer each card before sending your check-in.");
+      return;
+    }
     if (localSafetyTriggered(instrument, answers)) showSafety(SAFETY_FALLBACK);
     setBusy(true);
     setError(null);
@@ -60,25 +80,29 @@ export function CheckinForm({ instrument, onDone }: { instrument: Instrument; on
   return (
     <form onSubmit={submit} aria-label={instrument.name}>
       {instrument.timeframe && <p className="muted">{instrument.timeframe}</p>}
-      {instrument.items.map((item) => (
-        <fieldset key={item.key}>
-          <legend>{item.text}</legend>
-          {item.options.map((o) => (
-            <label key={o.value} className="option">
-              <input
-                type="radio"
-                name={item.key}
-                value={o.value}
-                required
-                checked={answers[item.key] === o.value}
-                onChange={() => setAnswers((a) => ({ ...a, [item.key]: o.value }))}
-              />
-              <span>{o.label}</span>
-            </label>
-          ))}
-        </fieldset>
-      ))}
-      <button type="submit" disabled={busy}>Submit</button>
+      <div className="checkin-progress" role="status">Card {step + 1} of {instrument.items.length}
+        <div className="progress-track" aria-hidden="true"><span style={{width:`${((step+1)/instrument.items.length)*100}%`}}/></div>
+      </div>
+      <fieldset className="question-card" key={item.key}>
+        <legend>{item.text}</legend>
+        <div className="question-options">{item.options.map((o) => (
+          <label key={o.value} className={answers[item.key] === o.value ? "question-option selected" : "question-option"}>
+            <input type="radio" name={item.key} value={o.value} checked={answers[item.key] === o.value}
+              onChange={() => {
+                setAnswers((a) => ({ ...a, [item.key]: o.value }));
+                setError(null);
+                if (item.safety_trigger && o.value >= item.safety_trigger.min_value) showSafety(SAFETY_FALLBACK);
+              }}/>
+            <span>{o.label}</span>
+          </label>
+        ))}</div>
+      </fieldset>
+      <div className="checkin-actions">
+        {step>0&&<button type="button" className="ghost" onClick={previous}>Previous</button>}
+        {step<instrument.items.length-1
+          ? <button type="button" onClick={next}>Next <span aria-hidden="true">→</span></button>
+          : <button type="submit" disabled={busy}>Send check-in</button>}
+      </div>
       <p className="error" role="alert">{error}</p>
     </form>
   );

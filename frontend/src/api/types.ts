@@ -7,6 +7,7 @@ export type NightOut = S["NightOut"];
 export type BaselineOut = S["BaselineOut"];
 export type GuidanceCardOut = S["GuidanceCardOut"];
 export type PendingCheckin = S["PendingCheckin"];
+export type CheckinOut = S["CheckinOut"];
 export type InstrumentSummary = S["InstrumentSummary"];
 /** `crisis` was added by the shared API contract after this OpenAPI snapshot. Keep it optional
  * at the client boundary so a missing value can be treated fail-safe. */

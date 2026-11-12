@@ -14,3 +14,5 @@
 - [done] `/api/v1/today` now falls back only on network/5xx failure to an empty, labeled contract-shaped mock (`TODO(api)`); 401 auth responses remain visible. Integrator REQUEST records the startup failure and asks for the auth contract detail. `npm run build` passed.
 - [done] Frontend Sleep screen: 28-night sensed-presence timeline, personal breathing-rate band, midsleep availability summary, expandable night details, and empty API fallback (`TODO(api)`) on network/5xx failure. No sleep-stage data is returned, so no stages are fabricated. `npm run build` passed.
 - [next] Wait for `go`; then implement Check-in.
+- [done] Frontend Check-in: daily prompts and optional questionnaires advance one card at a time; monthly calendar uses colored entry-type dots and does not infer mood. Safety handling remains ahead of result display. `npm run build` passed.
+- [next] Wait for `go`; then implement Briefing.

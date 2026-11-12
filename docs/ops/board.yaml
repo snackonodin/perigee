@@ -742,13 +742,14 @@ tasks:
     Psyche, Settings)'
   owner: 7a
   branch: feat/frontend
-  state: review
+  state: done
   blockers:
   - GATE-1
   done_when: npm run build offline; FastAPI serves it; generated client compiles
-  sha: 8b9c66e
+  sha: b0cf419
   times:
     review: '2026-11-12T01:04:22Z'
+    done: '2026-11-12T01:10:57Z'
 - id: FLAKY-1
   title: Root-cause the flaky tests/pipeline/test_personas.py failures on main (2-4 different tests per run)
   owner: b0
@@ -765,13 +766,14 @@ tasks:
     from instrument JSON, Questionnaires), Settings (consents, export, delete)'
   owner: 7a
   branch: feat/frontend
-  state: review
+  state: done
   blockers:
   - FE-1
   done_when: vitest covers each page with typed fixtures from schema.d.ts; safety tests ported from test_demo_page; tsc clean
-  sha: 83fd209
+  sha: b0cf419
   times:
     review: '2026-11-12T01:04:22Z'
+    done: '2026-11-12T01:10:58Z'
 - id: FE-3
   title: 'Live tabs: Breathing + Heart monitors on SSE /live/vitals (heart labelled experimental), dynamic displays'
   owner: 7a
@@ -792,3 +794,11 @@ tasks:
   sha: 3bf4d0e
   times:
     done: '2026-11-11T20:50:32Z'
+- id: SUR-9
+  title: answers_retained on ResponseOut (truthful retention wording in UI)
+  owner: cf
+  branch: feat/surveys
+  state: review
+  blockers: []
+  done_when: per-consent tests; added field only
+  sha: eea6e03

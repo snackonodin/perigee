@@ -20,14 +20,13 @@ Owners: `ca` build-astronaut-health-backend (main) · `f4` pankajkashyap-f4 (fea
 | GATE-1 | Backend gate: QA-1, INJ-1, LIVE-1, FUZZ-1, LEAK-1, LOOP-1 merged; e2e flow + seed-personas + backup/restore green on a fresh bootstrap | ca | main | all green; frontend work starts | QA-1, INJ-1, LIVE-1, FUZZ-1, LEAK-1, LOOP-1 |  |
 | FE-3 | Live tabs: Breathing + Heart monitors on SSE /live/vitals (heart labelled experimental), dynamic displays | 7a | frontend | monitors render streamed + replayed sessions; reconnect on drop; no external URLs | LIVE-1, FE-2 |  |
 
-## doing (2)
+## doing (1)
 
 | ID | Task | Owner | Branch | Done when | Blockers | sha |
 |----|------|-------|--------|-----------|----------|-----|
 | CORE-7 | `fusion.score_night` → `FlagDraft` | f4 | csi-core | components dict explains priority; thresholds only from config.yaml | CORE-6 |  |
-| FE-2 | Frontend pages on existing API (fixture-tested, no new packages): AuthProvider, global SafetyOverlay (port local pre-check + 3 s ack), Overview (Today, FlagWhy, Guidance), Sleep, Psyche (CheckinForm from instrument JSON, Questionnaires), Settings (consents, export, delete) | 7a | frontend | vitest covers each page with typed fixtures from schema.d.ts; safety tests ported from test_demo_page; tsc clean | FE-1 |  |
 
-## review (5)
+## review (6)
 
 | ID | Task | Owner | Branch | Done when | Blockers | sha |
 |----|------|-------|--------|-----------|----------|-----|
@@ -35,7 +34,8 @@ Owners: `ca` build-astronaut-health-backend (main) · `f4` pankajkashyap-f4 (fea
 | CA-5 | Wire worker start/stop into main.py lifespan; persona seeding command once OPS-6 lands | ca | main | app starts worker; seed-personas produces 3 synthetic users with expected flags | DB-7 | f3cd03f |
 | INJ-1 | Data injection (Path B): POST /api/v1/ingest/estimates (batch windows/heart/motion from the team scripts, idempotent by batch hash, run provenance with client code_version) + cli ingest-estimates (CSV/JSON); hypothesis tests on random batches | f4 | pipeline | random batches round-trip exactly; replays are no-ops; malformed batches rejected without partial writes; run_nightly works on injected data | SCR-1 | 79d7952 |
 | LOOP-1 | Failure-learning loop: tools/ops/lessons.py (add/list/close), merge_ready + stress.sh auto-record failures as lesson stubs, prompts read LESSONS.md, check_merge lints tracked files only (L1) and warns on broad reformat (L3), metrics.sh shows recurrence | 7a | accounts | a simulated RED merge creates a lesson stub; lessons.py close refuses without a guard reference; tests in tmp repos | — | a00287e |
-| FE-1 | Frontend scaffold: React+TS+Vite in frontend/, builds to backend/static/app (served at /), no CDN, typed client from /openapi.json; space theme tokens; tab shell (Overview, Breathing, Heart, Sleep, Psyche, Settings) | 7a | frontend | npm run build offline; FastAPI serves it; generated client compiles | GATE-1 | 024ddaf |
+| FE-1 | Frontend scaffold: React+TS+Vite in frontend/, builds to backend/static/app (served at /), no CDN, typed client from /openapi.json; space theme tokens; tab shell (Overview, Breathing, Heart, Sleep, Psyche, Settings) | 7a | frontend | npm run build offline; FastAPI serves it; generated client compiles | GATE-1 | 8b9c66e |
+| FE-2 | Frontend pages on existing API (fixture-tested, no new packages): AuthProvider, global SafetyOverlay (port local pre-check + 3 s ack), Overview (Today, FlagWhy, Guidance), Sleep, Psyche (CheckinForm from instrument JSON, Questionnaires), Settings (consents, export, delete) | 7a | frontend | vitest covers each page with typed fixtures from schema.d.ts; safety tests ported from test_demo_page; tsc clean | FE-1 | 83fd209 |
 
 ## done (57)
 

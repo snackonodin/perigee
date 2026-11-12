@@ -102,6 +102,9 @@ ISOLATION_CASES: list[IsolationCase] = [
         json={"kind": "process_session", "params": {"session_id": "{a_session_id}"}},
     ),
     IsolationCase("get", "/api/v1/jobs/{job_id}", 404),
+    # live SSE (db-ingest): replaying A's session must look like a missing session. The
+    # plain live stream only ever reads the caller's rows (tested in tests/db/test_live.py).
+    IsolationCase("get", "/api/v1/live/vitals", 404, params={"replay_session": "{a_session_id}"}),
     # readouts (surveys, SUR-8): lists and /today are B's own (empty); A's night date is missing
     IsolationCase("get", "/api/v1/nights", 200, params={"from": "2026-10-01", "to": "2026-12-01"}),
     IsolationCase("get", "/api/v1/nights/{day}", 404),

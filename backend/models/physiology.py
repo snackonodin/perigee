@@ -50,6 +50,8 @@ class WindowEstimateRow(UserOwned, Base):
     rr_b: Mapped[float | None] = mapped_column(Float)
     pnr_db: Mapped[float | None] = mapped_column(Float)
     motion_flag: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    # Continuous motion intensity from the motion estimator (f4); NULL when not computed.
+    motion_score: Mapped[float | None] = mapped_column(Float)
     quality: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
     presence: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     run_id: Mapped[str | None] = _run_fk()

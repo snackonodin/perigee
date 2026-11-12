@@ -51,6 +51,7 @@ export function Persona() {
     const baselineValues=baseline && TRAITS.every(t=>typeof baseline[t.key]==="number") ? TRAITS.map(t=>baseline[t.key]) : undefined;
     const matrix=data?.persona_matrix;
     return <><header className="page-heading"><div><p className="eyebrow">Personal profile · private to you</p><h1>Persona</h1><p>Patterns in how you describe yourself, without ranking or labels.</p></div></header>
+      {today.sync_status?.state === "api_mock"&&<p className="api-mock-note" role="status">API unavailable · empty preview only; no trait values are being shown.</p>}
       <div className="grid"><section className="card persona-arc"><div><p className="eyebrow">Five traits</p><h2>Your arc</h2><p className="muted">Each dial uses the 4–20 scale from your profile.</p></div>
         <div className="dial-row">{TRAITS.map((t,i)=><Dial key={t.key} name={t.name} descriptor={t.descriptor} value={vals[i]} index={i}/>)}</div>
         {!complete&&<p className="muted">Your full profile is not available in this snapshot.</p>}</section>

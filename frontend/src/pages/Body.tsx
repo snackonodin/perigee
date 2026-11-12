@@ -37,6 +37,7 @@ export function Body() {
     };
     const current=details[selected];
     return <><header className="page-heading"><div><p className="eyebrow">Personal systems · latest available night</p><h1>Body</h1><p>A quiet scan of signals, always in the context of your own baseline.</p></div></header>
+      {today.sync_status?.state === "api_mock"&&<p className="api-mock-note" role="status">API unavailable · empty preview only; no system readings are being shown.</p>}
       <div className="grid body-grid"><section className="card body-scan-card"><p className="eyebrow">Systems scan</p><h2>Choose a system to explore</h2><p className="muted">Select a marked point on the scan or use the labelled controls.</p>
         <p className="sr-only" id="scan-summary">Five system areas are available: Respiration, Autonomic, Rest, Mind, and Cabin. Selected: {selected}.</p>
         <ScanSvg selected={selected} onSelect={setSelected}/><div className="scan-controls" aria-label="Choose a system">{SYSTEMS.map(s=><button type="button" key={s} className={selected===s?"scan-choice active":"scan-choice"} aria-pressed={selected===s} onClick={()=>setSelected(s)}>{s}</button>)}</div>

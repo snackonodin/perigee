@@ -11,3 +11,4 @@
 - [next] Wait for `go`; then implement Sleep, Check-in, Briefing, Consent, and Settings.
 - [done] Frontend visual direction: split sign-in with original spacecraft artwork; trend charts use thin accent lines, faint gridlines, soft personal bands, latest-point markers, and a level ring/pill. `npm run build` passed.
 - [resolved] API is reachable at 127.0.0.1:8765 using Python 3.12 after installing the missing API packages and running Alembic migrations. Vite dev proxy now targets port 8765; startup command: `/opt/anaconda3/bin/python3.12 run_app.py`.
+- [done] `/api/v1/today` now falls back only on network/5xx failure to an empty, labeled contract-shaped mock (`TODO(api)`); 401 auth responses remain visible. Integrator REQUEST records the startup failure and asks for the auth contract detail. `npm run build` passed.

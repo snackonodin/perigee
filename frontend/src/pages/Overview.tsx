@@ -117,7 +117,9 @@ export function Overview() {
                   <p>{physiology === undefined
                     ? "A personal baseline grows from valid nights. No one else is used as a comparison."
                     : "Today's level, read against your own recent pattern."}</p>
-                  {today.sync_status?.state === "offline" && <p className="offline-note"><span aria-hidden="true">◉</span> Saved on this station</p>}
+                  {today.sync_status?.state === "api_mock"
+                    ? <p className="api-mock-note" role="status">API unavailable · empty preview only; no scores or readings are being shown.</p>
+                    : today.sync_status?.state === "offline" && <p className="offline-note"><span aria-hidden="true">◉</span> Saved on this station</p>}
                 </div>
               </section>
 

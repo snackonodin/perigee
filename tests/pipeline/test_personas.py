@@ -53,6 +53,7 @@ def seeded(tmp_path_factory, synth_cache) -> Iterator[tuple[Session, dict, Path]
         mp.setenv("DATA_DIR", str(d))
         mp.setenv("DATABASE_URL", f"sqlite:///{d / 'db' / 'astro.db'}")
         mp.delenv(personas.PASSWORD_ENV, raising=False)
+        mp.delenv("DEMO_PASSWORD", raising=False)
         get_settings.cache_clear()
         eng = db_mod.init_db()
         Base.metadata.create_all(eng)
@@ -238,3 +239,14 @@ def test_reset_demo_removes_everything(seeded_copy, synth_cache) -> None:
     assert db.scalar(select(func.count()).select_from(User)) == 0
     assert not any((d / "raw").iterdir())
     assert any(synth_cache.iterdir())  # the synth cache is kept for a fast reseed
+
+
+def test_demo_password_env_is_used_and_not_echoed(seeded_copy, monkeypatch) -> None:
+    db, _, _ = seeded_copy
+    monkeypatch.setenv("DEMO_PASSWORD", "env-demo-pass-123")
+    p = personas.PERSONAS[0]
+    from backend.models import User
+    db.execute(User.__table__.delete().where(User.email == p.email))
+    db.commit()
+    uid, generated = personas._ensure_user(db, p, None)
+    assert uid and generated is None

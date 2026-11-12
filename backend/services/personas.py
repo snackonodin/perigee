@@ -147,7 +147,7 @@ def _ensure_user(db: Session, p: Persona, password: str | None) -> tuple[str, st
     uid = db.scalar(select(User.id).where(User.email == p.email))
     generated = None
     if uid is None:
-        pw = password or os.environ.get(PASSWORD_ENV)
+        pw = password or os.environ.get(PASSWORD_ENV) or os.environ.get("DEMO_PASSWORD")
         if not pw:
             pw = generated = secrets.token_urlsafe(18)
         uid = accounts.signup(db, p.email, pw).user_id

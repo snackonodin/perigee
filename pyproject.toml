@@ -14,6 +14,6 @@ select = ["E", "F", "I", "B", "UP", "T20"]  # T20 bans print(): use logging
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-norecursedirs = ["features script", ".venv", "plugins/vendor"]
+norecursedirs = [".*", "*.egg", "build", "dist", "node_modules", "features script", "venv", "plugins/vendor"]
 addopts = "-q"
 markers = ["slow: end-to-end tests on a multi-hour synth night (run by default; skip with -m 'not slow')"]

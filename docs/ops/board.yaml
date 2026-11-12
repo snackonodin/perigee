@@ -660,12 +660,14 @@ tasks:
   title: 'SSE /api/v1/live/vitals: per-user stream of newest injected windows (breath, heart[experimental], motion, presence) + replay mode for a stored session at Nx speed'
   owner: b0
   branch: feat/db-ingest
-  state: todo
+  state: review
   blockers:
   - QA-1
   - INJ-1
   done_when: TestClient stream test; isolation (B never receives A events); replay deterministic
-  sha: null
+  sha: e3aa699
+  times:
+    review: '2026-11-12T01:11:08Z'
 - id: SCR-1
   title: 'Read-only survey of features script/ (team scripts): capture CSV format, breath/heart/motion entry points; plugins/ adapters wrapping them (no new algorithms); load.py reader for the real capture
     format'
@@ -687,9 +689,9 @@ tasks:
   blockers:
   - SCR-1
   done_when: random batches round-trip exactly; replays are no-ops; malformed batches rejected without partial writes; run_nightly works on injected data
-  sha: 79d7952
+  sha: 6520e8c
   times:
-    review: '2026-11-11T20:44:40Z'
+    review: '2026-11-12T01:11:08Z'
 - id: FUZZ-1
   title: 'Hypothesis API invariants: safety object on every survey/symptom response, isolation for random users/data, consent gating, no answer values in logs'
   owner: cf
@@ -802,3 +804,12 @@ tasks:
   blockers: []
   done_when: per-consent tests; added field only
   sha: eea6e03
+- id: LOOP-2
+  title: check_merge runs npm ci + tsc + vitest when frontend/ changes; PROTOCOL §5 heads-up rule
+  owner: 7a
+  branch: feat/accounts
+  state: doing
+  blockers:
+  - LOOP-1
+  done_when: a frontend type error makes a merge RED and writes a lesson stub
+  sha: null

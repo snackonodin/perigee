@@ -10,4 +10,4 @@
 - [done] Frontend Persona and Body screens: five-trait profile dials/radar and interactive systems scan; unavailable personal history/signals are labeled without fabricated values. `npm run build` passed.
 - [next] Wait for `go`; then implement Sleep, Check-in, Briefing, Consent, and Settings.
 - [done] Frontend visual direction: split sign-in with original spacecraft artwork; trend charts use thin accent lines, faint gridlines, soft personal bands, latest-point markers, and a level ring/pill. `npm run build` passed.
-- [blocker] API preview at 127.0.0.1:8765 is not running: the configured Python cannot resolve pinned NumPy 2.5.4, and Python 3.12 dependency setup stalled compiling cryptography. Integrator request is in `coord/pane-frontend.md`.
+- [resolved] API is reachable at 127.0.0.1:8765 using Python 3.12 after installing the missing API packages and running Alembic migrations. Vite dev proxy now targets port 8765; startup command: `/opt/anaconda3/bin/python3.12 run_app.py`.

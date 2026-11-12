@@ -53,6 +53,7 @@ from backend.schemas.contracts import (
 from backend.services import runs
 
 KIND = "external_estimates"
+SESSION_NOT_FOUND = "session not found"
 CODE_VERSION_MAX = 64  # pipeline_runs.code_version column width
 _NS = uuid.UUID("3b0c6f7e-5d1a-4c1e-9a77-2f8a1d6c4b10")  # session ids for new device sessions
 
@@ -227,21 +228,26 @@ def _remove_archive(p: Path) -> None:
 
 
 def inject(db: Session, user_id: str, data: Any, code_version: str | None) -> dict[str, Any]:
-    """Validate, then store one batch. Raises InjectionError (nothing written)."""
-    cv = _check_code_version(code_version)
+    """Validate, then store one batch. Raises InjectionError (nothing written).
+
+    Session ownership is checked before anything else about the request, so a
+    session of another user always looks exactly like a missing one (FR15).
+    """
     batch = parse_batch(data)
     if db.get(User, user_id) is None:
         raise InjectionError("unknown user")
+    if batch.session_id is not None:
+        sess = db.get(CaptureSession, batch.session_id)
+        if sess is None or sess.user_id != user_id:  # never reveal other users' sessions
+            raise InjectionError(SESSION_NOT_FOUND)
+    cv = _check_code_version(code_version)
     sha = batch_sha256(batch)
     prev = _previous(db, user_id, sha)
     if prev is not None:
         return _result(prev, duplicate=True)
 
     if batch.session_id is not None:
-        sess = db.get(CaptureSession, batch.session_id)
-        if sess is None or sess.user_id != user_id:  # never reveal other users' sessions
-            raise InjectionError("session not found")
-        sid = sess.id
+        sid = batch.session_id
     else:
         sid = str(uuid.uuid5(_NS, f"{user_id}:{sha}"))
         if db.get(CaptureSession, sid) is not None:

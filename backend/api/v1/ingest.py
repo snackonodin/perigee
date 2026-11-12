@@ -46,7 +46,7 @@ def ingest_estimates(
     try:
         out = svc.inject(db, user_id, body, x_code_version)
     except svc.InjectionError as exc:
-        status = 404 if str(exc) == "session not found" else 422
+        status = 404 if str(exc) == svc.SESSION_NOT_FOUND else 422
         raise ApiError(status, "invalid_batch", "; ".join([str(exc), *exc.errors])[:2000]) from None
     if out["duplicate"]:
         response.status_code = 200

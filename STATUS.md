@@ -7,4 +7,5 @@
 - [next] Merge wave-3 reports as they arrive; FE-5 "/" mount in backend/main.py; verify vitest.
 - [done] Frontend Today screen: Perigee shell, personal baseline tiles, and contract-shaped `today.context_engine` mock; `npm run build` passed.
 - [done] Frontend Safety screen: top-level `crisis` true or missing fails closed before normal scores/results; `npm run build` passed.
-- [next] Wait for `go`; then implement Persona and Body, followed by Sleep, Check-in, Briefing, Consent, and Settings.
+- [done] Frontend Persona and Body screens: five-trait profile dials/radar and interactive systems scan; unavailable personal history/signals are labeled without fabricated values. `npm run build` passed.
+- [next] Wait for `go`; then implement Sleep, Check-in, Briefing, Consent, and Settings.

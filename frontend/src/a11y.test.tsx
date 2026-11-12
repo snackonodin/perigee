@@ -128,6 +128,7 @@ describe.each([
       "GET /api/v1/today": { body: today },
       "GET /api/v1/nights": { body: [] },
       "GET /api/v1/instruments": { body: instruments },
+      "GET /api/v1/indices": { body: { week_start: "2026-11-09", indices: {}, run_id: null } },
       "GET /api/v1/me/consents": { body: {} },
       [route]: async () => {
         await gate;

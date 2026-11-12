@@ -837,7 +837,9 @@ tasks:
   title: Psyche weekly index cards with band alert + citation + 8-week sparkline
   owner: cf
   branch: feat/frontend-psy
-  state: review
+  state: done
   blockers: []
   done_when: vitest + tsc + build green
-  sha: df5acee
+  sha: '6044344'
+  times:
+    done: '2026-11-12T01:41:56Z'

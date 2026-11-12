@@ -24,16 +24,15 @@ Owners: `ca` build-astronaut-health-backend (main) · `f4` pankajkashyap-f4 (fea
 |----|------|-------|--------|-----------|----------|-----|
 | CORE-7 | `fusion.score_night` → `FlagDraft` | f4 | csi-core | components dict explains priority; thresholds only from config.yaml | CORE-6 |  |
 
-## review (4)
+## review (3)
 
 | ID | Task | Owner | Branch | Done when | Blockers | sha |
 |----|------|-------|--------|-----------|----------|-----|
 | CA-2 | `/api/v1/today` (night features, flags, guidance, due check-ins) | ca | main | e2e test with seeded user | CA-1, DB-5, SUR-6 | a08f660 |
 | CA-5 | Wire worker start/stop into main.py lifespan; persona seeding command once OPS-6 lands | ca | main | app starts worker; seed-personas produces 3 synthetic users with expected flags | DB-7 | f3cd03f |
 | FE-3 | Live tabs: Breathing + Heart monitors on SSE /live/vitals (heart labelled experimental), dynamic displays | 7a | frontend | monitors render streamed + replayed sessions; reconnect on drop; no external URLs | LIVE-1, FE-2 | 98ea41f |
-| FE-4 | Psyche weekly index cards with band alert + citation + 8-week sparkline | cf | frontend-psy | vitest + tsc + build green | — | df5acee |
 
-## done (65)
+## done (66)
 
 | ID | Task | Owner | Branch | Done when | Blockers | sha |
 |----|------|-------|--------|-----------|----------|-----|
@@ -102,6 +101,7 @@ Owners: `ca` build-astronaut-health-backend (main) · `f4` pankajkashyap-f4 (fea
 | SUR-9 | answers_retained on ResponseOut (truthful retention wording in UI) | cf | surveys | per-consent tests; added field only | — | 64424c5 |
 | LOOP-2 | check_merge runs npm ci + tsc + vitest when frontend/ changes; PROTOCOL §5 heads-up rule | 7a | accounts | a frontend type error makes a merge RED and writes a lesson stub | LOOP-1 | 0bf3c21 |
 | LEAK-1b | fusion.run_nightly passes until=night end to weekly_indices; backfill test | f4 | pipeline | backfilled night unaffected by later answers | — | 4ac521c |
+| FE-4 | Psyche weekly index cards with band alert + citation + 8-week sparkline | cf | frontend-psy | vitest + tsc + build green | — | 6044344 |
 
 ## proposed (0)
 

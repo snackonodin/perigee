@@ -783,14 +783,15 @@ tasks:
   title: 'Live tabs: Breathing + Heart monitors on SSE /live/vitals (heart labelled experimental), dynamic displays'
   owner: 7a
   branch: feat/frontend
-  state: review
+  state: done
   blockers:
   - LIVE-1
   - FE-2
   done_when: monitors render streamed + replayed sessions; reconnect on drop; no external URLs
-  sha: 98ea41f
+  sha: a7b8dcc
   times:
     review: '2026-11-12T01:23:08Z'
+    done: '2026-11-12T01:48:21Z'
 - id: L13
   title: 'SQL logging defence in depth: hide_parameters=True + sentinel test'
   owner: b0

@@ -24,15 +24,14 @@ Owners: `ca` build-astronaut-health-backend (main) · `f4` pankajkashyap-f4 (fea
 |----|------|-------|--------|-----------|----------|-----|
 | CORE-7 | `fusion.score_night` → `FlagDraft` | f4 | csi-core | components dict explains priority; thresholds only from config.yaml | CORE-6 |  |
 
-## review (3)
+## review (2)
 
 | ID | Task | Owner | Branch | Done when | Blockers | sha |
 |----|------|-------|--------|-----------|----------|-----|
 | CA-2 | `/api/v1/today` (night features, flags, guidance, due check-ins) | ca | main | e2e test with seeded user | CA-1, DB-5, SUR-6 | a08f660 |
 | CA-5 | Wire worker start/stop into main.py lifespan; persona seeding command once OPS-6 lands | ca | main | app starts worker; seed-personas produces 3 synthetic users with expected flags | DB-7 | f3cd03f |
-| FE-3 | Live tabs: Breathing + Heart monitors on SSE /live/vitals (heart labelled experimental), dynamic displays | 7a | frontend | monitors render streamed + replayed sessions; reconnect on drop; no external URLs | LIVE-1, FE-2 | 98ea41f |
 
-## done (66)
+## done (67)
 
 | ID | Task | Owner | Branch | Done when | Blockers | sha |
 |----|------|-------|--------|-----------|----------|-----|
@@ -97,6 +96,7 @@ Owners: `ca` build-astronaut-health-backend (main) · `f4` pankajkashyap-f4 (fea
 | FE-1 | Frontend scaffold: React+TS+Vite in frontend/, builds to backend/static/app (served at /), no CDN, typed client from /openapi.json; space theme tokens; tab shell (Overview, Breathing, Heart, Sleep, Psyche, Settings) | 7a | frontend | npm run build offline; FastAPI serves it; generated client compiles | GATE-1 | b0cf419 |
 | FLAKY-1 | Root-cause the flaky tests/pipeline/test_personas.py failures on main (2-4 different tests per run) | b0 | db-ingest | test_personas.py green 10/10 runs alone and in the full suite; root cause + guard recorded as a lesson | — | 9443bd8 |
 | FE-2 | Frontend pages on existing API (fixture-tested, no new packages): AuthProvider, global SafetyOverlay (port local pre-check + 3 s ack), Overview (Today, FlagWhy, Guidance), Sleep, Psyche (CheckinForm from instrument JSON, Questionnaires), Settings (consents, export, delete) | 7a | frontend | vitest covers each page with typed fixtures from schema.d.ts; safety tests ported from test_demo_page; tsc clean | FE-1 | b0cf419 |
+| FE-3 | Live tabs: Breathing + Heart monitors on SSE /live/vitals (heart labelled experimental), dynamic displays | 7a | frontend | monitors render streamed + replayed sessions; reconnect on drop; no external URLs | LIVE-1, FE-2 | a7b8dcc |
 | L13 | SQL logging defence in depth: hide_parameters=True + sentinel test | b0 | db-ingest | sentinel absent from logs and exception text; control test leaks | — | 3bf4d0e |
 | SUR-9 | answers_retained on ResponseOut (truthful retention wording in UI) | cf | surveys | per-consent tests; added field only | — | 64424c5 |
 | LOOP-2 | check_merge runs npm ci + tsc + vitest when frontend/ changes; PROTOCOL §5 heads-up rule | 7a | accounts | a frontend type error makes a merge RED and writes a lesson stub | LOOP-1 | 0bf3c21 |

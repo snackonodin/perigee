@@ -2,6 +2,7 @@ import type { ReactElement } from "react";
 import { createBrowserRouter, createMemoryRouter, Outlet, RouterProvider } from "react-router";
 import { AuthProvider, RequireAuth } from "./auth/AuthProvider";
 import { AppShell } from "./components/AppShell";
+import { Breathing, Heart } from "./pages/Live";
 import { Login } from "./pages/Login";
 import { Overview } from "./pages/Overview";
 import { Psyche } from "./pages/Psyche";
@@ -13,6 +14,8 @@ import { SafetyProvider } from "./safety/SafetyProvider";
 
 const PAGES: Record<string, ReactElement> = {
   "/": <Overview />,
+  "/breathing": <Breathing />,
+  "/heart": <Heart />,
   "/sleep": <Sleep />,
   "/psyche": <Psyche />,
   "/settings": <Settings />,
@@ -41,7 +44,6 @@ const routes = [
           </RequireAuth>
         ),
         children: TABS.map((t) => {
-          // Breathing and Heart (live monitors) come in FE-3.
           const element = PAGES[t.path] ?? <Placeholder tab={t} />;
           return t.path === "/" ? { index: true, element } : { path: t.path.slice(1), element };
         }),

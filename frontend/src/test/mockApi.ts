@@ -1,6 +1,8 @@
 import { vi } from "vitest";
 
 export interface Reply {
+  /** A ready-made Response (e.g. a text/event-stream body); wins over the fields below. */
+  response?: Response;
   status?: number;
   body?: unknown;
   headers?: Record<string, string>;
@@ -39,6 +41,7 @@ export function mockApi(routes: Record<string, Handler>) {
       : typeof match === "function"
         ? await match(call)
         : match;
+    if (reply.response) return reply.response;
     const status = reply.status ?? 200;
     return new Response(status === 204 ? null : JSON.stringify(reply.body ?? null), {
       status,

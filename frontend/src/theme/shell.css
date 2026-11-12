@@ -135,3 +135,34 @@ main:focus { outline: none; box-shadow: none; }
   .safety-box h1 { font-size: var(--fs-3); }
   button { min-height: 44px; }  /* touch target */
 }
+
+/* ---- live monitors (FE-3) ---- */
+.pill { font-size: var(--fs-1); padding: 2px 10px; border-radius: 999px; border: 1px solid var(--line); color: var(--ink-muted); }
+.pill.open { color: var(--aurora); border-color: var(--aurora); }
+.pill.reconnecting, .pill.connecting { color: var(--sun); border-color: var(--sun); }
+.pill.error { color: var(--alert); border-color: var(--alert); }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: var(--gap-3); margin: 0 0 var(--gap-3); }
+.stats dt { color: var(--ink-muted); font-size: var(--fs-1); }
+.stats dd { margin: 0; font-weight: 600; }
+.stats .big { font-size: var(--fs-4); }
+.stats small { font-size: var(--fs-1); color: var(--ink-muted); font-weight: 500; }
+.stats .present { color: var(--aurora); }
+.stats .absent { color: var(--ink-muted); }
+meter { width: 70px; vertical-align: middle; }
+.live-chart { width: 100%; height: auto; display: block; }
+.live-chart .axis { stroke: var(--line); }
+.live-chart .label { fill: var(--ink-muted); font-size: 9px; }
+.live-chart .trace { fill: none; stroke: var(--aurora); stroke-width: 1.8; }
+.live-chart .trace.faint { stroke: var(--accent); stroke-opacity: 0.45; stroke-width: 1.2; }
+.live-chart .trace.pulse { stroke: var(--pulse); }
+.motion-strip { display: flex; gap: 1px; height: 18px; margin-top: var(--gap-2); }
+.motion-strip .m { flex: 1; background: var(--accent); border-radius: 1px; }
+.motion-strip .m.flagged { background: var(--sun); }
+.small { font-size: var(--fs-1); }
+.chart-empty { min-height: 120px; display: flex; align-items: center; justify-content: center; }
+.experimental { border: 1px solid var(--pulse); color: var(--pulse); font-weight: 600; }
+select {
+  display: block; margin-top: var(--gap-1); padding: var(--gap-2) 10px; font: inherit; color: var(--ink);
+  background: var(--space-0); border: 1px solid var(--line); border-radius: 8px;
+}
+.replay-row { align-items: flex-end; justify-content: flex-start; flex-wrap: wrap; }

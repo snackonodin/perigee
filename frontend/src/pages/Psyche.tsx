@@ -3,6 +3,7 @@ import { api } from "../api/client";
 import type { Instrument } from "../api/types";
 import { useLoad } from "../api/useLoad";
 import { CheckinForm } from "../components/CheckinForm";
+import { IndexCards } from "../components/IndexCards";
 import { LoadState } from "../components/LoadState";
 import { QuestionnaireList } from "../components/QuestionnaireList";
 
@@ -21,6 +22,10 @@ export function Psyche() {
 
   return (
     <div className="grid">
+      <section className="card wide" aria-labelledby="idx-title">
+        <h2 id="idx-title">Weekly indices</h2>
+        <IndexCards instruments={list.data ?? []} />
+      </section>
       <section className="card wide" aria-labelledby="q-title">
         <h2 id="q-title">Questionnaires</h2>
         <LoadState state={list} label="questionnaires">

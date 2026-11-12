@@ -160,3 +160,45 @@ def test_0003_keeps_runs_and_child_references(url: str) -> None:
         assert c.execute(text("SELECT run_id FROM sessions")).scalar() == "r1"
         assert c.execute(text("PRAGMA foreign_key_check")).all() == []
     engine.dispose()
+
+
+def test_0004_motion_score_keeps_existing_windows(url: str) -> None:
+    cfg = _cfg(url)
+    engine = get_engine(url)
+    command.upgrade(cfg, "0003")
+    ts = "2026-11-01T00:00:00.000000Z"
+    sid = "11111111-1111-1111-1111-111111111111"
+    with engine.begin() as c:
+        c.execute(
+            text(
+                "INSERT INTO users (id, email, status, created_at, is_synthetic) "
+                f"VALUES ('u1', 'a@x', 'active', '{ts}', 0)"
+            )
+        )
+        c.execute(
+            text(
+                "INSERT INTO sessions (id, user_id, start_utc, end_utc, source_kind, raw_path, "
+                "raw_sha256, rows, duration_s, mean_rows_per_s, max_gap_s, gaps_over_50ms, "
+                "rate_changes, timestamp_wraps, usable, created_at) VALUES "
+                f"('{sid}', 'u1', '{ts}', '{ts}', 'csi', 'raw/x', '{'b' * 64}', "
+                f"0, 0, 0, 0, 0, 0, 0, 0, '{ts}')"
+            )
+        )
+        c.execute(text(
+            "INSERT INTO window_estimates (id, user_id, session_id, t_start, t_end, rr_a, "
+            f"motion_flag, quality, presence) VALUES ('w1', 'u1', '{sid}', '{ts}', '{ts}', "
+            "14.5, 1, 0.9, 1)"
+        ))  # fmt: skip
+    command.upgrade(cfg, "0004")
+    engine.dispose()
+    with engine.begin() as c:
+        row = c.execute(text("SELECT rr_a, motion_flag, motion_score FROM window_estimates")).one()
+        assert tuple(row) == (14.5, 1, None)
+        c.execute(text("UPDATE window_estimates SET motion_score = 0.42"))
+    command.downgrade(cfg, "0003")
+    engine.dispose()
+    with engine.connect() as c:
+        assert c.execute(text("SELECT rr_a FROM window_estimates")).scalar() == 14.5
+        cols = {r[1] for r in c.execute(text("PRAGMA table_info(window_estimates)"))}
+        assert "motion_score" not in cols
+    engine.dispose()

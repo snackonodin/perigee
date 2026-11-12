@@ -22,7 +22,7 @@ export function AppShell() {
       <a className="skip" href="#main">Skip to content</a>
       <header className="topbar">
         <span className="brand">Astronaut Health Monitor</span>
-        {me?.is_synthetic && <span className="badge">Synthetic data</span>}
+        {me?.is_synthetic && <span className="badge">Simulated data</span>}
         <span className="spacer" />
         <span className="muted who">{me?.display_name || me?.email}</span>
         <button type="button" className="ghost" onClick={() => void logout()}>Log out</button>

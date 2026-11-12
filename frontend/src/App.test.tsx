@@ -23,7 +23,7 @@ describe("app shell", () => {
     expect(Array.from(nav.querySelectorAll("a")).map((a) => a.textContent)).toEqual(
       ["Overview", "Breathing", "Heart", "Sleep", "Psyche", "Settings"],
     );
-    expect(screen.getByText("Synthetic data")).toBeTruthy();
+    expect(screen.getByText("Simulated data")).toBeTruthy();
   });
 
   it.each(TABS.map((t) => [t.path, t.label] as const))("marks %s as the current tab", async (path, label) => {

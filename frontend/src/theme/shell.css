@@ -100,3 +100,38 @@ hr { border: none; border-top: 1px solid var(--line); margin: var(--gap-4) 0; }
 .safety-box li { margin: var(--gap-2) 0; font-weight: 600; }
 /* a double click on Submit must not leave a text selection on the locked button */
 .safety-box button { user-select: none; -webkit-user-select: none; }
+
+/* ---- accessibility ---- */
+.skip {
+  position: absolute; left: var(--gap-3); top: -40px; z-index: 10; padding: var(--gap-2) var(--gap-3);
+  background: var(--accent); color: var(--accent-ink); border-radius: 8px; font-weight: 600;
+}
+.skip:focus { top: var(--gap-2); }
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+main:focus { outline: none; box-shadow: none; }
+/* The locked acknowledge button carries meaning ("Please read this (3)"): keep it readable
+   instead of the generic 55% opacity. */
+.safety-box button.ack:disabled { opacity: 1; background: transparent; color: var(--ink-muted); border-color: var(--line); }
+.load-error { border: 1px solid var(--alert); border-radius: 10px; padding: var(--gap-3); }
+.load-error p { color: var(--alert); margin-top: 0; }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; transition: none !important; } }
+
+/* ---- phone width ---- */
+@media (max-width: 600px) {
+  .shell { padding: var(--gap-2) 12px; }
+  .topbar { flex-wrap: wrap; gap: var(--gap-2); }
+  .who { order: 3; width: 100%; }
+  .tabs { scroll-snap-type: x proximity; }
+  .tab { scroll-snap-align: start; padding: var(--gap-2) 12px; }
+  .card, .panel { padding: var(--gap-3); }
+  .kv { grid-template-columns: 1fr; }
+  .kv dd { margin-bottom: var(--gap-2); }
+  .row { flex-wrap: wrap; }
+  .safety { align-items: flex-start; padding: var(--gap-2); }
+  .safety-box { max-height: calc(100vh - 2 * var(--gap-2)); overflow-y: auto; padding: var(--gap-3); }
+  .safety-box h1 { font-size: var(--fs-3); }
+  button { min-height: 44px; }  /* touch target */
+}

@@ -22,5 +22,7 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     setupFiles: ["./src/test-setup.ts"],
+    // keep tokens.css as real text in tests: the contrast test reads it with ?raw
+    css: { include: [/tokens\.css/] },
   },
 });

@@ -35,10 +35,26 @@ export function SafetyProvider({ children }: { children: ReactNode }) {
   );
 }
 
+/** Everything outside the overlay is made inert while it is open: no clicks, no focus, hidden
+ *  from assistive tech. The app mounts in #root; the overlay is a sibling on <body>. */
+function useInertApp() {
+  useEffect(() => {
+    const app = document.getElementById("root");
+    const before = document.activeElement as HTMLElement | null;
+    app?.setAttribute("inert", "");
+    return () => {
+      app?.removeAttribute("inert");
+      before?.focus?.(); // back to where the person was
+    };
+  }, []);
+}
+
 function SafetyScreen({ content, until, onAck }: { content: SafetyContent; until: number; onAck(): void }) {
   const [left, setLeft] = useState(() => Math.max(0, Math.ceil((until - Date.now()) / 1000)));
+  const box = useRef<HTMLDivElement>(null);
   const title = useRef<HTMLHeadingElement>(null);
   const ack = useRef<HTMLButtonElement>(null);
+  useInertApp();
 
   useEffect(() => title.current?.focus(), []);
   useEffect(() => {
@@ -52,8 +68,26 @@ function SafetyScreen({ content, until, onAck }: { content: SafetyContent; until
   }, [left]);
 
   return (
-    <div className="safety" role="alertdialog" aria-modal="true" aria-labelledby="safety-title" aria-describedby="safety-reason">
-      <div className="safety-box">
+    <div
+      className="safety"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="safety-title"
+      aria-describedby="safety-reason"
+      onKeyDown={(e) => {
+        // Escape never dismisses this screen; Tab stays inside it (focus trap).
+        if (e.key === "Escape") e.preventDefault();
+        if (e.key !== "Tab") return;
+        const stops = [title.current, ack.current].filter(
+          (el): el is HTMLHeadingElement | HTMLButtonElement => !!el && !(el as HTMLButtonElement).disabled,
+        );
+        const i = stops.indexOf(document.activeElement as HTMLHeadingElement);
+        const next = e.shiftKey ? stops[(i - 1 + stops.length) % stops.length] : stops[(i + 1) % stops.length];
+        e.preventDefault();
+        next?.focus();
+      }}
+    >
+      <div className="safety-box" ref={box}>
         <h1 id="safety-title" tabIndex={-1} ref={title}>
           Please reach out for support now
         </h1>
@@ -63,9 +97,12 @@ function SafetyScreen({ content, until, onAck }: { content: SafetyContent; until
             <li key={r}>{r}</li>
           ))}
         </ul>
-        <button type="button" ref={ack} disabled={left > 0} onClick={onAck}>
+        <button type="button" ref={ack} className="ack" disabled={left > 0} onClick={onAck}>
           {left > 0 ? `Please read this (${left})` : "I have read this"}
         </button>
+        <p className="sr-only" aria-live="polite">
+          {left > 0 ? "" : "You can now close this screen."}
+        </p>
       </div>
     </div>
   );

@@ -3,6 +3,7 @@ import { useLoad } from "../api/useLoad";
 import { FlagWhy } from "../components/FlagWhy";
 import { fmt } from "../components/format";
 import { GuidanceCard } from "../components/GuidanceCard";
+import { LoadState } from "../components/LoadState";
 import { TodayCard } from "../components/TodayCard";
 
 const STATE_LABEL: Record<string, string> = {
@@ -12,10 +13,10 @@ const STATE_LABEL: Record<string, string> = {
 };
 
 export function Overview() {
-  const { data: today, error, loading } = useLoad(() => api.GET("/api/v1/today"));
-  if (loading && !today) return <p className="muted panel">Loading…</p>;
-  if (!today) return <p className="error panel" role="alert">{error}</p>;
+  const state = useLoad(() => api.GET("/api/v1/today"));
   return (
+    <LoadState state={state} label="today">
+      {(today) => (
     <div className="grid">
       <TodayCard today={today} />
       <section className="card wide" aria-labelledby="flags-title">
@@ -39,5 +40,7 @@ export function Overview() {
         )}
       </section>
     </div>
+      )}
+    </LoadState>
   );
 }

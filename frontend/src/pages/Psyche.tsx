@@ -3,6 +3,7 @@ import { api } from "../api/client";
 import type { Instrument } from "../api/types";
 import { useLoad } from "../api/useLoad";
 import { CheckinForm } from "../components/CheckinForm";
+import { LoadState } from "../components/LoadState";
 import { QuestionnaireList } from "../components/QuestionnaireList";
 
 export function Psyche() {
@@ -22,20 +23,16 @@ export function Psyche() {
     <div className="grid">
       <section className="card wide" aria-labelledby="q-title">
         <h2 id="q-title">Questionnaires</h2>
-        {list.data ? (
-          <QuestionnaireList items={list.data} onStart={(id) => setParams({ instrument: id })} />
-        ) : (
-          <p className={list.error ? "error" : "muted"}>{list.error ?? "Loading…"}</p>
-        )}
+        <LoadState state={list} label="questionnaires">
+          {(items) => <QuestionnaireList items={items} onStart={(id) => setParams({ instrument: id })} />}
+        </LoadState>
       </section>
       {selected && (
         <section className="card wide" aria-labelledby="form-title">
           <h2 id="form-title">{(inst.data as Instrument | undefined)?.name ?? selected}</h2>
-          {inst.data ? (
-            <CheckinForm key={selected} instrument={inst.data as unknown as Instrument} onDone={close} />
-          ) : (
-            <p className={inst.error ? "error" : "muted"}>{inst.error ?? "Loading…"}</p>
-          )}
+          <LoadState state={inst} label="the questionnaire">
+            {(def) => <CheckinForm key={selected} instrument={def as unknown as Instrument} onDone={close} />}
+          </LoadState>
           <button type="button" className="link" onClick={close}>Close</button>
         </section>
       )}

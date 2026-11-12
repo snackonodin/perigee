@@ -32,6 +32,7 @@ export function FlagWhy({ components }: { components: Record<string, unknown> })
   }
   if (rows.length === 0) return <p className="muted">No details recorded.</p>;
   return (
+    <div className="table-wrap">
     <table className="why">
       <thead>
         <tr>
@@ -59,5 +60,6 @@ export function FlagWhy({ components }: { components: Record<string, unknown> })
         })}
       </tbody>
     </table>
+    </div>
   );
 }

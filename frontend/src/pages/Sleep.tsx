@@ -1,5 +1,6 @@
 import { api } from "../api/client";
 import { useLoad } from "../api/useLoad";
+import { LoadState } from "../components/LoadState";
 import { NightsTable } from "../components/NightsTable";
 import { RrTrend } from "../components/RrTrend";
 
@@ -12,17 +13,18 @@ export function Sleep() {
   const nights = useLoad(() => api.GET("/api/v1/nights", { params: { query: { from, to } } }), [from, to]);
   const today = useLoad(() => api.GET("/api/v1/today"));
   const baseline = today.data?.baselines.find((b) => b.feature === "rr_med");
-  const error = nights.error ?? today.error;
   return (
     <div className="grid">
       <section className="card wide" aria-labelledby="trend-title">
         <h2 id="trend-title">Breathing rate trend</h2>
-        {nights.data ? <RrTrend nights={nights.data} baseline={baseline} days={DAYS} /> : <p className="muted">Loading…</p>}
+        <LoadState state={nights} label="nights">
+          {(n) => <RrTrend nights={n} baseline={baseline} days={DAYS} />}
+        </LoadState>
+        {today.error && <p className="muted">Baseline unavailable ({today.error}); showing nights without the band.</p>}
       </section>
       <section className="card wide" aria-labelledby="nights-title">
         <h2 id="nights-title">Nights</h2>
         {nights.data && <NightsTable nights={nights.data} />}
-        {error && <p className="error" role="alert">{error}</p>}
       </section>
     </div>
   );

@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { api, errorText } from "../api/client";
+import { useLoad } from "../api/useLoad";
+import { LoadState } from "./LoadState";
 import { CONSENT_SCOPES, type ConsentOut, type ConsentScope } from "../api/types";
 
 /** Version label of the consent wording below (same label the demo page used). */
@@ -13,15 +15,14 @@ export const CONSENT_TEXT: Record<ConsentScope, string> = {
 };
 
 export function Consents() {
+  const loaded = useLoad(() => api.GET("/api/v1/me/consents"));
   const [state, setState] = useState<Record<string, ConsentOut> | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<ConsentScope | null>(null);
 
   useEffect(() => {
-    api.GET("/api/v1/me/consents").then(({ data, error: e, response }) =>
-      data ? setState(data) : setError(errorText(e, response.status)),
-    );
-  }, []);
+    if (loaded.data) setState(loaded.data);
+  }, [loaded.data]);
 
   async function toggle(scope: ConsentScope, granted: boolean) {
     setBusy(scope);
@@ -34,7 +35,7 @@ export function Consents() {
     else setError(errorText(e, response.status));
   }
 
-  if (!state) return <p className={error ? "error" : "muted"}>{error ?? "Loading…"}</p>;
+  if (!state) return <LoadState state={loaded} label="your consents">{() => null}</LoadState>;
   return (
     <fieldset className="consents">
       <legend>What may be stored</legend>

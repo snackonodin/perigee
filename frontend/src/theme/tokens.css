@@ -12,7 +12,7 @@
   /* text */
   --ink: #e7ecf7;
   --ink-muted: #94a2c0;
-  --ink-faint: #5d6b88;
+  --ink-faint: #808ea9;     /* >= 4.5:1 on every surface (see contrast.test.ts) */
 
   /* accents */
   --accent: #7aa2ff;          /* nebula blue: primary actions, focus */

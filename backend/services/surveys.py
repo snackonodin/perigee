@@ -86,8 +86,11 @@ def safety_check(instrument: dict, answers: dict[str, int]) -> SafetyResult:
     """
     for item in instrument.get("items", []):
         trigger = item.get("safety_trigger")
-        if not trigger or item["key"] not in answers:
+        if not trigger:
             continue
+        if item["key"] not in answers:
+            reason, resources = _safety_resources()
+            return SafetyResult(show=True, reason=reason, resources=list(resources))
         value = answers[item["key"]]
         try:
             fired = value >= trigger["min_value"]

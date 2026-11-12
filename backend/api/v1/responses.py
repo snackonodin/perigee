@@ -46,6 +46,11 @@ class ResponseOut(BaseModel):
     safety: SafetyResult
     id: str | None = None
     stored: bool = False
+    answers_retained: bool = Field(
+        default=False,
+        description="True only if the item answers were kept: encrypted survey answers "
+        "(survey_answers consent) or the check-in row (checkins consent).",
+    )
     total: float | None = None
     scores: dict[str, Any] | None = None
     error: str | None = None  # "invalid" | "unknown_instrument" | "storage"

@@ -320,7 +320,7 @@ def test_storage_follows_consent_exactly(world: World, sub, who, survey_answers,
 
         if is_checkin:
             assert _count(SurveyResponseRow, uid) == sr_before  # never in survey_responses
-            assert j["stored"] is checkins
+            assert j["stored"] is checkins and j["answers_retained"] is checkins
             if checkins:
                 assert _count(CheckinDaily, uid, *where) == 1
                 with db_mod.SessionLocal() as s:
@@ -334,6 +334,7 @@ def test_storage_follows_consent_exactly(world: World, sub, who, survey_answers,
             with db_mod.SessionLocal() as s:
                 row = s.get(SurveyResponseRow, j["id"])
                 assert row.user_id == uid
+                assert j["answers_retained"] is survey_answers
                 if survey_answers:
                     assert row.answers == sub["answers"] and row.answers_hmac is None
                 else:

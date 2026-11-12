@@ -16,7 +16,14 @@ from fastapi.testclient import TestClient
 from backend import db as db_mod
 from backend.config import get_settings
 from backend.main import create_app
-from backend.models import Base, Flag, GuidanceShown, SafetyEvent, SurveyResponseRow
+from backend.models import (
+    Base,
+    CheckinDaily,
+    Flag,
+    GuidanceShown,
+    SafetyEvent,
+    SurveyResponseRow,
+)
 from backend.services import accounts, guidance, surveys
 
 PW = "long enough password"
@@ -279,3 +286,49 @@ def test_missing_version_invalid_answers_still_safety(client, auth) -> None:
     ).json()
     assert j["ok"] is False and j["error"] == "invalid" and j["safety"]["show"] is True
     assert _count(SafetyEvent) == 1
+
+
+# --------------------------------------------------------------------------- answers_retained
+
+
+@pytest.mark.parametrize("survey_answers", [True, False])
+@pytest.mark.parametrize("checkins", [True, False])
+@pytest.mark.parametrize(
+    "instrument, answers",
+    [
+        ("phq2", {"phq2_1": 1, "phq2_2": 2}),
+        ("daily_pm", {"mood": 2, "stress": 1, "energy": 3}),
+    ],
+)
+def test_answers_retained_matches_consent_and_db(
+    client, instrument, answers, survey_answers, checkins
+) -> None:
+    uid, h = _user(f"r-{instrument}-{survey_answers}-{checkins}@example.test", consents=False)
+    with db_mod.SessionLocal() as s:
+        accounts.set_consents(
+            s, uid, {"survey_answers": survey_answers, "checkins": checkins}, "t1"
+        )
+    j = _post(client, h, instrument, answers).json()
+    assert j["ok"] is True
+    if instrument == "phq2":
+        assert j["stored"] is True
+        assert j["answers_retained"] is survey_answers
+        with db_mod.SessionLocal() as s:
+            row = s.get(SurveyResponseRow, j["id"])
+            assert (row.answers is not None) is j["answers_retained"]
+    else:
+        assert j["stored"] is checkins and j["answers_retained"] is checkins
+        with db_mod.SessionLocal() as s:
+            assert (s.get(CheckinDaily, j["id"]) is not None) if checkins else j["id"] is None
+
+
+def test_answers_retained_false_on_invalid_and_storage_error(client, auth, monkeypatch) -> None:
+    _, h = auth
+    assert _post(client, h, answers={"phq9_9": 1}).json()["answers_retained"] is False
+
+    def fail(*a, **k):
+        raise RuntimeError("disk full")
+
+    monkeypatch.setattr(surveys, "_store_survey", fail)
+    r = _post(client, h, answers=_phq9(0))
+    assert r.status_code == 500 and r.json()["answers_retained"] is False

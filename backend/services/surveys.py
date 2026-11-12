@@ -352,8 +352,9 @@ def submit_response(db: Any, user_id: str, data: SurveyResponse) -> dict:
     try:
         if instrument["id"] in CHECKIN_SLOTS:
             row_id = _store_checkin(db, user_id, instrument, data)
+            retained = row_id is not None  # check-in answers are the stored row itself
         else:
-            row_id = _store_survey(db, user_id, instrument, data, scored)
+            row_id, retained = _store_survey(db, user_id, instrument, data, scored)
     except Exception:
         db.rollback()
         log.error("response could not be stored (instrument=%s)", instrument["id"])
@@ -367,6 +368,7 @@ def submit_response(db: Any, user_id: str, data: SurveyResponse) -> dict:
     return {
         "id": row_id,
         "stored": row_id is not None,
+        "answers_retained": retained,
         "total": scored["total"],
         "scores": {k: v for k, v in scored.items() if k != "total"},
         "safety": safety.model_dump(),
@@ -375,9 +377,10 @@ def submit_response(db: Any, user_id: str, data: SurveyResponse) -> dict:
 
 def _store_survey(
     db: Any, user_id: str, instrument: dict, data: SurveyResponse, scored: dict
-) -> str:
+) -> tuple[str, bool]:
     """survey_responses. With survey_answers consent: encrypted answers + scores.
-    Without: answers NULL; total, score/band in scores and a keyed HMAC in answers_hmac."""
+    Without: answers NULL; total, score/band in scores and a keyed HMAC in answers_hmac.
+    Returns (row id, answers_retained) where retained means encrypted answers were written."""
     m = _models()
     scores = {k: v for k, v in scored.items() if k != "total"}
     answers: dict[str, int] | None = None
@@ -399,7 +402,7 @@ def _store_survey(
     )
     db.add(row)
     db.commit()
-    return row.id
+    return row.id, answers is not None
 
 
 def _store_checkin(db: Any, user_id: str, instrument: dict, data: SurveyResponse) -> str | None:
@@ -605,6 +608,7 @@ def _result(safety: SafetyResult, *, error: str, errors: list[str]) -> dict:
         "ok": False,
         "id": None,
         "stored": False,
+        "answers_retained": False,
         "total": None,
         "scores": None,
         "safety": safety.model_dump(),

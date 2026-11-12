@@ -800,10 +800,12 @@ tasks:
   title: answers_retained on ResponseOut (truthful retention wording in UI)
   owner: cf
   branch: feat/surveys
-  state: review
+  state: done
   blockers: []
   done_when: per-consent tests; added field only
-  sha: eea6e03
+  sha: 64424c5
+  times:
+    done: '2026-11-12T01:16:58Z'
 - id: LOOP-2
   title: check_merge runs npm ci + tsc + vitest when frontend/ changes; PROTOCOL §5 heads-up rule
   owner: 7a

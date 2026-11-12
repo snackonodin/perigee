@@ -44,3 +44,30 @@ curl -sS -X POST "$BASE/api/v1/jobs/process" -H 'Content-Type: application/json'
 ```
 
 Clarification to coordination request above: this integrator pane requests loop to make its owned `tests/contract/test_api_contract.py::live_api` fixture session-scoped (retaining ephemeral port and temp DB) and add the persistent 60-second timeout config/dependency. For the aggregate command here, `pytest-timeout==2.4.0` was installed only in `/tmp/astro-app-verify312` and the timeout was passed explicitly; no root config or loop-owned test file was edited.
+REQUEST loop → integrator-owned follow-up: Please make `tests/contract/test_api_contract.py::live_api` session scoped using `tmp_path_factory`, while preserving its ephemeral-port and isolated temp-DB behavior. Please also add `pytest-timeout` to project test dependencies and configure a 60-second per-test timeout in `pyproject.toml`. These paths are loop-owned; I did not retain edits outside tests/backend or tests/safety. I will use the timeout CLI option for this requested aggregate run.
+
+2026-11-12 verification requested by user:
+- One aggregate pytest command ran with `--timeout=60 --timeout-method=signal`. Result: collection interrupted, 2 errors (4.98s pytest / 8.67s process wall time), zero tests executed. Both collection errors are `ModuleNotFoundError: No module named 'plugins.vendor.waiwai1'` from `tests/pipeline/test_team_heart_iq.py` and `tests/pipeline/test_team_plugins.py`. The target included `tests/safety`, `tests/backend`, `tests/db/test_migrations.py`, `tests/pipeline`, and `tests/pipeline/test_pipeline.py::test_cli_date_param_alias` (the no-window CLI alias regression).
+- Requested fuzz run from `waiwai1/`: `PYTHONPATH=. python evals/fuzz_eval.py --seed 5 --n 300 --exhaustive` → `{"violations": 0, "by_rule": {}, "fitness": 98.67}`.
+- Live app launched on ephemeral port 54384 with a fresh temp SQLite DB under `/var/folders/.../astro-live-isolated-.../data/db/astro.db`; it was stopped by the check harness. All four responses returned top-level `crisis:true`, `stored:false`, `total:null`, `scores:null`, `errors:[]`. Repeated nightly submissions for the same signed-in user/date both succeeded; persisted `context_engine_nights` row count was 1 and final state retained `schema_version:"1"`, empty `history` / `baseline_rr` / `context_history`, `cusum_s_t:0`, and `persistence_days:0`.
+
+Sanitized curl transcript (signup token is represented by `$TOKEN`):
+```sh
+BASE=http://127.0.0.1:54384
+curl -sS -X POST "$BASE/api/v1/auth/signup" -H 'Content-Type: application/json' -d '{"email":"live-crisis@example.test","password":"Live-check-password-123"}'
+# 201; response included user_id and tokens; do not retain token values.
+curl -sS -X POST "$BASE/api/v1/responses" -H 'Content-Type: application/json' -H "Authorization: Bearer $TOKEN" -d '{"instrument_id":"phq9","answers":{"phq9_9":1}}'
+curl -sS -X POST "$BASE/api/v1/responses" -H 'Content-Type: application/json' -H "Authorization: Bearer $TOKEN" -d '{"instrument_id":"phq9","answers":{}}'
+curl -sS -X POST "$BASE/api/v1/responses" -H 'Content-Type: application/json' -H "Authorization: Bearer $TOKEN" -d '{"instrument_id":"phq9","answers":{"phq9_9":null}}'
+curl -sS -X POST "$BASE/api/v1/responses" -H 'Content-Type: application/json' -H "Authorization: Bearer $TOKEN" -d '{"instrument_id":"phq9","answers":{"phq9_9":"1"}}'
+# Each response body:
+# {"ok":false,"crisis":true,"safety":{"show":true,"reason":"You indicated thoughts of being better off dead or of hurting yourself. You do not have to handle this alone.","resources":["Contact your flight surgeon or your designated support contact now.","If you are in immediate danger, call your local emergency number now.","If you can, stay with or reach out to someone you trust while you get support."]},"id":null,"stored":false,"answers_retained":false,"total":null,"scores":null,"error":"safety","errors":[]}
+curl -sS -X POST "$BASE/api/v1/jobs/process" -H 'Content-Type: application/json' -H "Authorization: Bearer $TOKEN" -d '{"kind":"run_nightly","params":{"date":"2026-11-10"}}'
+# First response: {"id":"325c2cc8-ccd7-4b09-9e1a-1dc6dbd968ea","status":"queued"}
+curl -sS -X POST "$BASE/api/v1/jobs/process" -H 'Content-Type: application/json' -H "Authorization: Bearer $TOKEN" -d '{"kind":"run_nightly","params":{"date":"2026-11-10"}}'
+# Second response: {"id":"959394ad-ba21-4646-95e4-41c257c4774e","status":"queued"}
+# Both GET /api/v1/jobs/{id} polls ended status=succeeded. Isolated DB check: row_count=1; state unchanged, schema_version=1.
+```
+
+Clarification to coordination request above: this integrator pane requests loop to make its owned `tests/contract/test_api_contract.py::live_api` fixture session-scoped (retaining ephemeral port and temp DB) and add the persistent 60-second timeout config/dependency. For the aggregate command here, `pytest-timeout==2.4.0` was installed only in `/tmp/astro-app-verify312` and the timeout was passed explicitly; no root config or loop-owned test file was edited.
+

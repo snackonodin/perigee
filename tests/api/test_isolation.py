@@ -111,6 +111,24 @@ ISOLATION_CASES: list[IsolationCase] = [
         "get", "/api/v1/checkins", 200, params={"from": "2026-10-01", "to": "2026-12-01"}
     ),
     IsolationCase("get", "/api/v1/today", 200),
+    # injection (INJ-1): estimates for A's session must look like a missing session, write
+    # nothing and reveal nothing, whatever else the request carries
+    IsolationCase(
+        "post",
+        "/api/v1/ingest/estimates",
+        404,
+        json={
+            "session_id": "{a_session_id}",
+            "windows": [
+                {
+                    "t_start": "2026-11-01T23:00:00+00:00",
+                    "t_end": "2026-11-01T23:01:00+00:00",
+                    "rr_a": 14.0,
+                    "rr_b": 14.0,
+                }
+            ],
+        },
+    ),
 ]
 
 # Routes that serve no per-user data. Anything else must have a case.

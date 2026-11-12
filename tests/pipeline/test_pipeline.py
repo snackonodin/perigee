@@ -126,7 +126,7 @@ def test_end_to_end_flag_and_idempotent_rerun(db, processed) -> None:
 def test_band_alert_and_direction_from_indices(db, processed) -> None:
     uid, _, _ = processed
 
-    def provider(_db, _uid, week):
+    def provider(_db, _uid, week, until=None):
         if week != date(2026, 11, 9):  # Monday of the night's week
             return {}
         return {
@@ -190,7 +190,7 @@ def test_unusable_session_is_refused(db, processed) -> None:
 def test_latest_indices_keeps_each_index_latest_week(db) -> None:
     from csi_core.config import get_config
 
-    def provider(_db, _uid, week):
+    def provider(_db, _uid, week, until=None):
         if week == date(2026, 11, 9):  # only check-ins this week
             return {
                 "daily_pm.stress": {"value": 2.0, "band": None, "band_alert": False, "direction": 1}

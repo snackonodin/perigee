@@ -17,6 +17,9 @@ tools/ops/, tests/unit/test_ops_*.py, tests/e2e/ (OPS-7).
 - Scratch work in mktemp dirs removed by a trap. Output ≤ 1 line per worktree.
 - bash 3.2 compatible (macOS): guard empty arrays under `set -u`.
 - Never message workers directly; propose process changes to the coordinator.
+- Format only the files you changed (`ruff format <file> ...` from `git diff --name-only main...`); never `ruff format <dir>` over shared paths (L3).
+- Never let a pipe hide a failing exit code: `set -o pipefail`, or check `${PIPESTATUS[0]}` (bash) / `${pipestatus[1]}` (zsh) (L9).
+- Every bug fix ships a guard (a test, a config key or a rule line in a prompt) and a lesson: add a second report line `LESSON: <symptom> | <root cause> | guard=<test:path::name|config:file:key|rule:file:text>`.
 
 ## Report (one line, SendMessage to build-astronaut-health-backend)
 `[ops] <ID> <review|blocked|question> sha=<7+ hex> tests=<pass|fail> ruff=<pass|fail> — <note>`
@@ -24,6 +27,7 @@ tools/ops/, tests/unit/test_ops_*.py, tests/e2e/ (OPS-7).
 ## Next task (paste to start or resume)
 ```
 You are the ops session. In the ops worktree with VENV set:
+0. Read docs/ops/LESSONS.md (open lessons first) and apply every guard rule it lists.
 1. git rebase main if main moved; pytest && ruff check . must pass.
 2. python tools/ops/board.py list --owner ops --next [--exclude <ID just reported>]
 3. Implement it, one commit per deliverable, run it against this repo and a throwaway repo.

@@ -38,8 +38,8 @@ export function RrTrend({ nights, baseline, days = 28, now = Date.now() }: {
         )}
         {med !== null && <line className="median" x1={L} x2={W - R} y1={y(med)} y2={y(med)} />}
         <line className="axis" x1={L} x2={W - R} y1={H - B} y2={H - B} />
-        {[lo + pad, (lo + hi) / 2, hi - pad].map((v) => (
-          <text key={v} className="label" x={L - 6} y={y(v) + 4} textAnchor="end">{fmt(v)}</text>
+        {[lo + pad, (lo + hi) / 2, hi - pad].map((v, i) => (
+          <text key={`y${i}`} className="label" data-axis="y" x={L - 6} y={y(v) + 4} textAnchor="end">{fmt(v)}</text>
         ))}
         <text className="label" x={L} y={H - 8}>{new Date(start).toISOString().slice(0, 10)}</text>
         <text className="label" x={W - R} y={H - 8} textAnchor="end">{new Date(end).toISOString().slice(0, 10)}</text>

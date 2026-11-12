@@ -151,7 +151,7 @@ main:focus { outline: none; box-shadow: none; }
 meter { width: 70px; vertical-align: middle; }
 .live-chart { width: 100%; height: auto; display: block; }
 .live-chart .axis { stroke: var(--line); }
-.live-chart .label { fill: var(--ink-muted); font-size: 11px; }
+.live-chart .label { fill: var(--ink-muted); font-size: 9px; }
 .live-chart .trace { fill: none; stroke: var(--aurora); stroke-width: 1.8; }
 .live-chart .trace.faint { stroke: var(--accent); stroke-opacity: 0.45; stroke-width: 1.2; }
 .live-chart .trace.pulse { stroke: var(--pulse); }

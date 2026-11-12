@@ -10,6 +10,8 @@ export interface Series {
 const W = 640, H = 200, L = 40, R = 10, T = 10, B = 22;
 export const MAX_DRAW_POINTS = 300;
 
+const hhmm = (t: number) => `${new Date(t).toISOString().slice(11, 16)} UTC`;
+
 /** Polylines broken at gaps (null), decimated to MAX_DRAW_POINTS per series. */
 export function LiveChart({ series, unit, label }: { series: Series[]; unit: string; label: string }) {
   const drawn = series.map((s) => ({ ...s, points: decimate(s.points, MAX_DRAW_POINTS) }));
@@ -38,13 +40,21 @@ export function LiveChart({ series, unit, label }: { series: Series[]; unit: str
   return (
     <svg className="live-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label}>
       <line className="axis" x1={L} x2={W - R} y1={H - B} y2={H - B} />
-      {[lo + pad, (lo + hi) / 2, hi - pad].map((v) => (
-        <text key={v} className="label" x={L - 6} y={y(v) + 4} textAnchor="end">
+      {/* keyed by slot, not value: equal values (one point, a flat line) must not
+          produce duplicate keys, which leave stale labels in the DOM */}
+      {[lo + pad, (lo + hi) / 2, hi - pad].map((v, i) => (
+        <text key={`y${i}`} className="label" data-axis="y" x={L - 6} y={y(v) + 4} textAnchor="end">
           {fmt(v)}
         </text>
       ))}
-      <text className="label" x={W - R} y={H - 6} textAnchor="end">
+      <text className="label" data-axis="t" x={L} y={H - 6}>
+        {hhmm(t0)}
+      </text>
+      <text className="label" data-axis="t" x={(L + W - R) / 2} y={H - 6} textAnchor="middle">
         {unit}
+      </text>
+      <text className="label" data-axis="t" x={W - R} y={H - 6} textAnchor="end">
+        {hhmm(t1)}
       </text>
       {drawn.flatMap((s) =>
         segments(s.points).map((pts, i) => (

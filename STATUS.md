@@ -9,3 +9,5 @@
 - [done] Frontend Safety screen: top-level `crisis` true or missing fails closed before normal scores/results; `npm run build` passed.
 - [done] Frontend Persona and Body screens: five-trait profile dials/radar and interactive systems scan; unavailable personal history/signals are labeled without fabricated values. `npm run build` passed.
 - [next] Wait for `go`; then implement Sleep, Check-in, Briefing, Consent, and Settings.
+- [done] Frontend visual direction: split sign-in with original spacecraft artwork; trend charts use thin accent lines, faint gridlines, soft personal bands, latest-point markers, and a level ring/pill. `npm run build` passed.
+- [blocker] API preview at 127.0.0.1:8765 is not running: the configured Python cannot resolve pinned NumPy 2.5.4, and Python 3.12 dependency setup stalled compiling cryptography. Integrator request is in `coord/pane-frontend.md`.

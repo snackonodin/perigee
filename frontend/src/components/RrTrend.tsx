@@ -37,6 +37,9 @@ export function RrTrend({ nights, baseline, days = 28, now = Date.now() }: {
             height={Math.max(y(med - mad) - y(med + mad), 1)} />
         )}
         {med !== null && <line className="median" x1={L} x2={W - R} y1={y(med)} y2={y(med)} />}
+        {[lo + pad, (lo + hi) / 2, hi - pad].map((v, i) => (
+          <line key={`grid${i}`} className="gridline" x1={L} x2={W - R} y1={y(v)} y2={y(v)} />
+        ))}
         <line className="axis" x1={L} x2={W - R} y1={H - B} y2={H - B} />
         {[lo + pad, (lo + hi) / 2, hi - pad].map((v, i) => (
           <text key={`y${i}`} className="label" data-axis="y" x={L - 6} y={y(v) + 4} textAnchor="end">{fmt(v)}</text>
@@ -44,11 +47,11 @@ export function RrTrend({ nights, baseline, days = 28, now = Date.now() }: {
         <text className="label" x={L} y={H - 8}>{new Date(start).toISOString().slice(0, 10)}</text>
         <text className="label" x={W - R} y={H - 8} textAnchor="end">{new Date(end).toISOString().slice(0, 10)}</text>
         <polyline className="line" points={pts.map((p) => `${x(p.t)},${y(p.v)}`).join(" ")} />
-        {pts.map((p) => (
-          <circle key={p.d} className={out(p.v) ? "pt out" : "pt"} cx={x(p.t)} cy={y(p.v)} r={3.5}>
-            <title>{`${p.d}: ${fmt(p.v)} breaths/min`}</title>
+        {pts.length > 0 && (() => { const p = pts[pts.length - 1]; return (
+          <circle className={out(p.v) ? "pt out" : "pt"} cx={x(p.t)} cy={y(p.v)} r={3.5}>
+            <title>{`Latest night ${p.d}: ${fmt(p.v)} breaths/min`}</title>
           </circle>
-        ))}
+        ); })()}
       </svg>
       <figcaption className="muted">
         Median breathing rate per valid night (breaths/min). Shaded: your median ± MAD.

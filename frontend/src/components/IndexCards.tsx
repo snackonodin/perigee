@@ -44,6 +44,8 @@ function Sparkline({ title, weeks, values }: { title: string; weeks: string[]; v
   const W = 220, H = 48, P = 6;
   const nums = values.filter((v): v is number => v !== undefined);
   if (nums.length === 0) return null;
+  let latestIndex = -1;
+  values.forEach((v, i) => { if (v !== undefined) latestIndex = i; });
   const lo = Math.min(...nums), hi = Math.max(...nums);
   const span = hi - lo || 1;
   const x = (i: number) => P + (i / Math.max(weeks.length - 1, 1)) * (W - 2 * P);
@@ -63,13 +65,13 @@ function Sparkline({ title, weeks, values }: { title: string; weeks: string[]; v
           <polyline key={run[0].i} className="line" points={run.map((p) => `${x(p.i)},${y(p.v)}`).join(" ")} />
         ) : null,
       )}
-      {values.map((v, i) =>
-        v === undefined ? null : (
-          <circle key={weeks[i]} className="pt" cx={x(i)} cy={y(v)} r={2.5}>
-            <title>{`Week of ${weeks[i]}: ${fmt(v, 1)}`}</title>
-          </circle>
-        ),
-      )}
+      {(() => {
+        const i = latestIndex;
+        const v = values[i];
+        return i < 0 || v === undefined ? null : <circle className="pt" cx={x(i)} cy={y(v)} r={2.5}>
+          <title>{`Latest week of ${weeks[i]}: ${fmt(v, 1)}`}</title>
+        </circle>;
+      })()}
     </svg>
   );
 }

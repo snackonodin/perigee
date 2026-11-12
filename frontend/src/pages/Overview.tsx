@@ -25,26 +25,26 @@ type EngineToday = TodayOut & {
 };
 
 function levelText(level?: number): { icon: string; text: string; className: string } {
-  if (level === undefined || level === null) return { icon: "○", text: "Building your picture", className: "quiet" };
-  if (level >= 3) return { icon: "✦", text: "High shift", className: "high" };
-  if (level === 2) return { icon: "◌", text: "Watch", className: "watch" };
-  if (level === 1) return { icon: "◌", text: "A little different", className: "watch" };
-  return { icon: "✓", text: "Near your usual", className: "usual" };
+  if (level === undefined || level === null) return { icon: "◌", text: "Building your picture", className: "quiet" };
+  if (level >= 2) return { icon: "◌", text: "Alert", className: "high" };
+  if (level === 1) return { icon: "◌", text: "Watch", className: "watch" };
+  return { icon: "◌", text: "Normal", className: "usual" };
 }
 
-function Ring({ value, label }: { value?: number; label: string }) {
+function Ring({ level, label }: { level?: number; label: string }) {
   const radius = 67;
   const circumference = 2 * Math.PI * radius;
-  const valid = typeof value === "number" && Number.isFinite(value);
-  const score = valid ? Math.max(0, Math.min(100, value!)) : 0;
+  const valid = typeof level === "number" && Number.isFinite(level);
+  const score = valid ? Math.max(1, Math.min(3, Math.max(0, level!))) / 3 : 0;
+  const status = levelText(level);
   return (
-    <figure className="today-ring" aria-label={valid ? `${label}: ${Math.round(score)} out of 100` : `${label}: no reading yet`}>
-      <svg viewBox="0 0 160 160" role="img" aria-label={valid ? `${Math.round(score)} out of 100` : "No reading yet"}>
+    <figure className="today-ring" aria-label={valid ? `${label}: ${status.text}` : `${label}: no reading yet`}>
+      <svg viewBox="0 0 160 160" role="img" aria-label={valid ? `${status.text}, level ${Math.round(level!)}` : "No reading yet"}>
         <circle className="ring-track" cx="80" cy="80" r={radius} />
-        <circle className="ring-value" cx="80" cy="80" r={radius} strokeDasharray={circumference}
-          strokeDashoffset={circumference * (1 - score / 100)} />
-        <text className="hero-value" x="80" y="78" textAnchor="middle">{valid ? Math.round(score) : "—"}</text>
-        <text className="hero-label" x="80" y="99" textAnchor="middle">{valid ? "of 100" : "no reading"}</text>
+        <circle className={`ring-value ${status.className}`} cx="80" cy="80" r={radius} strokeDasharray={circumference}
+          strokeDashoffset={circumference * (1 - score)} />
+        <text className="hero-value" x="80" y="78" textAnchor="middle">{valid ? Math.round(level!) : "—"}</text>
+        <text className="hero-label" x="80" y="99" textAnchor="middle">{valid ? status.text : "no reading"}</text>
       </svg>
       <figcaption className="sr-only">{valid ? `${label} ${Math.round(score)} out of 100` : `${label} is not available yet`}</figcaption>
     </figure>
@@ -110,18 +110,20 @@ export function Overview() {
 
             <div className="grid today-grid">
               <section className="card today-hero" aria-labelledby="ring-heading">
-                <Ring value={resilience} label="Resilience index" />
+                <Ring level={physiology} label="Today's level" />
                 <div className="hero-copy">
                   <p className="eyebrow">{night ? `Night of ${night.date}` : "First nights"}</p>
                   <h2 id="ring-heading">{resilience === undefined ? "Your picture is taking shape" : "Your systems, in context"}</h2>
-                  <p>{resilience === undefined
+                  <p>{physiology === undefined
                     ? "A personal baseline grows from valid nights. No one else is used as a comparison."
-                    : "One view of today's signals, measured against your own recent pattern."}</p>
+                    : "Today's level, read against your own recent pattern."}</p>
                   {today.sync_status?.state === "offline" && <p className="offline-note"><span aria-hidden="true">◉</span> Saved on this station</p>}
                 </div>
               </section>
 
               <section className="tile-grid" aria-label="Personal system signals">
+                <SystemTile title="Resilience" value={resilience == null ? "—" : `${Math.round(resilience)} / 100`}
+                  detail="A view of your recent signals" />
                 <SystemTile title="Respiration" value={rr == null ? "—" : `${fmt(rr)} /min`}
                   detail={night ? `${fmt(night.presence_hours)} h sensed overnight` : "No overnight signal yet"} level={physiology} />
                 <SystemTile title="Mind" value={health?.mental_fatigue_score == null ? "—" : `${Math.round(health.mental_fatigue_score)} / 100`}

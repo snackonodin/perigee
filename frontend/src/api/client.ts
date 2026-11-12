@@ -36,6 +36,18 @@ function refreshOnce(): Promise<boolean> {
   return refreshing;
 }
 
+/** Rotate the tokens (shared with concurrent callers). For streams that learn mid-stream
+ *  that the token expired (SSE `bye: unauthorized`). */
+export function refreshSession(): Promise<boolean> {
+  return refreshOnce();
+}
+
+/** End the session: forget the tokens and hand over to AuthProvider (back to /login). */
+export function endSession(): void {
+  tokens.clear();
+  onUnauthorized();
+}
+
 function withAuth(req: Request): Request {
   const r = new Request(req);
   const at = tokens.access;

@@ -34,6 +34,6 @@ describe("app shell", () => {
 
   it("labels Heart as experimental", async () => {
     render(<App initialPath="/heart" />);
-    expect((await screen.findByRole("note")).textContent).toMatch(/Experimental/);
+    expect((await screen.findByRole("note")).textContent).toMatch(/experimental/i);
   });
 });

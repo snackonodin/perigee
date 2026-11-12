@@ -721,12 +721,13 @@ tasks:
     warns on broad reformat (L3), metrics.sh shows recurrence'
   owner: 7a
   branch: feat/accounts
-  state: review
+  state: done
   blockers: []
   done_when: a simulated RED merge creates a lesson stub; lessons.py close refuses without a guard reference; tests in tmp repos
-  sha: a00287e
+  sha: 0bf3c21
   times:
     review: '2026-11-11T20:13:05Z'
+    done: '2026-11-12T01:35:03Z'
 - id: GATE-1
   title: 'Backend gate: QA-1, INJ-1, LIVE-1, FUZZ-1, LEAK-1, LOOP-1 merged; e2e flow + seed-personas + backup/restore green on a fresh bootstrap'
   owner: ca
@@ -814,13 +815,14 @@ tasks:
   title: check_merge runs npm ci + tsc + vitest when frontend/ changes; PROTOCOL §5 heads-up rule
   owner: 7a
   branch: feat/accounts
-  state: review
+  state: done
   blockers:
   - LOOP-1
   done_when: a frontend type error makes a merge RED and writes a lesson stub
-  sha: ce9e192
+  sha: 0bf3c21
   times:
     review: '2026-11-12T01:17:10Z'
+    done: '2026-11-12T01:35:03Z'
 - id: LEAK-1b
   title: fusion.run_nightly passes until=night end to weekly_indices; backfill test
   owner: f4

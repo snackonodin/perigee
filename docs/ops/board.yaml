@@ -810,8 +810,26 @@ tasks:
   title: check_merge runs npm ci + tsc + vitest when frontend/ changes; PROTOCOL §5 heads-up rule
   owner: 7a
   branch: feat/accounts
-  state: doing
+  state: review
   blockers:
   - LOOP-1
   done_when: a frontend type error makes a merge RED and writes a lesson stub
-  sha: null
+  sha: ce9e192
+  times:
+    review: '2026-11-12T01:17:10Z'
+- id: LEAK-1b
+  title: fusion.run_nightly passes until=night end to weekly_indices; backfill test
+  owner: f4
+  branch: feat/pipeline
+  state: review
+  blockers: []
+  done_when: backfilled night unaffected by later answers
+  sha: c37e989
+- id: FE-4
+  title: Psyche weekly index cards with band alert + citation + 8-week sparkline
+  owner: cf
+  branch: feat/frontend-psy
+  state: review
+  blockers: []
+  done_when: vitest + tsc + build green
+  sha: df5acee

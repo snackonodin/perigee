@@ -800,8 +800,11 @@ export interface components {
          *     so a malformed answer can never skip the safety screen.
          */
         ResponseIn: {
-            /** Administered At */
-            administered_at?: string | null;
+            /**
+             * Administered At
+             * Format: date-time
+             */
+            administered_at?: string;
             /** Answers */
             answers: {
                 [key: string]: unknown;
@@ -809,7 +812,7 @@ export interface components {
             /** Instrument Id */
             instrument_id: string;
             /** Instrument Version */
-            instrument_version?: string | null;
+            instrument_version?: string;
         };
         /** ResponseOut */
         ResponseOut: {

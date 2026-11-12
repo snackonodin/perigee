@@ -15,4 +15,5 @@
 - [done] Frontend Sleep screen: 28-night sensed-presence timeline, personal breathing-rate band, midsleep availability summary, expandable night details, and empty API fallback (`TODO(api)`) on network/5xx failure. No sleep-stage data is returned, so no stages are fabricated. `npm run build` passed.
 - [next] Wait for `go`; then implement Check-in.
 - [done] Frontend Check-in: daily prompts and optional questionnaires advance one card at a time; monthly calendar uses colored entry-type dots and does not infer mood. Safety handling remains ahead of result display. `npm run build` passed.
-- [next] Wait for `go`; then implement Briefing.
+- [done] Visual reset: fixed app frame with bottom/side navigation, animated route changes and horizontal swipe navigation; Today/Body now show prominent respiration stats and an experimental live HR tile. Check-in questions open as a focused screen.
+- [next] Wait for `go`; then apply this app-native visual pass to Sleep and Check-in, followed by Briefing.

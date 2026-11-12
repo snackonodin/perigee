@@ -20,6 +20,10 @@ export function Psyche() {
     ?api.GET("/api/v1/instruments/{instrument_id}",{params:{path:{instrument_id:selected}}})
     :Promise.resolve({data:undefined}),[selected]);
   const close=()=>{setParams({});history.reload();};
+  if(selected)return <div className="screen-page focused-checkin">
+    <header className="page-heading app-page-heading"><button type="button" className="ghost back-checkin" onClick={close}><span aria-hidden="true">←</span> All check-ins</button><div><p className="eyebrow">Your private reflection</p><h1>{(inst.data as Instrument|undefined)?.name??selected}</h1><p>Take this one card at a time.</p></div></header>
+    <section className="focused-question-panel"><LoadState state={inst} label="the check-in">{definition=><CheckinForm key={selected} instrument={definition as unknown as Instrument} onDone={close}/>}</LoadState></section>
+  </div>;
   return <><header className="page-heading"><div><p className="eyebrow">A moment for you · private check-in</p><h1>Check-in</h1><p>One card at a time. Answer what feels right for today.</p></div></header>
     <div className="grid checkin-grid">
       <LoadState state={history} label="your check-in calendar">{items=><CheckinCalendar checkins={items as CheckinOut[]}/>}</LoadState>
@@ -29,9 +33,6 @@ export function Psyche() {
       <section className="card wide other-checkins-card" aria-labelledby="other-title"><div className="row"><div><p className="eyebrow">When you are ready</p><h2 id="other-title">More reflections</h2></div><span className="pill">Optional</span></div>
         <LoadState state={list} label="questionnaires">{items=><QuestionnaireList items={items} onStart={id=>setParams({instrument:id})}/>}</LoadState>
       </section>
-      {selected&&<section className="card wide selected-checkin" aria-labelledby="form-title"><div className="row"><div><p className="eyebrow">Your responses stay personal</p><h2 id="form-title">{(inst.data as Instrument|undefined)?.name??selected}</h2></div><button type="button" className="ghost" onClick={close}>Close</button></div>
-        <LoadState state={inst} label="the check-in">{definition=><CheckinForm key={selected} instrument={definition as unknown as Instrument} onDone={close}/>}</LoadState>
-      </section>}
       <details className="card wide index-history"><summary>Weekly patterns</summary><p className="muted">Questionnaire summaries over time. These are your own history, not a comparison with others.</p><IndexCards instruments={list.data??[]}/></details>
     </div></>;
 }

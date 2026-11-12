@@ -685,13 +685,14 @@ tasks:
     (CSV/JSON); hypothesis tests on random batches'
   owner: f4
   branch: feat/pipeline
-  state: review
+  state: done
   blockers:
   - SCR-1
   done_when: random batches round-trip exactly; replays are no-ops; malformed batches rejected without partial writes; run_nightly works on injected data
-  sha: 6520e8c
+  sha: 4ac521c
   times:
     review: '2026-11-12T01:11:08Z'
+    done: '2026-11-12T01:23:01Z'
 - id: FUZZ-1
   title: 'Hypothesis API invariants: safety object on every survey/symptom response, isolation for random users/data, consent gating, no answer values in logs'
   owner: cf
@@ -821,10 +822,12 @@ tasks:
   title: fusion.run_nightly passes until=night end to weekly_indices; backfill test
   owner: f4
   branch: feat/pipeline
-  state: review
+  state: done
   blockers: []
   done_when: backfilled night unaffected by later answers
-  sha: c37e989
+  sha: 4ac521c
+  times:
+    done: '2026-11-12T01:23:01Z'
 - id: FE-4
   title: Psyche weekly index cards with band alert + citation + 8-week sparkline
   owner: cf

@@ -12,6 +12,12 @@
 - Minimal inputs: clinical_scales.phq9_item9 omitted, null, or "invalid"; each currently returns routine output.
 - Attempts: 0/3; cannot fix within the explicit no-engine-edit constraint. Missing/null/unparseable must stay safety-only.
 
+## OPEN: Context Engine state has no schema version
+
+- Reproduce: pytest -q tests/safety/test_engine_state.py::test_state_has_schema_version
+- Evidence: run(payload)['state'] omits schema_version.
+- Attempts: 0/3; engine edits are prohibited. A non-engine persistence adapter may add a version envelope if integration is approved.
+
 ## FIXED: backend survey safety skipped a missing PHQ-9 item 9
 
 - Reproduce before fix: pytest -q tests/safety/test_backend_crisis.py (empty answers failed).

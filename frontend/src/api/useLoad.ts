@@ -5,6 +5,7 @@ interface Loaded<T> {
   data?: T;
   error: string | null;
   loading: boolean;
+  apiMock: boolean;
   reload(): void;
 }
 
@@ -13,9 +14,10 @@ export function useLoad<T>(
   fetcher: () => Promise<{ data?: T; error?: unknown; response?: Response }>,
   deps: DependencyList = [],
 ): Loaded<T> {
-  const [state, setState] = useState<{ data?: T; error: string | null; loading: boolean }>({
+  const [state, setState] = useState<{ data?: T; error: string | null; loading: boolean; apiMock: boolean }>({
     error: null,
     loading: true,
+    apiMock: false,
   });
   const [n, setN] = useState(0);
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -26,9 +28,10 @@ export function useLoad<T>(
     run()
       .then(({ data, error, response }) => {
         if (!live) return;
-        setState({ data, loading: false, error: data === undefined ? errorText(error, response?.status) : null });
+        setState({ data, loading: false, error: data === undefined ? errorText(error, response?.status) : null,
+          apiMock: response?.headers.get("X-TODO-API-Mock") === "true" });
       })
-      .catch(() => live && setState({ loading: false, error: errorText(undefined) }));
+      .catch(() => live && setState({ loading: false, error: errorText(undefined), apiMock: false }));
     return () => {
       live = false;
     };

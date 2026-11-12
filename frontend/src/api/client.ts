@@ -8,6 +8,7 @@ const REFRESH_PATH = "/api/v1/auth/refresh";
 let onUnauthorized: () => void = () => {};
 
 const TODAY_PATH = "/api/v1/today";
+const NIGHTS_PATH = "/api/v1/nights";
 
 /** TODO(api): Keep an empty contract-shaped view while the API is unavailable. */
 function todayUnavailableMock(): Response {
@@ -27,8 +28,18 @@ function todayUnavailableMock(): Response {
   });
 }
 
-function canUseTodayMock(req: Request): boolean {
-  return req.method === "GET" && new URL(req.url).pathname === TODAY_PATH;
+/** TODO(api): Keep an empty contract-shaped night list while the API is unavailable. */
+function nightsUnavailableMock(): Response {
+  return new Response("[]", {
+    status: 200,
+    headers: { "Content-Type": "application/json", "X-TODO-API-Mock": "true" },
+  });
+}
+
+function apiMockFor(req: Request): (() => Response) | undefined {
+  if (req.method !== "GET") return undefined;
+  const path=new URL(req.url).pathname;
+  return path===TODAY_PATH?todayUnavailableMock:path===NIGHTS_PATH?nightsUnavailableMock:undefined;
 }
 
 /** AuthProvider registers what happens when a request stays 401 (session over). */
@@ -83,16 +94,16 @@ function withAuth(req: Request): Request {
 /** fetch for openapi-fetch: bearer token, one refresh + retry on 401, then sign-out. */
 export async function authFetch(input: Request): Promise<Response> {
   const isAuthRoute = new URL(input.url).pathname.startsWith("/api/v1/auth/");
-  const mayMockToday = canUseTodayMock(input);
+  const mock = apiMockFor(input);
   const retry = input.clone();
   let res: Response;
   try {
     res = await fetch(withAuth(input));
   } catch (error) {
-    if (mayMockToday) return todayUnavailableMock();
+    if (mock) return mock();
     throw error;
   }
-  if (mayMockToday && res.status >= 500) return todayUnavailableMock();
+  if (mock && res.status >= 500) return mock();
   if (res.status !== 401 || isAuthRoute) return res;
   if (await refreshOnce()) {
     const again = await fetch(withAuth(retry));

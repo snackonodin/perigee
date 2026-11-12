@@ -71,6 +71,7 @@ export function Sleep() {
   const latestValid=[...(nights.data??[])].filter(n=>n.valid).sort((a,b)=>a.date.localeCompare(b.date)).at(-1);
   return <><header className="page-heading"><div><p className="eyebrow">Rest cycle · your personal log</p><h1>Sleep</h1><p>Night by night, compared with your own recent pattern.</p></div><LevelPill level={level}/></header>
     {sleepToday?.sync_status?.state==="api_mock"&&<p className="api-mock-note" role="status">API unavailable · empty preview only; no sleep readings are being shown.</p>}
+    {nights.apiMock&&<p className="api-mock-note" role="status">API unavailable · empty preview only; no night records are being shown.</p>}
     <div className="grid sleep-grid"><section className="card wide sleep-hero" aria-labelledby="timeline-heading"><div className="row"><div><p className="eyebrow">28-night view</p><h2 id="timeline-heading">Time present overnight</h2></div><span className="pill">{nights.data?.filter(n=>n.valid).length??"—"} valid nights</span></div>
       <LoadState state={nights} label="nightly timeline">{data=><SleepTimeline nights={data}/>}</LoadState></section>
       <BreathingTile latest={latestValid} baseline={baseline}/>

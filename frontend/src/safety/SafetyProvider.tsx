@@ -51,8 +51,10 @@ function useInertApp() {
 
 function SafetyScreen({ content, until, onAck }: { content: SafetyContent; until: number; onAck(): void }) {
   const [left, setLeft] = useState(() => Math.max(0, Math.ceil((until - Date.now()) / 1000)));
+  const [contactOpen, setContactOpen] = useState(false);
   const box = useRef<HTMLDivElement>(null);
   const title = useRef<HTMLHeadingElement>(null);
+  const contact = useRef<HTMLButtonElement>(null);
   const ack = useRef<HTMLButtonElement>(null);
   useInertApp();
 
@@ -73,12 +75,12 @@ function SafetyScreen({ content, until, onAck }: { content: SafetyContent; until
       role="alertdialog"
       aria-modal="true"
       aria-labelledby="safety-title"
-      aria-describedby="safety-reason"
+      aria-describedby="safety-reason safety-instructions"
       onKeyDown={(e) => {
         // Escape never dismisses this screen; Tab stays inside it (focus trap).
         if (e.key === "Escape") e.preventDefault();
         if (e.key !== "Tab") return;
-        const stops = [title.current, ack.current].filter(
+        const stops = [title.current, contact.current, ack.current].filter(
           (el): el is HTMLHeadingElement | HTMLButtonElement => !!el && !(el as HTMLButtonElement).disabled,
         );
         const i = stops.indexOf(document.activeElement as HTMLHeadingElement);
@@ -88,18 +90,29 @@ function SafetyScreen({ content, until, onAck }: { content: SafetyContent; until
       }}
     >
       <div className="safety-box" ref={box}>
-        <h1 id="safety-title" tabIndex={-1} ref={title}>
-          Please reach out for support now
-        </h1>
-        <p id="safety-reason">{content.reason}</p>
-        <ul>
-          {content.resources.map((r) => (
-            <li key={r}>{r}</li>
-          ))}
-        </ul>
-        <button type="button" ref={ack} className="ack" disabled={left > 0} onClick={onAck}>
-          {left > 0 ? `Please read this (${left})` : "I have read this"}
-        </button>
+        <svg className="safety-orbit" viewBox="0 0 112 112" aria-hidden="true">
+          <circle cx="56" cy="56" r="43" fill="none" stroke="currentColor" strokeOpacity=".24" />
+          <ellipse cx="56" cy="56" rx="49" ry="18" fill="none" stroke="currentColor" strokeOpacity=".5" transform="rotate(-24 56 56)" />
+          <circle cx="89" cy="35" r="4" fill="currentColor" />
+          <circle cx="56" cy="56" r="24" fill="currentColor" fillOpacity=".1" stroke="currentColor" strokeOpacity=".65" />
+          <path d="M45 63c2-12 7-18 11-18s9 6 11 18M49 49l7-7 7 7M48 65h16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        <p className="eyebrow">Crew support · private channel</p>
+        <h1 id="safety-title" tabIndex={-1} ref={title}>You deserve support right now</h1>
+        <p id="safety-reason">{content.reason || "A check-in needs a little extra care. Please pause here and reach out to someone on your support team."}</p>
+        <div className="safety-instructions" id="safety-instructions">
+          <h2>For now</h2>
+          <ul>{content.resources.map((r) => <li key={r}>{r}</li>)}</ul>
+        </div>
+        <div className="safety-actions">
+          <button type="button" ref={contact} className="ghost" onClick={() => setContactOpen((open) => !open)}>
+            Contact crew surgeon
+          </button>
+          {contactOpen && <p className="contact-note" role="status">Use your mission’s crew-health channel or the emergency contact instructions provided for this mission.</p>}
+          <button type="button" ref={ack} className="ack" disabled={left > 0} onClick={onAck}>
+            {left > 0 ? `Please read this (${left})` : "I have read this"}
+          </button>
+        </div>
         <p className="sr-only" aria-live="polite">
           {left > 0 ? "" : "You can now close this screen."}
         </p>

@@ -8,7 +8,9 @@ export type BaselineOut = S["BaselineOut"];
 export type GuidanceCardOut = S["GuidanceCardOut"];
 export type PendingCheckin = S["PendingCheckin"];
 export type InstrumentSummary = S["InstrumentSummary"];
-export type ResponseOut = S["ResponseOut"];
+/** `crisis` was added by the shared API contract after this OpenAPI snapshot. Keep it optional
+ * at the client boundary so a missing value can be treated fail-safe. */
+export type ResponseOut = S["ResponseOut"] & { crisis?: boolean };
 export type SafetyResult = S["SafetyResult"];
 export type ConsentOut = S["ConsentOut"];
 export type MeOut = S["MeOut"];

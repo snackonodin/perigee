@@ -25,15 +25,20 @@ export function CheckinForm({ instrument, onDone }: { instrument: Instrument; on
         body: { instrument_id: instrument.id, instrument_version: instrument.version, answers },
       });
       // a storage failure (500) still carries the safety result: honour it
-      out = data ?? (err && typeof err === "object" && "safety" in err ? (err as ResponseOut) : undefined);
+      out = data ?? (err && typeof err === "object" && ("safety" in err || "crisis" in err) ? (err as ResponseOut) : undefined);
       if (!out) setError(errorText(err, response.status));
     } catch {
       setError(errorText(undefined));
     }
     setBusy(false);
     if (!out) return;
-    if (out.safety.show) showSafety(contentFromServer(out.safety));
-    if (out.ok) setResult(out);
+    // The shared API contract requires a top-level crisis boolean. Missing is treated as
+    // crisis, and safety.show is an independent fail-safe. Never expose routine scores first.
+    const crisis = out.crisis !== false || out.safety?.show !== false;
+    if (crisis) {
+      showSafety(contentFromServer(out.safety ?? {}));
+      setResult(null);
+    } else if (out.ok) setResult(out);
     else {
       const errs = out.errors ?? [];
       setError(`Not saved (${out.error ?? "error"})${errs.length ? `: ${errs.join(", ")}` : ""}.`);

@@ -5,3 +5,6 @@
 - [blockers] Wave-3 worker reports (BRIDGE-1, PERF-1, F6-SLEEP, F4-SYMPTOM, FE-5) not yet received.
 - [done] Badge "Synthetic data" -> "Simulated data" (AppShell + test). vitest NOT run here (no node_modules in main); merge_ready will run it.
 - [next] Merge wave-3 reports as they arrive; FE-5 "/" mount in backend/main.py; verify vitest.
+- [done] Frontend Today screen: Perigee shell, personal baseline tiles, and contract-shaped `today.context_engine` mock; `npm run build` passed.
+- [done] Frontend Safety screen: top-level `crisis` true or missing fails closed before normal scores/results; `npm run build` passed.
+- [next] Wait for `go`; then implement Persona and Body, followed by Sleep, Check-in, Briefing, Consent, and Settings.

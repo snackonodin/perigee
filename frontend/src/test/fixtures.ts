@@ -58,7 +58,7 @@ export const unreviewedCard: GuidanceCardOut = {
   matched_signals: ["rr_med"],
 };
 
-export const today: TodayOut = {
+export const today: TodayOut & { context_engine: Record<string, unknown> | null } = {
   date: "2026-11-11",
   latest_night: night("2026-11-10", 17.9),
   flags: [
@@ -85,6 +85,27 @@ export const today: TodayOut = {
   checkins_consent: true,
   baselines: [rrBaseline],
   sync_status: { state: "offline" },
+  context_engine: {
+    safety_status: { crisis_override_triggered: false, escalation_type: "NONE", emergency_message: null },
+    scores_and_metrics: { phys_level: 1, mental_level: 0 },
+    fatigue_and_health_ratings: {
+      mental_fatigue_score: 24,
+      physiological_fatigue_score: 31,
+      overall_health_resilience_index: 82,
+    },
+    classification: { quadrant: "Steady", priority_score: 12, persistence_days: 0 },
+    dashboard_visualization_data: {
+      dual_axis_timeline_point: { respiration_bpm: 14.2, respiration_baseline_band: [13.5, 14.8], mental_load_score: 24 },
+      radar_traits: { E: 12, A: 17, C: 18, N: 14, O: 16 },
+    },
+    user_facing_advisory: {
+      headline: "A small shift, in your context",
+      personality_tailored_message: "Your signals can vary from night to night. We are comparing them with your own recent pattern.",
+      actionable_recommendations: [],
+      environmental_note: null,
+    },
+    flight_surgeon_briefing_snippet: "Personal snapshot available.",
+  },
 };
 
 export const instruments: InstrumentSummary[] = [
@@ -112,5 +133,5 @@ export const phq9: Instrument = {
 export const SERVER_SAFETY = { reason: "Server reason text.", resources: ["Server resource A", "Server resource B"] };
 
 export function responseOut(over: Partial<ResponseOut> = {}): ResponseOut {
-  return { ok: true, safety: { show: false, resources: [] }, id: "r-1", stored: true, total: 1, scores: {}, errors: [], ...over };
+  return { ok: true, crisis: false, safety: { show: false, resources: [] }, id: "r-1", stored: true, total: 1, scores: {}, errors: [], ...over };
 }

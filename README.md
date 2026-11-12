@@ -1,6 +1,6 @@
 # Astronaut Health Monitor
 
-The main application is a FastAPI service with a React frontend, an offline demo at `/demo`, a SQLite-backed data pipeline, and pure CSI processing in `csi_core/`. The separate `waiwai1/` project contains capture and analysis tools plus an isolated Context Engine prototype. See `CLAUDE.md`, `docs/backend-plan.md`, and `waiwai1/README.md` for architecture and setup details.
+The app is this whole repository: a FastAPI service and React frontend, offline demos, SQLite-backed processing, `csi_core/`, team estimator adapters, and the capture/analysis/live/Context Engine scripts under `waiwai1/`. Team code is adapted through `plugins/` and capture/injection paths into the backend. See `CLAUDE.md`, `docs/backend-plan.md`, `docs/interfaces.md`, and `waiwai1/README.md` for architecture and setup details.
 
 ## Test-and-report loop
 

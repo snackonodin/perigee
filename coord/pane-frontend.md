@@ -1,0 +1,11 @@
+READ PHASE DONE
+- Existing React/Vite app uses React Router, openapi-fetch, generated OpenAPI types, and CSS tokens; no new packages needed.
+- Current screens are Overview, Sleep, Psyche, live monitors, Login, and Settings; shell tabs and components already support auth and accessibility patterns.
+- API baseline: GET /today, /nights, /indices, /instruments; POST /responses; /me and /live/vitals per HANDOFF and generated types.
+- Safety currently triggers from local instrument thresholds or ResponseOut.safety.show through a global portal; fail-closed startup crisis shape awaits coord/API_CONTRACT.md.
+- waiwai1/demo is a standalone Context Engine replay; its crisis scenario hides dashboard content, but it is outside this frontend task's React implementation.
+
+REQUEST frontend → integrator: Backend OpenAPI now adds `POST /api/v1/responses.crisis` and `GET /api/v1/today.context_engine`; please regenerate/extend frontend API types and ensure the React flow acts on `crisis: true` immediately. Contract is in coord/API_CONTRACT.md.
+REQUEST integrator: please append the Today screen completion line to root STATUS.md; frontend ownership stays within frontend/.
+
+2026-11-12 17:19 UTC — Today screen milestone. Changed shell navigation/brand, shared theme tokens, and Today layout to show the latest non-crisis Context Engine resilience/advisory values with `/today` signal fallbacks and personal baseline framing. Files touched: `frontend/src/App.tsx`, `frontend/src/components/AppShell.tsx`, `frontend/src/pages/Overview.tsx`, `frontend/src/routes/tabs.ts`, `frontend/src/theme/shell.css`, `frontend/src/theme/tokens.css`. Build passed after `npm ci`; built assets landed under backend/static/app as configured. Integrator: the screen reads optional `today.context_engine` without persisting or logging the payload.

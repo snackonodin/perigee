@@ -2,15 +2,17 @@
 export interface TabDef {
   path: string;
   label: string;
+  icon: string;
   live?: boolean;
   experimental?: boolean;
 }
 
 export const TABS: readonly TabDef[] = [
-  { path: "/", label: "Overview" },
-  { path: "/breathing", label: "Breathing", live: true },
-  { path: "/heart", label: "Heart", live: true, experimental: true },
-  { path: "/sleep", label: "Sleep" },
-  { path: "/psyche", label: "Psyche" },
-  { path: "/settings", label: "Settings" },
+  { path: "/", label: "Today", icon: "◉" },
+  { path: "/sleep", label: "Sleep", icon: "☾" },
+  { path: "/body", label: "Body", icon: "⌁" },
+  { path: "/persona", label: "Persona", icon: "✧" },
+  { path: "/checkin", label: "Check-in", icon: "♡" },
+  { path: "/briefing", label: "Briefing", icon: "▤" },
+  { path: "/consent", label: "Consent", icon: "◇" },
 ];

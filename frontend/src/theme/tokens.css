@@ -1,59 +1,73 @@
-/* Dark outer-space theme. Every colour, size and radius lives here as a token. */
 @import "@fontsource-variable/inter";
 
 :root {
-  /* surfaces: deep space → panels */
-  --space-0: #05070d;
-  --space-1: #0a0f1c;
-  --space-2: #111a2e;
-  --space-3: #1a2540;
-  --line: #24314f;
-
-  /* text */
-  --ink: #e7ecf7;
-  --ink-muted: #94a2c0;
-  --ink-faint: #808ea9;     /* >= 4.5:1 on every surface (see contrast.test.ts) */
-
-  /* accents */
-  --accent: #7aa2ff;          /* nebula blue: primary actions, focus */
-  --accent-ink: #0a1022;      /* text on accent */
-  --aurora: #4fd1c5;          /* breathing / calm signals */
-  --pulse: #ff7a90;           /* heart (experimental) */
-  --sun: #ffb454;             /* warnings, warm-up */
-  --alert: #ff5c5c;           /* alerts, safety */
-  --band: rgba(122, 162, 255, 0.16); /* baseline median ± MAD band */
-
-  /* type, space, shape */
+  color-scheme: dark;
+  --space-0: #080d1a;
+  --space-1: #0b1020;
+  --space-2: #121a30;
+  --space-3: #1a2440;
+  --space-4: #253252;
+  --line: #34415f;
+  --ink: #f2f4fc;
+  --ink-muted: #c0c8dd;
+  --ink-faint: #a7b2cc;
+  --aurora: #5eead4;
+  --violet: #c4b5fd;
+  --amber: #f5b544;
+  --orange: #fb923c;
+  --rose: #fda4af;
+  --accent: var(--violet);
+  --accent-ink: #111326;
+  --alert: var(--orange);
+  --band: rgba(94, 234, 212, .15);
   --font: "Inter Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --fs-1: 0.8125rem;
-  --fs-2: 0.9375rem;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --fs-1: .8125rem;
+  --fs-2: .9375rem;
   --fs-3: 1.125rem;
   --fs-4: 1.5rem;
+  --fs-5: clamp(2.25rem, 5vw, 3.5rem);
   --gap-1: 4px;
   --gap-2: 8px;
   --gap-3: 16px;
   --gap-4: 24px;
-  --radius: 12px;
-  --focus: 0 0 0 3px rgba(122, 162, 255, 0.45);
+  --radius: 18px;
+  --focus: 0 0 0 3px rgba(196, 181, 253, .6);
+}
 
-  color-scheme: dark;
+[data-theme="daylight"] {
+  color-scheme: light;
+  --space-0: #edf2f7;
+  --space-1: #f8f9fc;
+  --space-2: #ffffff;
+  --space-3: #e7eaf2;
+  --space-4: #d9deeb;
+  --line: #a4afc6;
+  --ink: #172036;
+  --ink-muted: #43516d;
+  --ink-faint: #53617a;
+  --aurora: #087e78;
+  --violet: #6250a5;
+  --amber: #875400;
+  --orange: #9a4311;
+  --rose: #a1374b;
+  --accent: var(--violet);
+  --accent-ink: #fff;
+  --band: rgba(8, 126, 120, .12);
 }
 
 * { box-sizing: border-box; }
-html, body { margin: 0; min-height: 100%; background: var(--space-0); }
+html, body, #root { min-height: 100%; margin: 0; }
 body {
   min-height: 100vh;
   color: var(--ink);
-  font-family: var(--font);
-  font-size: var(--fs-2);
-  line-height: 1.5;
-  /* a faint starfield, pure CSS (no images, works offline) */
   background:
-    radial-gradient(1px 1px at 12% 18%, rgba(255,255,255,.55) 50%, transparent 51%),
-    radial-gradient(1px 1px at 72% 34%, rgba(255,255,255,.4) 50%, transparent 51%),
-    radial-gradient(1.5px 1.5px at 38% 82%, rgba(255,255,255,.35) 50%, transparent 51%),
+    radial-gradient(1px 1px at 12% 18%, rgba(255,255,255,.65) 50%, transparent 51%),
+    radial-gradient(1px 1px at 72% 34%, rgba(255,255,255,.5) 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 38% 82%, rgba(255,255,255,.45) 50%, transparent 51%),
     radial-gradient(1px 1px at 88% 76%, rgba(255,255,255,.45) 50%, transparent 51%),
-    radial-gradient(ellipse at 20% -10%, rgba(122,162,255,.12), transparent 55%),
+    radial-gradient(ellipse at 20% -10%, rgba(167,139,250,.16), transparent 55%),
     var(--space-0);
+  font: 400 var(--fs-2)/1.55 var(--font);
 }
-:focus-visible { outline: none; box-shadow: var(--focus); border-radius: 6px; }
+:focus-visible { outline: none; box-shadow: var(--focus); border-radius: 8px; }

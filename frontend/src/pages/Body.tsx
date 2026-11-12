@@ -18,7 +18,7 @@ const DOTS:Record<System,[number,number,number,string]>={
   Respiration:[187,174,38,"left"],Autonomic:[225,224,342,"right"],Rest:[175,132,52,"left"],Mind:[210,51,342,"right"],Cabin:[210,268,342,"right"],
 };
 function ScanSvg({selected,onSelect}:{selected:System;onSelect:(s:System)=>void}) {
-  return <svg className="body-hologram" viewBox="0 0 400 310" role="group" aria-label="Interactive body systems hologram">
+  return <svg className="body-hologram" viewBox="0 0 400 310" preserveAspectRatio="xMidYMid meet" role="group" aria-label="Interactive body systems hologram">
     <defs>
       <linearGradient id="holoBody" x1="0" x2="1" y1="0" y2="1"><stop stopColor="var(--aurora)" stopOpacity=".2"/><stop offset=".52" stopColor="var(--violet)" stopOpacity=".17"/><stop offset="1" stopColor="var(--aurora)" stopOpacity=".06"/></linearGradient>
       <radialGradient id="holoCore"><stop stopColor="var(--aurora)" stopOpacity=".32"/><stop offset="1" stopColor="var(--aurora)" stopOpacity="0"/></radialGradient>
@@ -68,6 +68,7 @@ export function Body() {
       {load.apiMock&&<p className="api-mock-note" role="status">API unavailable · empty preview; no readings are shown.</p>}
       <div className="body-console">
         <section className="holo-panel" aria-label="Body systems map"><div className="holo-panel-top"><span>SYS / 05</span><span>PERSONAL BASELINE · 28N</span></div><ScanSvg selected={selected} onSelect={setSelected}/>
+          <div className="holo-readout" key={selected} aria-live="polite"><span className="readout-orbit" aria-hidden="true">⌁</span><span><small>VECTOR LINK · {selected.toUpperCase()}</small><strong>{current.value}</strong></span><span className={`status-chip ${status.tone}`}><i aria-hidden="true">◌</i>{status.word}</span></div>
           <div className="system-selector" aria-label="Choose system">{SYSTEMS.map(name=><button type="button" key={name} className={selected===name?"system-node active":"system-node"} aria-pressed={selected===name} onClick={()=>setSelected(name)}>{name}</button>)}</div>
         </section>
         <section className="body-inspector" aria-live="polite" aria-labelledby="system-title">

@@ -24,7 +24,7 @@ export function Psyche() {
     <header className="page-heading app-page-heading"><button type="button" className="ghost back-checkin" onClick={close}><span aria-hidden="true">←</span> All check-ins</button><div><p className="eyebrow">Your private reflection</p><h1>{(inst.data as Instrument|undefined)?.name??selected}</h1><p>Take this one card at a time.</p></div></header>
     <section className="focused-question-panel"><LoadState state={inst} label="the check-in">{definition=><CheckinForm key={selected} instrument={definition as unknown as Instrument} onDone={close}/>}</LoadState></section>
   </div>;
-  return <><header className="page-heading"><div><p className="eyebrow">A moment for you · private check-in</p><h1>Check-in</h1><p>One card at a time. Answer what feels right for today.</p></div></header>
+  return <div className="checkin-page"><header className="page-heading app-page-heading"><div className="heading-mark checkin-mark" aria-hidden="true"><svg viewBox="0 0 48 48" role="img" aria-label="A small orbiting planet"><circle cx="24" cy="24" r="11" fill="none" stroke="currentColor" strokeWidth="1.5"/><ellipse cx="24" cy="24" rx="21" ry="8" fill="none" stroke="currentColor" strokeWidth="1.5" transform="rotate(-24 24 24)"/><circle cx="39" cy="15" r="2.5" fill="currentColor"/><circle cx="19" cy="21" r="2" fill="currentColor"/></svg></div><div><p className="eyebrow">A moment for you · private check-in</p><h1>Check-in</h1><p>One card at a time. Answer what feels right for today.</p></div><span className="pill">Your log</span></header>
     <div className="grid checkin-grid">
       <LoadState state={history} label="your check-in calendar">{items=><CheckinCalendar checkins={items as CheckinOut[]}/>}</LoadState>
       <section className="card daily-checkin-card" aria-labelledby="daily-title"><p className="eyebrow">Small daily reflection</p><h2 id="daily-title">A quick check-in</h2>
@@ -34,5 +34,5 @@ export function Psyche() {
         <LoadState state={list} label="questionnaires">{items=><QuestionnaireList items={items} onStart={id=>setParams({instrument:id})}/>}</LoadState>
       </section>
       <details className="card wide index-history"><summary>Weekly patterns</summary><p className="muted">Questionnaire summaries over time. These are your own history, not a comparison with others.</p><IndexCards instruments={list.data??[]}/></details>
-    </div></>;
+    </div></div>;
 }

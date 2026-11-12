@@ -26,13 +26,14 @@ function SleepTimeline({ nights, days = DAYS }: { nights: NightOut[]; days?: num
   const y=(hours:number)=>T+(1-Math.min(hours,maxHours)/maxHours)*(H-T-B);
   const last=valid[valid.length-1];
   return <figure className="sleep-timeline"><svg viewBox={`0 0 ${W} ${H}`} role="img" aria-labelledby="sleep-timeline-title sleep-timeline-desc">
+    <defs><linearGradient id="sleepBars" x1="0" y1="0" x2="0" y2="1"><stop stopColor="#5eead4" stopOpacity=".95"/><stop offset="1" stopColor="#a78bfa" stopOpacity=".42"/></linearGradient></defs>
     <title id="sleep-timeline-title">Nightly sensed rest over {days} days</title>
     <desc id="sleep-timeline-desc">{valid.length} valid nights. Bars show hours present overnight; missing bars are nights without a valid signal.</desc>
     {[0,.5,1].map((f,i)=>{const yy=y(maxHours*f);return <g key={i}><line className="gridline" x1={L} x2={W-R} y1={yy} y2={yy}/><text className="label" x={L-7} y={yy+4} textAnchor="end">{fmt(maxHours*f,0)} h</text></g>;})}
     <line className="axis" x1={L} x2={W-R} y1={H-B} y2={H-B}/>
     <text className="label" x={L} y={H-8}>{new Date(start).toISOString().slice(5,10)}</text>
     <text className="label" x={W-R} y={H-8} textAnchor="end">{new Date(end).toISOString().slice(5,10)}</text>
-    {valid.map(n=><rect key={n.id} className={n.id===last.id?"sleep-bar latest":"sleep-bar"} x={x(n.date)-4} y={y(n.presence_hours)} width="8" height={Math.max(1,H-B-y(n.presence_hours))} rx="4"><title>{`${n.date}: ${fmt(n.presence_hours,1)} hours present`}</title></rect>)}
+    {valid.map(n=><rect key={n.id} className={n.id===last.id?"sleep-bar latest":"sleep-bar"} fill="url(#sleepBars)" x={x(n.date)-4} y={y(n.presence_hours)} width="8" height={Math.max(1,H-B-y(n.presence_hours))} rx="4"><title>{`${n.date}: ${fmt(n.presence_hours,1)} hours present`}</title></rect>)}
   </svg><figcaption className="muted">Each bar is sensed time present, not a sleep-stage estimate. Gaps indicate nights without a valid signal.</figcaption></figure>;
 }
 
@@ -69,7 +70,7 @@ export function Sleep() {
   const sleepToday=today.data as SleepToday|undefined;
   const level=sleepToday?.context_engine?.scores_and_metrics?.phys_level??sleepToday?.flags[0]?.phys_level;
   const latestValid=[...(nights.data??[])].filter(n=>n.valid).sort((a,b)=>a.date.localeCompare(b.date)).at(-1);
-  return <><header className="page-heading"><div><p className="eyebrow">Rest cycle · your personal log</p><h1>Sleep</h1><p>Night by night, compared with your own recent pattern.</p></div><LevelPill level={level}/></header>
+  return <div className="sleep-page"><header className="page-heading app-page-heading"><div className="heading-mark sleep-mark" aria-hidden="true">☾</div><div><p className="eyebrow">Rest cycle · your personal log</p><h1>Sleep</h1><p>Night by night, compared with your own recent pattern.</p></div><LevelPill level={level}/></header>
     {sleepToday?.sync_status?.state==="api_mock"&&<p className="api-mock-note" role="status">API unavailable · empty preview only; no sleep readings are being shown.</p>}
     {nights.apiMock&&<p className="api-mock-note" role="status">API unavailable · empty preview only; no night records are being shown.</p>}
     <div className="grid sleep-grid"><section className="card wide sleep-hero" aria-labelledby="timeline-heading"><div className="row"><div><p className="eyebrow">28-night view</p><h2 id="timeline-heading">Time present overnight</h2></div><span className="pill">{nights.data?.filter(n=>n.valid).length??"—"} valid nights</span></div>
@@ -80,5 +81,5 @@ export function Sleep() {
         {today.error&&<p className="muted">Personal baseline could not be loaded. Showing night data without its band.</p>}
       </section>
       <details className="card wide sleep-details"><summary>Night-by-night details</summary>{nights.data&&<NightsTable nights={nights.data}/>}</details>
-    </div></>;
+    </div></div>;
 }

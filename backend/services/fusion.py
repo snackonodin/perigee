@@ -17,7 +17,7 @@ Every row written carries run_id. Re-running a night replaces, never appends.
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from typing import Any
 
 from sqlalchemy import delete, select
@@ -39,10 +39,11 @@ from csi_core import night as night_mod
 from csi_core.config import CoreConfig, get_config
 from csi_core.fusion import PHYS_FEATURES, score_night
 
-# indices_provider(db, user_id, week_start) -> {name: {"value", "band",
-# "band_alert", "direction"}} (surveys.weekly_indices). A bare float is accepted
+# indices_provider(db, user_id, week_start, *, until) -> {name: {"value", "band",
+# "band_alert", "direction"}} (surveys.weekly_indices). ``until`` (tz-aware) is the
+# night's end: nothing answered later may count (lesson L6). A bare float is accepted
 # and treated as having no direction (skipped by score_night).
-IndicesProvider = Callable[[Session, str, date], Mapping[str, Any]]
+IndicesProvider = Callable[..., Mapping[str, Any]]
 
 
 def week_start(day: date) -> date:
@@ -50,16 +51,24 @@ def week_start(day: date) -> date:
     return day - timedelta(days=day.weekday())
 
 
-def _default_indices(db: Session, user_id: str, week: date) -> Mapping[str, Any]:
+def _default_indices(
+    db: Session, user_id: str, week: date, *, until: datetime | None = None
+) -> Mapping[str, Any]:
     try:
         from backend.services.surveys import weekly_indices  # lazy: feat/surveys
     except ImportError:
         return {}
-    return weekly_indices(db, user_id, week)
+    return weekly_indices(db, user_id, week, until=until)
 
 
 def latest_indices(
-    db: Session, user_id: str, day: date, provider: IndicesProvider, cfg: CoreConfig
+    db: Session,
+    user_id: str,
+    day: date,
+    provider: IndicesProvider,
+    cfg: CoreConfig,
+    *,
+    until: datetime | None = None,
 ) -> dict[str, tuple[date, Mapping[str, Any] | float]]:
     """Per index, its most recent week (Monday <= day), looking back at most
     baseline.window_days. A weekly survey keeps its latest band even when the
@@ -68,7 +77,7 @@ def latest_indices(
     out: dict[str, tuple[date, Mapping[str, Any] | float]] = {}
     for k in range(max(cfg.baseline.window_days // 7, 1)):
         w = week - timedelta(weeks=k)
-        for name, entry in (provider(db, user_id, w) or {}).items():
+        for name, entry in (provider(db, user_id, w, until=until) or {}).items():
             out.setdefault(name, (w, entry))
     return out
 
@@ -289,7 +298,10 @@ def run_nightly(
     _upsert_night(db, nf, run_id)
     db.flush()
 
-    latest = latest_indices(db, user_id, day, indices_provider or _default_indices, cfg)
+    night_end = night_bounds_utc(day, user_tz(db, user_id))[1]  # backfills see only the past
+    latest = latest_indices(
+        db, user_id, day, indices_provider or _default_indices, cfg, until=night_end
+    )
     values, direction, bands = _split_indices({k: e for k, (_, e) in latest.items()})
     _store_indices(db, user_id, latest)
     db.flush()

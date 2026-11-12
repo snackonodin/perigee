@@ -24,19 +24,18 @@ Owners: `ca` build-astronaut-health-backend (main) · `f4` pankajkashyap-f4 (fea
 |----|------|-------|--------|-----------|----------|-----|
 | CORE-7 | `fusion.score_night` → `FlagDraft` | f4 | csi-core | components dict explains priority; thresholds only from config.yaml | CORE-6 |  |
 
-## review (7)
+## review (6)
 
 | ID | Task | Owner | Branch | Done when | Blockers | sha |
 |----|------|-------|--------|-----------|----------|-----|
 | CA-2 | `/api/v1/today` (night features, flags, guidance, due check-ins) | ca | main | e2e test with seeded user | CA-1, DB-5, SUR-6 | a08f660 |
 | CA-5 | Wire worker start/stop into main.py lifespan; persona seeding command once OPS-6 lands | ca | main | app starts worker; seed-personas produces 3 synthetic users with expected flags | DB-7 | f3cd03f |
-| LIVE-1 | SSE /api/v1/live/vitals: per-user stream of newest injected windows (breath, heart[experimental], motion, presence) + replay mode for a stored session at Nx speed | b0 | db-ingest | TestClient stream test; isolation (B never receives A events); replay deterministic | QA-1, INJ-1 | e3aa699 |
 | LOOP-1 | Failure-learning loop: tools/ops/lessons.py (add/list/close), merge_ready + stress.sh auto-record failures as lesson stubs, prompts read LESSONS.md, check_merge lints tracked files only (L1) and warns on broad reformat (L3), metrics.sh shows recurrence | 7a | accounts | a simulated RED merge creates a lesson stub; lessons.py close refuses without a guard reference; tests in tmp repos | — | a00287e |
 | FE-3 | Live tabs: Breathing + Heart monitors on SSE /live/vitals (heart labelled experimental), dynamic displays | 7a | frontend | monitors render streamed + replayed sessions; reconnect on drop; no external URLs | LIVE-1, FE-2 | 98ea41f |
 | LOOP-2 | check_merge runs npm ci + tsc + vitest when frontend/ changes; PROTOCOL §5 heads-up rule | 7a | accounts | a frontend type error makes a merge RED and writes a lesson stub | LOOP-1 | ce9e192 |
 | FE-4 | Psyche weekly index cards with band alert + citation + 8-week sparkline | cf | frontend-psy | vitest + tsc + build green | — | df5acee |
 
-## done (62)
+## done (63)
 
 | ID | Task | Owner | Branch | Done when | Blockers | sha |
 |----|------|-------|--------|-----------|----------|-----|
@@ -92,6 +91,7 @@ Owners: `ca` build-astronaut-health-backend (main) · `f4` pankajkashyap-f4 (fea
 | OPS-14 | Offline demo page backend/static/demo/ (vanilla JS, no CDN): login, Today, trend chart, check-in form from instrument JSON, safety screen | 7a | accounts | E2E flow drivable from the page; safety screen shown before scores; works with no internet | — | 7de3794 |
 | OPS-15 | Chrome walkthrough of /demo (3 personas + live PHQ-9 safety); fix UI bugs; demo_walkthrough.gif | 7a | accounts | all 3 personas render; safety screen verified live; GIF exported (user approval) | — | 7de3794 |
 | QA-1 | Randomised testing: pytest-randomly + hypothesis pinned; tools/ops/stress.sh runs the suite under N random seeds; fix every order dependence (L2) | b0 | db-ingest | 10 consecutive random-order full runs green; failing seed printed and reproducible | — | 9443bd8 |
+| LIVE-1 | SSE /api/v1/live/vitals: per-user stream of newest injected windows (breath, heart[experimental], motion, presence) + replay mode for a stored session at Nx speed | b0 | db-ingest | TestClient stream test; isolation (B never receives A events); replay deterministic | QA-1, INJ-1 | 12a8396 |
 | SCR-1 | Read-only survey of features script/ (team scripts): capture CSV format, breath/heart/motion entry points; plugins/ adapters wrapping them (no new algorithms); load.py reader for the real capture format | f4 | pipeline | report of formats + entry points; plugins.* specs pass the golden swap test on a real capture CSV (no data committed) | — | de85abb |
 | INJ-1 | Data injection (Path B): POST /api/v1/ingest/estimates (batch windows/heart/motion from the team scripts, idempotent by batch hash, run provenance with client code_version) + cli ingest-estimates (CSV/JSON); hypothesis tests on random batches | f4 | pipeline | random batches round-trip exactly; replays are no-ops; malformed batches rejected without partial writes; run_nightly works on injected data | SCR-1 | 4ac521c |
 | FUZZ-1 | Hypothesis API invariants: safety object on every survey/symptom response, isolation for random users/data, consent gating, no answer values in logs | cf | surveys | property tests with >=200 examples each, deterministic seed | — | e57843c |

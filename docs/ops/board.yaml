@@ -660,14 +660,15 @@ tasks:
   title: 'SSE /api/v1/live/vitals: per-user stream of newest injected windows (breath, heart[experimental], motion, presence) + replay mode for a stored session at Nx speed'
   owner: b0
   branch: feat/db-ingest
-  state: review
+  state: done
   blockers:
   - QA-1
   - INJ-1
   done_when: TestClient stream test; isolation (B never receives A events); replay deterministic
-  sha: e3aa699
+  sha: 12a8396
   times:
     review: '2026-11-12T01:11:08Z'
+    done: '2026-11-12T01:28:44Z'
 - id: SCR-1
   title: 'Read-only survey of features script/ (team scripts): capture CSV format, breath/heart/motion entry points; plugins/ adapters wrapping them (no new algorithms); load.py reader for the real capture
     format'

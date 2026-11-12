@@ -4,6 +4,8 @@ import { AuthProvider, RequireAuth } from "./auth/AuthProvider";
 import { AppShell } from "./components/AppShell";
 import { Login } from "./pages/Login";
 import { Overview } from "./pages/Overview";
+import { Persona } from "./pages/Persona";
+import { Body } from "./pages/Body";
 import { Psyche } from "./pages/Psyche";
 import { Settings } from "./pages/Settings";
 import { Sleep } from "./pages/Sleep";
@@ -14,6 +16,8 @@ import { SafetyProvider } from "./safety/SafetyProvider";
 const PAGES: Record<string, ReactElement> = {
   "/": <Overview />,
   "/sleep": <Sleep />,
+  "/persona": <Persona />,
+  "/body": <Body />,
   "/checkin": <Psyche />,
 };
 

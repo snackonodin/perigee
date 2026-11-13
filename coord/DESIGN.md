@@ -410,7 +410,9 @@ border-radius: var(--radius);`
 - **Fallbacks (mandatory):** `@supports not (backdrop-filter: blur(1px))`,
   `@media (prefers-reduced-transparency: reduce)` and `@media (prefers-contrast: more)`
   all switch `.glass` to solid `--surface` with a 1px `--line` border. The Settings
-  "Reduce motion" switch also sets `data-reduce-transparency` to the same effect.
+  "Reduce motion" switch also sets `data-reduce-transparency` to the same effect. That rule must sit
+  **outside** the `@media` block (it is an app setting, not an OS preference) and cover every
+  glass class, not only `.glass`.
 
 ### 13.4 Components on glass
 | Component | Treatment |

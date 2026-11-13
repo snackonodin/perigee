@@ -220,9 +220,10 @@ frontend/src/test/fixtures.ts
 
 Sections as cards: Profile (GET/PATCH /me: display name, timezone) · Consents
 (GET/PUT /me/consents; each a labelled switch with a one-line plain explanation) · Data
-(export via GET /me/export as a download; delete via DELETE /me behind a confirm dialog
-that requires typing DELETE) · Accessibility (a "Reduce motion" switch that adds
-data-reduce-motion on <html>; CSS treats it like prefers-reduced-motion; stored in
+(export via POST /me/export as a download, per backend/openapi.json; delete via DELETE /me behind a confirm dialog
+that requires typing DELETE) · Accessibility (a "Reduce motion" switch that sets
+data-reduce-motion="true" and data-reduce-transparency="true" on <html>; CSS treats them like prefers-reduced-motion and
+prefers-reduced-transparency (rules OUTSIDE any @media block); stored in
 localStorage with try/catch) · Companion (disabled row "Coming soon") · Sign out.
 Inline error per section; skeleton rows while loading.
 

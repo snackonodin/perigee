@@ -42,6 +42,33 @@ Do not add npm packages. The playground's `package.json` is the full dependency 
 | **Watermelon UI**, **Skipper UI** | Reference only | Card spacing and small micro-interactions in the app; nothing for the pet |
 | Happify, Google Health screenshots | Reference only | Warm, rounded, friendly tone of the app |
 
+### B1. The user's UI repos: what to take for the pet (ideas only, no code)
+
+| Repo | Idea to reuse | How, inside the rules |
+|---|---|---|
+| **react-bits** (github.com/DavidHDev/react-bits), "Animations" set | Spring-like entrance (fade + 8px rise) and "bounce" timing | Dialog bubble pop: `opacity 0→1` + `translateY(8px→0)` + `scale(.96→1)`, 250 ms, `--ease-bounce`. CSS only |
+| **GSAP** (greensock/GSAP) | Timeline thinking: anticipation → action → settle as one sequence | Write squash/stretch and the hop as ONE `@keyframes` with % stops (0 / 15 / 45 / 70 / 100), not chained timers |
+| **Lenis** (darkroomengineering/lenis) | Lerped smoothing (`lerp ≈ 0.12`) | Eye/head look-follow: each frame `look += (target − look) · 0.12`, written to `--look-x/y`. Stop when the difference is < 0.01 |
+| **Vanta** (tengbao/vanta) FOG | Soft, slow, low-contrast drift | Frost texture: low alpha, no hard edges; the trail closes slowly (20–40 s). Canvas 2D, never WebGL |
+| **Cult UI** | Hover lift + diagonal sheen sweep | Rim light: a soft-light highlight band. On tap, sweep the rim's opacity .5 → .8 → .5 over 400 ms |
+| **Skipper UI** | Small, satisfying micro-interactions | Petting: ears flatten 120 ms, body sway ±2°, blush opacity .55 → .75 |
+| **Watermelon UI** | Calm spacing | The bubble keeps 16 px padding and sits 8 px above the pet; controls keep 8 px gaps |
+
+### B2. CSS / SVG art references (study the technique, never copy art)
+
+If you have a browser, skim these for technique. If not, the "technique" column is the
+lesson. None of their code or drawings may be copied into the pet.
+
+| Reference | Technique to learn |
+|---|---|
+| Lynn Fisher, *A Single Div* (a.singlediv.com) | Building cute shapes from a few layered gradients and box-shadows; economy of elements |
+| Diana Smith, *Pure CSS Francine* (diana-adrianne.com/purecss-francine) | Soft painterly shading with stacked radial gradients and blurred shadows; no outlines |
+| Jhey Tompkins (codepen.io/jh3y) | CSS custom properties as an animation rig: one variable drives many transforms |
+| Ana Tudor (codepen.io/thebabydino) | Precise geometry in SVG/CSS; `clip-path` and blend modes for highlights |
+| Josh W. Comeau, *Designing Beautiful Shadows in CSS* (joshwcomeau.com/css/designing-shadows) | Layered, tinted shadows; contact shadow that matches the backdrop hue |
+| CSSBattle (cssbattle.dev) | Matching a target shape with the fewest elements: keep each species ≤ 120 |
+| Kawaii proportions (general practice) | Big head, low-set wide eyes, two catch-lights, tiny features, round shapes. The numbers are in BRIEF.md §1 |
+
 ## C. Not allowed
 
 Raster images (PNG/JPG/WebP/GIF), Lottie, Rive, WebGL, web fonts, icon fonts, emoji as

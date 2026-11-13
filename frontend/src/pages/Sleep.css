@@ -1,0 +1,40 @@
+/* Sleep, Orbit Pop (P2): arc hero left (2 cols, 2 rows), Breathing + Regularity stacked right; full-width strips below. */
+.sleep-bento { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--gutter);align-items:stretch; }
+.sleep-bento>* { min-width:0;margin:0; }
+.sleep-bento-arc { grid-column:span 2;grid-row:span 2;display:grid; }
+.sleep-bento .wide { grid-column:1 / -1; }
+.sleep-bento .sleep-arc-card { margin:0;display:grid;align-content:start;gap:12px; }
+.sleep-bento .card h2 { margin:0 0 4px; }
+.sleep-arc-heading .eyebrow { margin-bottom:4px; }
+.sleep-arc-stage { position:relative;display:grid;place-items:center;max-width:360px;width:100%;margin:8px auto 0; }
+.sleep-arc-stage .sleep-arc { width:100%; }
+.sleep-arc-track.ghost { stroke-dasharray:3 6; }
+.sleep-arc-wait { position:absolute;bottom:12%;color:var(--teal-ink); }
+/* The arc draws onset -> wake once: reads as the night passing. */
+.sleep-arc-value.draw-once { stroke-dasharray:258;stroke-dashoffset:0;animation:arc-draw 1.4s var(--ease) both; }
+@keyframes arc-draw { from { stroke-dashoffset:258; } }
+.sleep-arc-metrics strong { font-family:var(--font-display);font-size:var(--fs-metric);line-height:1;font-weight:600; }
+.sleep-metric-value { display:block;margin:16px 0 8px;font-family:var(--font-display);font-size:var(--fs-metric);line-height:1;font-weight:600;font-variant-numeric:tabular-nums; }
+.sleep-metric-value small { margin-left:6px;font-family:var(--font);font-size:.4em;font-weight:500;color:var(--muted); }
+.nights-count { align-self:flex-start;padding:4px 10px;border:1px solid var(--line);border-radius:var(--radius-pill);background:var(--surface); }
+/* 28 ghost ticks: the shape of the window before any night lands. */
+.sleep-empty-inline { display:grid;gap:8px;margin-top:16px; }
+.ghost-ticks { display:grid;grid-template-columns:repeat(28,minmax(0,1fr));align-items:end;gap:4px;height:64px;padding-bottom:4px;border-bottom:1px solid var(--line); }
+.ghost-ticks i { display:block;height:8px;border-radius:2px;background:var(--line); }
+.ghost-ticks i:last-child { height:16px;background:var(--uv);opacity:.5; }
+.sleep-details { padding-top:16px;padding-bottom:16px; }
+.sleep-details-toggle { width:100%;justify-content:space-between;display:flex;align-items:center; }
+@media (max-width:899px) {
+  .sleep-bento { grid-template-columns:minmax(0,1fr); }
+  .sleep-bento-arc { grid-column:auto;grid-row:auto; }
+}
+@media (prefers-reduced-motion:reduce) { .sleep-arc-value.draw-once { animation:none; } }
+html[data-reduce-motion="true"] .sleep-arc-value.draw-once { animation:none; }
+.sleep-bento .sleep-empty-inline { display:grid;justify-items:stretch;max-width:none;width:100%;margin:16px 0 0;text-align:left; }
+.sleep-bento .sleep-empty-inline .vital-empty { justify-self:start; }
+.nights-count { white-space:nowrap; }
+@media (max-width:599px) { .sleep-hero .row { flex-direction:column;align-items:flex-start;gap:8px; } }
+.sleep-bento .sleep-hero { display:block; }
+.sleep-bento .sleep-hero .sleep-empty-inline { align-self:stretch;min-height:0; }
+.sleep-bento .sleep-hero .ghost-ticks { width:100%; }
+.sleep-bento .sleep-hero .sleep-empty-inline { grid-template-columns:minmax(0,1fr);justify-content:stretch; }

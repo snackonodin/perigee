@@ -1,0 +1,31 @@
+...........................s............................................ [ 12%]
+........................................................................ [ 24%]
+........................................................................ [ 36%]
+.....................................F..F..F............................ [ 48%]
+........F............................................................... [ 61%]
+........................................................................ [ 73%]
+........................................................................ [ 85%]
+........................................................................ [ 97%]
+.............                                                            [100%]
+=================================== FAILURES ===================================
+E   assert False is True
+/Users/seemachauhan/waiwai/astro app/tests/safety/test_engine_safety.py:21: assert False is True
+E   assert False is True
+/Users/seemachauhan/waiwai/astro app/tests/safety/test_engine_safety.py:30: assert False is True
+E   assert False is True
+/Users/seemachauhan/waiwai/astro app/tests/safety/test_engine_safety.py:21: assert False is True
+E   AssertionError: assert None is not None
+     +  where None = <built-in method get of dict object at 0x11d8ce340>('schema_version')
+     +    where <built-in method get of dict object at 0x11d8ce340> = {'baseline_rr': [14.0], 'cusum_s_t': 0.0, 'history': [0.0], 'persistence_days': 0, ...}.get
+/Users/seemachauhan/waiwai/astro app/tests/safety/test_engine_state.py:32: AssertionError: assert None is not None
+=============================== warnings summary ===============================
+../../../../tmp/astro-app-verify312/lib/python3.12/site-packages/fastapi/testclient.py:1
+  /tmp/astro-app-verify312/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/safety/test_engine_safety.py::test_crisis_item9_fails_closed_before_routine_output[invalid]
+FAILED tests/safety/test_engine_safety.py::test_missing_crisis_item_fails_closed
+FAILED tests/safety/test_engine_safety.py::test_crisis_item9_fails_closed_before_routine_output[None]
+FAILED tests/safety/test_engine_state.py::test_state_has_schema_version - Ass...

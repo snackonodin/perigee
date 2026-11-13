@@ -171,3 +171,13 @@ The four direct-engine tests were not edited. Verdict key: **(a)** test expects 
 | `tests/safety/test_engine_state.py::test_state_has_schema_version` | 32 | `state["schema_version"]` non-null; actual `None` | **(a)** |
 
 No verdict (c): the engine matches the spec it owns. The four tests remain unmodified and are expected to fail until the spec/owner decision changes.
+
+## Suite run — 2026-11-13 20:51 IST
+
+`coord/suite.sh` run once (no other suite line was active in `coord/FEED.md`); capture enabled, global `--timeout=60`, wall 538.31s. Result: **591 collected, 586 passed, 4 failed, 0 errors, 1 skipped**. Output: `coord/last_suite.txt`.
+
+Failures are only the four read-only engine tests classified above:
+`tests/safety/test_engine_safety.py::test_missing_crisis_item_fails_closed`,
+`::test_crisis_item9_fails_closed_before_routine_output[None]`,
+`::test_crisis_item9_fails_closed_before_routine_output[invalid]`,
+and `tests/safety/test_engine_state.py::test_state_has_schema_version`.

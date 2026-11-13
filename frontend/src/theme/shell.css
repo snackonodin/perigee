@@ -111,3 +111,10 @@ html[data-reduce-motion="true"] *,html[data-reduce-motion="true"] *::before,html
 .consent-switch-row input[role=switch]:checked::after { transform:translateX(20px); }
 .consent-switch-row input[role=switch]:disabled { opacity:.6;cursor:progress; }
 .instrument-official { margin:4px 0 0;color:var(--muted);font-size:var(--fs-tiny); }
+/* One empty state per card (B8): icon + one sentence, body size. */
+.vital-empty { display:flex;align-items:flex-start;gap:12px;margin:16px 0 0;color:var(--muted);font-size:var(--fs-body);line-height:1.5; }
+.vital-empty svg { flex:none;width:24px;height:24px;margin-top:0;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round; }
+.vital-card-empty { align-self:start; }
+.body-leader { stroke:color-mix(in srgb,var(--muted) 45%,transparent);stroke-width:1; }
+.body-leader-end { fill:color-mix(in srgb,var(--muted) 60%,transparent); }
+.body-detail:has(.vital-card-empty) { align-self:start; }

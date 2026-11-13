@@ -27,8 +27,9 @@ function Trace({label,points,color,band}:{label:string;points:Point[];color:stri
 function HeartTile({hearts}:{hearts:readonly HeartEvent[]}) {
   const points=hearts.slice(-30).flatMap(h=>h.hr_bpm==null?[]:[{t:Date.parse(h.t_start),v:h.hr_bpm}]);
   const latest=points.at(-1)?.v;
-  return <VitalCard label="Heart rate" value={latest==null?"No reading":fmt(latest,0)} unit={latest==null?undefined:"bpm"} icon="♡" experimental>
-    <EcgTrace points={points}/><p className="vital-caption">{latest==null?"Waiting for a live sensor estimate.":"Research estimate only; no thresholds or alerts."}</p>
+  if(latest==null)return <VitalCard label="Heart rate" icon="♡" experimental empty="A heart-rate estimate appears while the sensor is streaming live."/>;
+  return <VitalCard label="Heart rate" value={fmt(latest,0)} unit="bpm" icon="♡" experimental>
+    <EcgTrace points={points}/><p className="vital-caption">Research estimate only; no thresholds or alerts.</p>
   </VitalCard>;
 }
 
@@ -43,11 +44,12 @@ export function VitalsTiles({night,baseline,status="none"}:{night?:NightOut|null
   const rrPoints:Point[]=liveWindows.flatMap((w:WindowEvent)=>w.rr_a==null?[]:[{t:Date.parse(w.t_start),v:w.rr_a}]);
   const liveStatus=vitals.status.state==="open"?"Live signal":vitals.status.state==="connecting"||vitals.status.state==="reconnecting"?"Connecting to sensor":"Latest valid night";
   return <>
-    <VitalCard label="Breathing" value={respiration==null?"No reading":fmt(respiration)} unit={respiration==null?undefined:"br/min"} icon="≈" state={respiration==null?"none":status}>
+    {respiration==null?<VitalCard label="Breathing" icon="≈" empty="Your breathing rate appears after your first full night near the sensor."/>:
+    <VitalCard label="Breathing" value={fmt(respiration)} unit="br/min" icon="≈" state={status}>
       <Trace label="Breathing rate" points={rrPoints} color="var(--teal)" band={band}/>
       {band?<div className="vital-range"><span>{fmt(band[0])}</span><span>Your usual range</span><span>{fmt(band[1])}</span></div>:<p className="vital-caption">Your personal breathing range is still taking shape.</p>}
       <p className="vital-caption">{liveStatus}</p>
-    </VitalCard>
+    </VitalCard>}
     <HeartTile hearts={vitals.hearts}/>
   </>;
 }

@@ -41,12 +41,13 @@ export function Overview() {
       </section>
       <section className="today-signal-grid" aria-label="Latest body and check-in signals">
         <VitalsTiles night={night} baseline={baseline} status={status(physiology)}/>
-        <VitalCard label="Mind and check-ins" value={health?.mental_fatigue_score==null?"No reading":`${Math.round(health.mental_fatigue_score)} / 100`} icon="◌" state={health?.mental_fatigue_score==null?"none":status(mental)}>
-          <p className="vital-caption">{health?.mental_fatigue_score==null?"Check-ins add context over time.":"From your recent personal inputs."}</p>
-        </VitalCard>
-        <VitalCard label="Rest" value={night?.valid?fmt(night.presence_hours,1):"No reading"} unit={night?.valid?"h":undefined} icon="◔" state={night?.valid?undefined:"none"}>
-          <p className="vital-caption">{night?.valid?"Sensed presence last night.":"Readings appear after a full night near the sensor."}</p>
-        </VitalCard>
+        {health?.mental_fatigue_score==null?<VitalCard label="Mind and check-ins" icon="◌" empty="Your check-ins add context here after the first few days."/>:
+        <VitalCard label="Mind and check-ins" value={`${Math.round(health.mental_fatigue_score)} / 100`} icon="◌" state={status(mental)}>
+          <p className="vital-caption">From your recent personal inputs.</p>
+        </VitalCard>}
+        {night?.valid?<VitalCard label="Rest" value={fmt(night.presence_hours,1)} unit="h" icon="◔">
+          <p className="vital-caption">Sensed presence last night.</p>
+        </VitalCard>:<VitalCard label="Rest" icon="◔" empty="Time at rest appears after your first full night near the sensor."/>}
       </section>
       <aside className="today-note-card glass-strong"><span aria-hidden="true">✧</span><div><p className="eyebrow">A quiet note</p><strong>{advisory?.headline??"Notice your own rhythm"}</strong><p>{advisory?.personality_tailored_message??"Your patterns are compared with your own recent baseline."}</p></div></aside>
     </div>;

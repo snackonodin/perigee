@@ -27,8 +27,8 @@ function BodyMap({selected,details,onSelect}:{selected:System;details:Record<Sys
       <circle className="body-silhouette" cx="201" cy="45" r="22"/>
       <path className="body-silhouette" d="M178 77c-17 4-30 14-38 28l-26 52 9 6 34-42-8 54 14 32-13 62h14l28-53 14 53h14l-13-62 14-32-8-54 34 42 9-6-26-52c-8-14-21-24-38-28l-8 18-8-18Z"/>
       <path className="body-centerline" d="M201 96v113m-24-73c9-10 16-11 24-4 9-7 16-6 24 4m-43 14c7 9 13 12 19 10m19-10c-7 9-13 12-19 10m-14 42 14 16 14-16"/>
-      {SYSTEMS.map(name=>{const [x,y,labelX,side]=DOTS[name],endX=side==="left"?labelX+70:labelX-12;
-        return <g key={name}><line className="body-leader" x1={x} y1={y} x2={endX} y2={y}/><text className="body-map-label" x={labelX} y={y-9} textAnchor={side==="left"?"start":"end"}>{name}</text></g>;
+      {SYSTEMS.map(name=>{const [x,y,,side]=DOTS[name],left=side==="left",col=left?118:286,dotEdge=left?x-14:x+14;
+        return <g key={name}><line className="body-leader" x1={col} y1={y} x2={dotEdge} y2={y}/><circle className="body-leader-end" cx={col} cy={y} r="2"/><text className="body-map-label" x={left?col-8:col+8} y={y+5} textAnchor={left?"end":"start"}>{name}</text></g>;
       })}
     </svg>
     <div className="body-nodes">{SYSTEMS.map(name=>{const [x,y]=DOTS[name],detail=details[name];return <button key={name} type="button" className={`body-node body-node-${COLORS[name]}${selected===name?" selected":""}`} style={{left:`${x/4}%`,top:`${y/3.1}%`}} aria-label={`${name}, ${detail.statusLabel}`} aria-pressed={selected===name} onClick={()=>onSelect(name)}><span className="sr-only">{name}</span></button>;})}</div>
@@ -60,11 +60,11 @@ export function Body() {
       <div className="body-layout">
         <section className="body-map-card glass" aria-label="Body systems map"><p className="eyebrow">Five connected systems</p><BodyMap selected={selected} details={details} onSelect={setSelected}/></section>
         <section className="body-detail" aria-live="polite" aria-labelledby="body-detail-title" key={selected}>
-          <VitalCard label={selected} value={current.value} icon={selected} state={current.state}>
-            <h2 id="body-detail-title" className="body-detail-heading">{selected}</h2><p>{current.copy}</p>
+          {current.value==="No reading"?<VitalCard label={selected} icon={selected} headingId="body-detail-title" empty={current.copy}/>:
+          <VitalCard label={selected} value={current.value} icon={selected} state={current.state} headingId="body-detail-title">
+            <p>{current.copy}</p>
             {selected==="Respiration"&&baseline?.median!=null&&baseline.mad!=null&&<p className="body-baseline">Personal baseline · 28 nights<br/>{fmt(baseline.median-baseline.mad)}–{fmt(baseline.median+baseline.mad)} br/min (median ± MAD)</p>}
-            <p className="body-baseline">Personal baseline · 28 nights</p>
-          </VitalCard>
+          </VitalCard>}
         </section>
       </div>
     </div>;

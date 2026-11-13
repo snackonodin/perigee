@@ -125,7 +125,7 @@ export function IndexCards({
       {(series) => {
         const keys = Array.from(new Set(series.flatMap((w) => Object.keys(w.indices)))).sort();
         if (keys.length === 0) {
-          return <p className="muted">No questionnaires or check-ins in the last {weeks} weeks yet.</p>;
+          return <p className="vital-empty"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16M7 16v-4m5 4V8m5 8v-6"/></svg><span>No questionnaires or check-ins in the last {weeks} weeks yet; your patterns appear here after the first ones.</span></p>;
         }
         return (
           <>

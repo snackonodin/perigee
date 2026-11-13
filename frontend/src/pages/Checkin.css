@@ -1,0 +1,15 @@
+/* Check-in, Orbit Pop (P2): calendar left; quick check-in and Weekly patterns stacked right; reflections full width. */
+.checkin-bento { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--gutter);align-items:start; }
+.checkin-bento>* { min-width:0;margin:0; }
+.checkin-bento-cal { grid-row:span 2;display:grid; }
+.checkin-bento-cal>* { margin:0; }
+.checkin-bento .wide { grid-column:1 / -1; }
+.checkin-bento .card h2 { margin:0 0 8px; }
+.checkin-bento .eyebrow { margin-bottom:4px; }
+.checkin-weekly-lead { margin:0 0 8px;font-size:var(--fs-small); }
+.checkin-index-history .vital-empty { margin-top:8px; }
+.checkin-index-history .index-grid { grid-template-columns:minmax(0,1fr); }
+@media (max-width:899px) { .checkin-bento { grid-template-columns:minmax(0,1fr); } .checkin-bento-cal { grid-row:auto; } }
+.checkin-bento-cal { grid-row:auto; }
+.checkin-stack { display:grid;gap:var(--gutter);align-content:start;min-width:0; }
+.checkin-stack>* { margin:0; }

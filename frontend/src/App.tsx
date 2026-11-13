@@ -15,6 +15,7 @@ import { Placeholder } from "./routes/Placeholder";
 import { TABS } from "./routes/tabs";
 import { SafetyProvider } from "./safety/SafetyProvider";
 import { CompanionGallery } from "./pages/CompanionGallery";
+import { Monitor } from "./pages/Monitor";
 
 const PAGES: Record<string, ReactElement> = {
   "/": <Overview />,
@@ -82,6 +83,7 @@ const routes = [
             return t.path === "/" ? { index: true, element } : { path: t.path.slice(1), element };
           }),
           { path: "settings", element: <Settings /> },
+          { path: "monitor", element: <Monitor /> },
         ],
       },
     ],

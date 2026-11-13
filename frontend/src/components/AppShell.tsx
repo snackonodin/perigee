@@ -67,6 +67,7 @@ export function AppShell() {
         {me?.is_synthetic && <span className="badge">Simulated data</span>}
         <span className="spacer" />
         <span className="muted who">{me?.display_name || me?.email}</span>
+        <NavLink className="tab settings-shortcut" to="/monitor" aria-label="Monitor"><span className="tab-icon" aria-hidden="true"><NavIcon path="/monitor"/></span><span>Monitor</span></NavLink>
         <NavLink className="tab settings-shortcut" to="/settings" aria-label="Settings"><span className="tab-icon" aria-hidden="true"><NavIcon path="/settings"/></span><span>Settings</span></NavLink>
         <button type="button" className="ghost" onClick={() => void logout()}>Log out</button>
       </header>
@@ -89,7 +90,7 @@ export function AppShell() {
 }
 
 function NavIcon({path}:{path:string}) {
-  const d=path==="/"?"M3 11 12 4l9 7M5 10v10h14V10M9 20v-6h6v6":path==="/sleep"?"M20 15.5A8 8 0 0 1 8.5 4 8 8 0 1 0 20 15.5Z":path==="/persona"?"M12 12a4 4 0 1 0 0-8a4 4 0 0 0 0 8ZM4 21a8 8 0 0 1 16 0":path==="/body"?"M12 3v4m0 0a3 3 0 1 0 0 6m0-6a3 3 0 1 1 0 6m0 0v8M6 14l-2 4m14-4 2 4":path==="/checkin"?"M5 4h14v16H5zM8 8h8M8 12h8M8 16h5":"M12 3l2 6 6 3-6 2-2 7-2-7-6-2 6-3z";
+  const d=path==="/"?"M3 11 12 4l9 7M5 10v10h14V10M9 20v-6h6v6":path==="/sleep"?"M20 15.5A8 8 0 0 1 8.5 4 8 8 0 1 0 20 15.5Z":path==="/persona"?"M12 12a4 4 0 1 0 0-8a4 4 0 0 0 0 8ZM4 21a8 8 0 0 1 16 0":path==="/body"?"M12 3v4m0 0a3 3 0 1 0 0 6m0-6a3 3 0 1 1 0 6m0 0v8M6 14l-2 4m14-4 2 4":path==="/checkin"?"M5 4h14v16H5zM8 8h8M8 12h8M8 16h5":path==="/monitor"?"M3 12h4l2-6 4 12 2-6h6":"M12 3l2 6 6 3-6 2-2 7-2-7-6-2 6-3z";
   return <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d={d}/></svg>;
 }
 function BrandIcon(){return <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M5 13c3-6 6 6 9 0s5 0 5-2"/></svg>;}

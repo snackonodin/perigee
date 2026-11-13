@@ -59,3 +59,20 @@ Owner: Claude (coordinator). Contract changes happen only after the decisions in
 - **D3** Is the ESP serial service in the app backend now, or do the waiwai1 live tools stay research-only for the demo?
 - **D4** Show the experimental session score number, or show only the components (RR in range %, motion-free %)?
 - **D5** (carried over) Add "missing item 9 ⇒ override" to context-v2 §9? Add `schema_version` in the backend envelope?
+
+## 7. Decided by the user (2026-11-14)
+
+- **D1 Heart/breath rates:** hidden by default. A "Measure" panel lets the person voluntarily run
+  a heart-rate or breathing-rate measurement; only then is that value shown, labelled experimental.
+- **D2 Ranges:** 12–23 breaths/min and 65–90 bpm are the reference ranges. Readings outside lower the
+  session score, graded by how far outside (separately for low and high). Checked: nothing like this
+  existed (the engine scorer only counted in-range %). Built as `backend/services/session_scoring.py`
+  with every value in `config.yaml session_scoring` + TUNING.md. Engine untouched.
+- **D3 ESP:** not always on. Choosing Sleep analysis, Measure heart rate or Measure breathing rate
+  connects the ESP for that session only, then releases it.
+- **D4 Display:** flags by default (in range / below range / above range, still / motion flags);
+  a "Show measured rates (experimental)" toggle reveals the numbers.
+
+Next: task 5 becomes (a) session scoring, done; (b) on-demand `services/sleep_monitor.py` (serial
+open on start, link check, calibration, run, close) + `/api/v1/monitor/*` + openapi; then task 6
+(Codex Monitor screen, DESIGN.md §14).

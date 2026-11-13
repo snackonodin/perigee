@@ -448,3 +448,19 @@ border-radius: var(--radius);`
 Use at most about 12 blurred glass surfaces per screen (blur is expensive); long lists use
 a single glass container, not glass per row. Test on a phone-width viewport for smooth
 scroll.
+
+## 14. Monitor screen (on-demand sessions), added 2026-11-14
+
+Decided by the user (INTEGRATION_PLAN.md §7). One viewport, no page scroll, glass cards.
+- **Start panel:** three buttons: "Sleep analysis", "Measure heart rate", "Measure breathing rate".
+  Choosing one connects the sensor for that session only (status chip: Connecting → Checking
+  signal → Calibrating → Running → Done). A clear Stop button is always visible while running.
+- **Flags first:** each measure shows a solid status chip, never a number by default:
+  "In range" (`--ok-ink`), "Below range" / "Above range" (`--warn-ink`), "No data" (`--muted`).
+  Motion: "Still" or "Movement flagged". Words, not color alone.
+- **Rates on request:** a "Show measured rates (experimental)" switch reveals the numbers with an
+  "Experimental" label. Heart and breathing values from a voluntary "Measure" run are shown with
+  the same label. Never shown on nightly screens or to the pet.
+- **Session score:** "Experimental session score" with its parts and the limitations line; never
+  called a sleep-quality or clinical score. No score while `score_status` is `insufficient_inputs`.
+- The safety screen (`--z-safety`) covers this screen like any other.

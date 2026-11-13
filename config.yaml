@@ -63,3 +63,28 @@ auth:
   login_window_s: 900               # PLACEHOLDER: window length, seconds
   max_failures_per_email_ip: 5      # PLACEHOLDER: per (email, client IP)
   max_failures_per_email: 20        # PLACEHOLDER: per email, across all IPs
+
+# Experimental short-session score (on-demand Monitor sessions; INTEGRATION_PLAN.md D2).
+# Ranges are the operator-supplied reference ranges from waiwai1/engine/SLEEP_SCORER_INTEGRATION.md.
+# A reading inside [low, high] gets full credit. Outside, credit falls linearly with the distance
+# beyond the edge, measured as a fraction of the range width; it reaches 0 at falloff_low /
+# falloff_high. Low and high are tracked and tuned separately. Not a clinical measure.
+session_scoring:
+  respiration_bpm:
+    low: 12.0                      # PLACEHOLDER (operator reference range)
+    high: 23.0                     # PLACEHOLDER
+    falloff_low: 0.25              # PLACEHOLDER: credit 0 at 25% of range width below low
+    falloff_high: 0.25             # PLACEHOLDER
+  heart_rate_bpm:
+    low: 65.0                      # PLACEHOLDER (operator reference range)
+    high: 90.0                     # PLACEHOLDER
+    falloff_low: 0.25              # PLACEHOLDER
+    falloff_high: 0.25             # PLACEHOLDER
+  weights:                         # PLACEHOLDER: must sum to 1
+    respiration: 0.40
+    heart_rate: 0.40
+    motion: 0.20
+  motion:
+    mad_multiplier: 0.85           # PLACEHOLDER: rolling robust threshold multiplier
+    floor_m_s2: 0.02               # PLACEHOLDER: minimum acceleration threshold
+    jerk_threshold_m_s3: null      # unset until the operator supplies one

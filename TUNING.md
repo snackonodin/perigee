@@ -22,6 +22,11 @@ When a value is validated, record the data and date next to it.
 | baseline.window_days | 28 | Rolling personal baseline | no |
 | baseline.warmup_nights / mature_nights | 5 / 14 | Maturity states | no |
 | baseline.alert_robust_z | 2.5 | Deviation that raises a physiological flag | no |
+| session_scoring.respiration_bpm.low / high | 12 / 23 | Monitor session reference range (operator-supplied, SLEEP_SCORER_INTEGRATION.md) | no |
+| session_scoring.heart_rate_bpm.low / high | 65 / 90 | Monitor session reference range (operator-supplied) | no |
+| session_scoring.*.falloff_low / falloff_high | 0.25 / 0.25 | Fraction of range width beyond an edge at which a reading earns 0 credit; low and high tuned separately | no |
+| session_scoring.weights | 0.40 / 0.40 / 0.20 | Respiration / heart rate / motion share of the experimental session score | no |
+| session_scoring.motion.mad_multiplier / floor_m_s2 | 0.85 / 0.02 | Motion flag threshold for Monitor sessions (engine motion_features) | no |
 | auth.login_window_s | 900 | Login-failure counting window (s) | no |
 | auth.max_failures_per_email_ip | 5 | Failed logins per (email, IP) before 429 | no |
 | auth.max_failures_per_email | 20 | Failed logins per email across IPs before 429 | no |

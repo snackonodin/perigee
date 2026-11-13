@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 import yaml
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_PATH = ROOT / "config.yaml"
@@ -86,6 +86,46 @@ class AuthCfg(_Section):
     max_failures_per_email: int = Field(default=20, gt=0)
 
 
+class RangeCfg(_Section):
+    low: float
+    high: float
+    falloff_low: float = Field(gt=0)
+    falloff_high: float = Field(gt=0)
+
+    @model_validator(mode="after")
+    def _ordered(self) -> RangeCfg:
+        if self.high <= self.low:
+            raise ValueError("range high must be greater than low")
+        return self
+
+
+class SessionWeightsCfg(_Section):
+    respiration: float = Field(ge=0)
+    heart_rate: float = Field(ge=0)
+    motion: float = Field(ge=0)
+
+    @model_validator(mode="after")
+    def _sum_to_one(self) -> SessionWeightsCfg:
+        if abs(self.respiration + self.heart_rate + self.motion - 1.0) > 1e-6:
+            raise ValueError("session_scoring.weights must sum to 1")
+        return self
+
+
+class SessionMotionCfg(_Section):
+    mad_multiplier: float = Field(gt=0)
+    floor_m_s2: float = Field(ge=0)
+    jerk_threshold_m_s3: float | None = Field(default=None, gt=0)
+
+
+class SessionScoringCfg(_Section):
+    """Experimental short-session score (INTEGRATION_PLAN.md D2). All values are placeholders."""
+
+    respiration_bpm: RangeCfg
+    heart_rate_bpm: RangeCfg
+    weights: SessionWeightsCfg
+    motion: SessionMotionCfg
+
+
 class CoreConfig(_Section):
     capture: CaptureCfg
     preprocess: PreprocessCfg
@@ -96,6 +136,7 @@ class CoreConfig(_Section):
     retention: RetentionCfg
     estimators: EstimatorsCfg = EstimatorsCfg()
     auth: AuthCfg = AuthCfg()
+    session_scoring: SessionScoringCfg | None = None
 
 
 def resolve_estimator(spec: str) -> Callable[..., Any]:

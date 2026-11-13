@@ -9,7 +9,6 @@ const REDUCE_MOTION_KEY = "settings.reduce-motion";
 export function Settings() {
   const { me, reloadMe, logout } = useAuth();
   const [displayName, setDisplayName] = useState(me?.display_name ?? "");
-  const [timezone, setTimezone] = useState(me?.timezone ?? "UTC");
   const [profileBusy, setProfileBusy] = useState(false);
   const [profileError, setProfileError] = useState<string | null>(null);
   const [profileSaved, setProfileSaved] = useState(false);
@@ -18,8 +17,7 @@ export function Settings() {
 
   useEffect(() => {
     setDisplayName(me?.display_name ?? "");
-    setTimezone(me?.timezone ?? "UTC");
-  }, [me?.display_name, me?.timezone]);
+  }, [me?.display_name]);
 
   useEffect(() => {
     let enabled = false;
@@ -38,7 +36,7 @@ export function Settings() {
     setProfileError(null);
     setProfileSaved(false);
     const { error, response } = await api.PATCH("/api/v1/me", {
-      body: { display_name: displayName.trim() || null, timezone: timezone.trim() || null },
+      body: { display_name: displayName.trim() || null },
     });
     setProfileBusy(false);
     if (error) {
@@ -67,7 +65,6 @@ export function Settings() {
         <p className="muted">Signed in as {me?.email ?? ""}</p>
         <form className="settings-form" onSubmit={saveProfile}>
           <label>Display name<input value={displayName} onChange={(event) => setDisplayName(event.target.value)} autoComplete="name" /></label>
-          <label>Time zone<input value={timezone} onChange={(event) => setTimezone(event.target.value)} autoComplete="off" placeholder="Europe/London" /></label>
           <div className="settings-actions"><button type="submit" disabled={profileBusy}>{profileBusy ? "Saving…" : "Save profile"}</button><span className="settings-saved" role="status">{profileSaved ? "Saved" : ""}</span></div>
           <p className="error" role="alert">{profileError}</p>
         </form>

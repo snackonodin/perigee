@@ -11,7 +11,6 @@ export function Setup() {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [displayName, setDisplayName] = useState(me?.display_name ?? "");
-  const [timezone, setTimezone] = useState(me?.timezone ?? "UTC");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showCheckin, setShowCheckin] = useState(false);
@@ -24,7 +23,7 @@ export function Setup() {
     setBusy(true);
     setError(null);
     const { error: apiError, response } = await api.PATCH("/api/v1/me", {
-      body: { display_name: displayName.trim() || null, timezone: timezone.trim() || null },
+      body: { display_name: displayName.trim() || null },
     });
     setBusy(false);
     if (apiError) {
@@ -69,7 +68,7 @@ export function Setup() {
         <h1 id="setup-title">Set up your account</h1>
         <p className="setup-progress" role="status">Step {step} of 3</p>
         {step === 1 && <div className="setup-step"><h2>Choose what to store</h2><p className="muted">You can change these preferences any time in Settings.</p><Consents /><button type="button" onClick={() => setStep(2)}>Continue</button></div>}
-        {step === 2 && <form className="setup-step setup-form" onSubmit={saveProfile}><h2>Your profile</h2><label>Display name<input value={displayName} onChange={(event) => setDisplayName(event.target.value)} autoComplete="name" /></label><label>Time zone<input value={timezone} onChange={(event) => setTimezone(event.target.value)} placeholder="Europe/London" /></label><p className="error" role="alert">{error}</p><div className="setup-actions"><button type="button" className="ghost" onClick={() => setStep(1)}>Back</button><button type="submit" disabled={busy}>{busy ? "Saving…" : "Save and continue"}</button></div></form>}
+        {step === 2 && <form className="setup-step setup-form" onSubmit={saveProfile}><h2>Your profile</h2><label>Display name<input value={displayName} onChange={(event) => setDisplayName(event.target.value)} autoComplete="name" /></label><p className="error" role="alert">{error}</p><div className="setup-actions"><button type="button" className="ghost" onClick={() => setStep(1)}>Back</button><button type="submit" disabled={busy}>{busy ? "Saving…" : "Save and continue"}</button></div></form>}
         {step === 3 && <div className="setup-step"><h2>Building your baseline</h2><p>Sleep near the sensor for 28 nights to build your baseline.</p><p className="muted">You can also complete your first weekly check-in now, or start later.</p>{!showCheckin && <button type="button" className="ghost" onClick={() => void loadFirstCheckin()}>Start an optional weekly check-in</button>}{checkinBusy && <p className="muted" role="status">Loading check-in…</p>}{checkinError && <p className="error" role="alert">{checkinError}</p>}{instrument && <CheckinForm instrument={instrument} onDone={() => setInstrument(null)} />}<div className="setup-actions"><button type="button" className="ghost" onClick={finish}>Finish later</button><button type="button" onClick={finish}>Finish</button></div></div>}
       </section>
     </main>

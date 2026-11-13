@@ -118,3 +118,39 @@ html[data-reduce-motion="true"] *,html[data-reduce-motion="true"] *::before,html
 .body-leader { stroke:color-mix(in srgb,var(--muted) 45%,transparent);stroke-width:1; }
 .body-leader-end { fill:color-mix(in srgb,var(--muted) 60%,transparent); }
 .body-detail:has(.vital-card-empty) { align-self:start; }
+
+/* ===== P1 proportions: one page grid, one header pattern, fixed type steps. Later rules win. ===== */
+.shell { width:100%;max-width:calc(var(--page-max) + 2 * var(--page-pad));padding:24px var(--page-pad) 48px; }
+@media (max-width:767px) { .shell { padding:16px var(--page-pad) calc(104px + env(safe-area-inset-bottom)); } }
+body { line-height:var(--lh-body); }
+h1,h2,h3 { font-family:var(--font-display);letter-spacing:-.01em; }
+/* Page header: eyebrow (mono caps) -> title -> one-line lead, left aligned; optional one chip on the right. */
+.page-heading,.persona-head,.monitor-header { display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin:8px 0 24px;text-align:left; }
+.page-heading>div,.persona-head>div { min-width:0; }
+.page-heading h1,.persona-head h1,.monitor-header h1 { margin:0;font-size:var(--fs-h1);line-height:var(--lh-h1);font-weight:700; }
+.page-heading p:not(.eyebrow),.persona-head p:not(.eyebrow) { margin:8px 0 0;max-width:60ch;color:var(--muted); }
+.page-heading>.checkin-mark,.page-heading>.heading-mark { display:none; }
+.eyebrow { margin:0 0 8px;font-family:var(--font-mono);font-size:var(--fs-micro);line-height:var(--lh-micro);font-weight:600;letter-spacing:.08em;text-transform:uppercase; }
+.card h2,.panel h2,.vital-tile h2,.vital-title h2,.persona-section-title h2,.monitor-start h2,.monitor-session h2,.monitor-results h2,.settings-section h2 { font-size:var(--fs-h3);line-height:var(--lh-h3); }
+.today-hero-copy h2 { font-size:var(--fs-h2);line-height:var(--lh-h2); }
+/* Numbers are the heroes: tabular display numerals, unit at 40 % beside them. */
+.vital-card-value,.index-value,.monitor-score>strong { font-family:var(--font-display);font-size:var(--fs-metric);line-height:1;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.02em; }
+.vital-card-value small,.index-value small { margin-left:6px;font-family:var(--font);font-size:.4em;font-weight:500;letter-spacing:0; }
+/* Cards: padding 24 (20 on phone), as tall as their content. */
+.card,.panel,.vital-card,.today-note-card,.vital-tile,.index,.system-tile,.persona-arc-panel,.persona-radar-panel,.sleep-arc-card,.body-map-card { padding:var(--card-pad); }
+.grid,.today-signal-grid,.index-grid,.sleep-grid,.checkin-grid,.settings-grid { gap:var(--gutter);align-items:start; }
+.today-signal-grid { margin-bottom:var(--gutter); }
+.today-hero-card { margin-bottom:var(--gutter);overflow:hidden; }
+/* Questionnaire rows: icon | name | status chip | Begin on one line (wraps under the name on phone). */
+.questionnaire-row { grid-template-columns:40px minmax(0,1fr) auto auto;gap:12px;padding:12px 0; }
+.questionnaire-row .questionnaire-state { grid-column:3;grid-row:1; }
+.questionnaire-row button { grid-column:4;grid-row:1;justify-self:end; }
+@media (max-width:599px) {
+  .questionnaire-row { grid-template-columns:40px minmax(0,1fr) auto; }
+  .questionnaire-row .questionnaire-state { grid-column:2;grid-row:2;justify-self:start; }
+  .questionnaire-row button { grid-column:3;grid-row:1 / span 2;align-self:center; }
+}
+.page-heading>.pill { flex:none;align-self:flex-start;display:inline-flex;align-items:center;min-height:32px;padding:4px 12px;border:1px solid var(--line);border-radius:var(--radius-pill);background:var(--surface);color:var(--muted);font-size:var(--fs-small); }
+/* Sliding tab pill: position and width are measured from the active tab (AppShell). */
+.tabs .tab-indicator { left:0;width:var(--pill-w,0px);transform:translateX(var(--pill-x,0px));transition:transform var(--dur-base) var(--ease),width var(--dur-base) var(--ease); }
+@media (prefers-reduced-motion:reduce) { .tabs .tab-indicator { transition:none; } }

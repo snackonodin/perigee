@@ -1,4 +1,4 @@
-import { useEffect, useRef, type CSSProperties } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router";
 import Lenis from "lenis";
 import { useAuth } from "../auth/AuthProvider";
@@ -60,6 +60,15 @@ export function AppShell() {
     if(destination)navigate(destination.path);
   }
   const tabIndex=TABS.findIndex(t=>t.path===pathname);
+  const nav=useRef<HTMLElement>(null);
+  const [pill,setPill]=useState<{x:number;w:number}|null>(null);
+  // Measure the active tab so the sliding pill matches its real box at any width.
+  useLayoutEffect(()=>{
+    const measure=()=>{const el=nav.current?.querySelector<HTMLElement>('a.tab[aria-current="page"]');setPill(el?{x:el.offsetLeft,w:el.offsetWidth}:null);};
+    measure();
+    window.addEventListener("resize",measure);
+    return()=>window.removeEventListener("resize",measure);
+  },[pathname]);
   return (
     <div className="shell">
       <div className="aurora-backdrop" aria-hidden="true"><i/><i/><i/><i/></div>
@@ -73,8 +82,8 @@ export function AppShell() {
         <NavLink className="header-link" to="/settings" aria-label="Settings"><Icon name="settings" size={22}/><span className="header-link-label">Settings</span></NavLink>
         <button type="button" className="ghost header-logout" aria-label="Log out" onClick={() => void logout()}><Icon name="logout" size={20}/><span className="header-link-label">Log out</span></button>
       </header>
-      <nav className="tabs glass" aria-label="Sections. Tap a tab or swipe across a screen to switch">
-        {tabIndex>=0&&<span className="tab-indicator" aria-hidden="true" style={{"--tab-index":tabIndex,"--tab-count":TABS.length} as CSSProperties}/>}
+      <nav ref={nav} className="tabs glass" aria-label="Sections. Tap a tab or swipe across a screen to switch">
+        {tabIndex>=0&&pill&&<span className="tab-indicator" aria-hidden="true" style={{"--pill-x":`${pill.x}px`,"--pill-w":`${pill.w}px`} as CSSProperties}/>}
         {TABS.map((t) => (
           <NavLink key={t.path} to={t.path} end={t.path === "/"} className="tab">
             <span className="tab-icon" aria-hidden="true"><Icon name={ROUTE_ICON[t.path]} size={22}/></span>

@@ -14,14 +14,26 @@
   --glass-blur:blur(20px) saturate(140%);
   --teal-ink:#166457;
   --font:ui-rounded,"SF Pro Rounded","Nunito","Segoe UI",system-ui,sans-serif;
-  --fs-display:48px; --fs-h1:32px; --fs-h2:24px; --fs-metric:28px; --fs-h3:20px; --fs-body:16px; --fs-small:14px; --fs-tiny:12px;
-  --s-1:4px; --s-2:8px; --s-3:16px; --s-4:24px; --s-5:32px; --s-6:48px; --s-7:64px;
+  --font-display:"Space Grotesk Variable","Space Grotesk",var(--font);
+  --font-mono:"JetBrains Mono Variable","JetBrains Mono",ui-monospace,"SF Mono",Menlo,monospace;
+  /* P1 type scale: fixed steps only (size/line-height). */
+  --fs-display:56px; --lh-display:60px; --fs-h1:40px; --lh-h1:44px; --fs-h2:28px; --lh-h2:32px; --fs-h3:20px; --lh-h3:26px;
+  --fs-body:16px; --lh-body:24px; --fs-small:14px; --lh-small:20px; --fs-tiny:12px; --fs-micro:12px; --lh-micro:16px;
+  --fs-metric:56px; --fs-metric-sm:48px;
+  /* P1 spacing steps: 4 8 12 16 24 32 48 64. */
+  --s-1:4px; --s-2:8px; --s-2h:12px; --s-3:16px; --s-4:24px; --s-5:32px; --s-6:48px; --s-7:64px;
+  --page-max:1200px; --gutter:24px; --page-pad:16px; --card-pad:20px;
+  --uv:#5B4BDB;
   --radius:16px; --radius-pill:999px;
   --shadow-1:0 1px 2px rgba(31,42,55,.04),0 2px 8px rgba(31,42,55,.05);
   --shadow-2:0 4px 16px rgba(31,42,55,.08);
   --dur-fast:150ms; --dur-base:250ms; --dur-slow:400ms; --ease:cubic-bezier(.2,.8,.2,1);
-  --companion-size:96px; --companion-inset:16px; --z-base:0; --z-sticky:100; --z-companion:500; --z-popover:700; --z-modal:900; --z-safety:1000;
+  --companion-size:96px;
+ --companion-inset:16px; --z-base:0; --z-sticky:100; --z-companion:500; --z-popover:700; --z-modal:900; --z-safety:1000;
 }
+@media (min-width:768px) { :root { --page-pad:32px; --card-pad:24px; } }
+@media (min-width:1200px) { :root { --page-pad:48px; } }
+@media (max-width:599px) { :root { --fs-display:40px; --lh-display:44px; --fs-h1:32px; --lh-h1:36px; --fs-h2:24px; --lh-h2:28px; --fs-metric:48px; } }
 * { box-sizing:border-box; }
 html,body,#root { min-height:100%; margin:0; }
 body { min-height:100vh; color:var(--text); background:var(--bg); font:400 var(--fs-body)/1.5 var(--font); }

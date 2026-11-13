@@ -158,3 +158,16 @@ Command: `PYTHONPATH=/tmp/astro-pytest-capture-compat:waiwai1 /tmp/astro-app-ver
 | Live SSE | `tests/db/test_live.py:154` | events [window, heart] | [] | **(b) timing flake.** Passes in isolation 2/2 (13 passed, ~15s). Fails only under full-suite load |
 
 No verdict (c) items, so no backend change was made. Open decision: the survey crisis contract above.
+
+## Engine test verdicts — 2026-11-13
+
+The four direct-engine tests were not edited. Verdict key: **(a)** test expects behavior the spec lacks, **(b)** test is wrong, **(c)** engine bug. `AGENTS.md` requires the override only for PHQ-9 Item 9 > 0; `coord/API_CONTRACT.md` assigns missing/unparseable fail-closed handling to the backend API, and `schema_version` is a backend persistence envelope.
+
+| Test | Assertion line | Expected vs actual | Verdict |
+|---|---|---|---|
+| `tests/safety/test_engine_safety.py::test_missing_crisis_item_fails_closed` | 30 | `crisis_override_triggered is True` when Item 9 is absent; actual `False` | **(a)** |
+| `tests/safety/test_engine_safety.py::test_crisis_item9_fails_closed_before_routine_output[None]` | 21 | `True` for a null Item 9; actual `False` | **(a)** |
+| `tests/safety/test_engine_safety.py::test_crisis_item9_fails_closed_before_routine_output[invalid]` | 21 | `True` for an unparseable Item 9; actual `False` | **(a)** |
+| `tests/safety/test_engine_state.py::test_state_has_schema_version` | 32 | `state["schema_version"]` non-null; actual `None` | **(a)** |
+
+No verdict (c): the engine matches the spec it owns. The four tests remain unmodified and are expected to fail until the spec/owner decision changes.

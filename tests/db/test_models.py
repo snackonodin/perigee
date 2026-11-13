@@ -29,7 +29,7 @@ EXPECTED_TABLES = {
     "reference_readings", "window_estimates", "heart_estimates", "night_features",
     "baselines", "flags", "pipeline_runs", "audit_log", "instrument_catalog",
     "survey_responses", "checkins_daily", "indices", "safety_events", "guidance_cards",
-    "guidance_shown",
+    "guidance_shown", "context_engine_nights",
 }  # fmt: skip
 
 T0 = datetime(2026, 11, 1, 22, 0, tzinfo=UTC)

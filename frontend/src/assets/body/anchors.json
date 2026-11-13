@@ -1,0 +1,28 @@
+{
+  "_note": "Hotspots as fractions of the figure box (x of width, y of height). side = which label column. Replace with the measured anchors when the user's image lands.",
+  "Mind": {
+    "x": 0.5025,
+    "y": 0.1452,
+    "side": "right"
+  },
+  "Respiration": {
+    "x": 0.485,
+    "y": 0.3484,
+    "side": "left"
+  },
+  "Autonomic": {
+    "x": 0.575,
+    "y": 0.4516,
+    "side": "right"
+  },
+  "Rest": {
+    "x": 0.5025,
+    "y": 0.5419,
+    "side": "left"
+  },
+  "Cabin": {
+    "x": 0.825,
+    "y": 0.2645,
+    "side": "right"
+  }
+}

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Icon } from "../components/icons";
+import { useLoad } from "../api/useLoad";
 import { api, errorText } from "../api/client";
 import "./Monitor.css";
 
@@ -32,6 +33,8 @@ export function Monitor() {
   const [showRates, setShowRates] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mode, setMode] = useState<Mode>("sleep_analysis");
+  const modes = useLoad(() => api.GET("/api/v1/monitor/modes"));
+  const timing = new Map((modes.data ?? []).map((m) => [m.mode, m]));
   const phaseTotal = useRef<{ state?: SessionState; total: number }>({ total: 0 });
   const active = !!session && ACTIVE_STATES.includes(session.state);
 
@@ -105,7 +108,7 @@ export function Monitor() {
           {(Object.keys(MODE_LABELS) as Mode[]).map((m) => <label key={m} className={`monitor-mode tile-press${mode === m ? " selected" : ""}`}>
             <input type="radio" name="monitor-mode" value={m} checked={mode === m} onChange={() => setMode(m)} />
             <span className="monitor-mode-icon" aria-hidden="true"><Icon name={MODE_INFO[m].icon} /></span>
-            <strong>{MODE_LABELS[m]}</strong><span className="monitor-mode-line">{MODE_INFO[m].line}</span>
+            <strong>{MODE_LABELS[m]}</strong>{timing.get(m) && <span className="telemetry monitor-mode-time">{duration(timing.get(m)!.total_s)} · incl. {duration(timing.get(m)!.calibration_s)} room check</span>}<span className="monitor-mode-line">{MODE_INFO[m].line}</span>
           </label>)}
         </div>
         <div className="monitor-start-row"><button type="button" className="btn-uv monitor-go" disabled={starting} onClick={() => void start(mode)}>{starting ? "Connecting…" : `Start ${MODE_LABELS[mode].toLowerCase()}`}</button></div>
@@ -197,6 +200,7 @@ function summaryLimitations(value: unknown): string {
   return "Experimental session result. Not a clinical measure.";
 }
 function flagLabel(flag: string): string { return ({ in_range: "In range", below_range: "Below range", above_range: "Above range", no_data: "No data" } as Record<string, string>)[flag] ?? "No data"; }
+function duration(seconds: number): string { return seconds >= 60 && seconds % 60 === 0 ? `${seconds / 60} min` : seconds >= 60 ? `${Math.floor(seconds / 60)} min ${Math.round(seconds % 60)} s` : `${Math.round(seconds)} s`; }
 function stateLabel(state: SessionState): string { return ({ connecting: "Connecting", link_check: "Checking signal", calibrating: "Calibrating", running: "Running", finalizing: "Finalizing", complete: "Done", link_error: "Connection problem", stopped: "Stopped" })[state]; }
 function formatReading(reading: Record<string, unknown>): string {
   const time = typeof reading.time_s === "number" ? `${reading.time_s}s` : "Reading";

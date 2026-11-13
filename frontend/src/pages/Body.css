@@ -22,3 +22,11 @@
 @media (max-width:899px) { .body-page .body-layout { grid-template-columns:minmax(0,1fr); } }
 @media (prefers-reduced-motion:reduce) { .body-node.selected::after { animation:none;opacity:0; } }
 html[data-reduce-motion="true"] .body-node.selected::after { animation:none;opacity:0; }
+.body-detail { align-content:stretch; }
+.body-detail .vital-card { height:100%;display:flex;flex-direction:column; }
+.system-meaning { margin:16px 0 0;color:var(--muted); }
+.system-usual { display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-top:auto;padding-top:16px;border-top:1px solid var(--line);font-size:var(--fs-small);font-weight:600; }
+.body-detail .vital-card .system-usual { margin-top:auto; }
+.body-page .body-detail { grid-template-rows:auto minmax(0,1fr); }
+.body-page .body-detail>.vital-card { height:100%; }
+.body-page .body-layout .body-detail:has(.vital-card-empty) { align-self:stretch; }

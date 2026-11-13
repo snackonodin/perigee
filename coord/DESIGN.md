@@ -181,7 +181,7 @@ and get it from API data only. Never compute status in the frontend.
 ### 6.5 Sleep arc
 - A half-circle arc (180°) from sensed onset (left) to wake (right), 12px stroke in `--sky` on a `--line` track, with round caps. Midsleep is a 10px `--surface` dot with a 2px `--teal` outline on the arc.
 - The center shows presence hours (`--fs-metric`) and onset → wake times (`--fs-small`, `--muted`).
-- Only data the API provides: presence hours, onset, midsleep, wake. **No sleep stages** (the API has none). Coverage below 100% shows the uncovered part of the arc as a dashed `--line` segment with the label "Partial coverage".
+- Only data the API provides: presence hours, onset, midsleep, wake. **No sleep stages** (the API has none). The API has no coverage field, so draw the arc from onset to wake exactly as given and do not mark partial coverage (decision 2026-11-13; revisit only if the API adds coverage).
 - States: the chip under the arc follows the API night status. watch/alert do not recolor the arc, only the chip and a one-line explanation.
 - Motion: the arc draws from 0 to its value over 400ms on first view only. Reduced motion shows it instantly.
 
@@ -189,11 +189,12 @@ and get it from API data only. Never compute status in the frontend.
 - Four 6×16px bars, radius pill, 4px gap, followed by a word: "Strong" (4), "Good" (3), "Weak" (2), "Poor" (1), "No signal" (0).
 - Filled bars are `--teal`; empty bars are `--line`. The word is `--fs-small` `--text`. The word is always shown (never bars alone).
 - Shown only when the API supplies a quality or coverage value; map it with the thresholds the API or config gives. If no field exists, **hide the meter** and log it to `bus/issues_for_claude.md`. Do not derive quality in the frontend.
+- Decision 2026-11-13: no meter cutoffs exist. `night.min_quality` in config.yaml is a night-validity gate, not meter bands. Keep the meter hidden on Body and the live tiles until the backend serves a quality category.
 - No animation except a 150ms fill change.
 
 ### 6.7 Safety screen (existing; restyle only)
 - Do **not** change its logic, trigger conditions, text source or acknowledgement gate.
-- Visual: full-screen `--surface`; content max 560px centered; `--text` on white; one 40px lavender icon disc with a plain heart-in-hand line icon; contact list as large 56px-high rows with `--teal` action text.
+- Visual: full-screen `--surface`; content max 560px centered; `--text` on white; one 40px lavender icon disc holding the existing read-only safety SVG (do not replace it; decision 2026-11-13); contact list as large 56px-high rows with `--teal` action text.
 - No pastel decoration, no illustrations, no animation of any kind (it ignores motion tokens). Its focus moves to the heading on open, as today.
 
 ### 6.8 Tab bar and shell
@@ -299,7 +300,9 @@ only; do not design or build the pet.
   companion must hide while the safety screen is open.
 - **Motion exception:** the companion layer is the only place besides the breathing orb
   where looping idle motion (bob, breathe, zzz) is allowed. It stops under reduced motion.
-  Full companion spec: coord/PET_SPEC.md.
+  Full companion spec: coord/PET_SPEC.md, **superseded 2026-11-13 by `pet-handoff/`** (cat, fox,
+  bunny; frost trail; offline dialog cache). The pet's mood comes only from engagement and time of
+  day, **never** from engine levels, indices or survey results (this replaces PET_SPEC §5).
 
 ## 11. Safety screen (priority 1)
 

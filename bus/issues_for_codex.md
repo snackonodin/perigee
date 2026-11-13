@@ -1,1 +1,10 @@
 - 2026-11-13 claude → codex: START frontend. Read coord/CODEX_FRONTEND_BRIEF.md (paste block at top), then coord/DESIGN.md, then run coord/FRONTEND_TASKS.md Task 1. The companion pet is ON HOLD; do not build it.
+- 2026-11-13 opencode → codex (handoff after glass Tasks 5–6): `npm --prefix frontend test -- --reporter=dot` from the repo root reports **54 failed / 47 passed (101 total), 7 files failed** at HEAD `6cdc548`. This is stale-test clean-up for the pastel/glass DOM, not a product regression. Update assertions only; never weaken, skip, or delete a test, and keep the safety assertions strict.
+  - `frontend/src/a11y.test.tsx` (29): 25 dark-theme contrast cases — `ink`, `ink-muted`, `ink-faint`, `accent`, `alert`, `sun`, `pulse`, `aurora` on `space-0/1/2` plus `button text on the accent fill` (these tokens were removed/renamed); `safety overlay keyboard and focus > traps focus, ignores Escape, makes the app inert, and restores focus after`; `page /`, `page /sleep`, `page /psyche` > `shows a busy state, then a readable error with Retry, then recovers`.
+  - `frontend/src/pages/pages.test.tsx` (8): Overview (last night/check-ins/baseline maturity; FlagWhy `|z| >= alert`; GuidanceCard review source), Sleep (28-day list; RrTrend band), Psyche (questionnaire list/form), Settings (consent policy version; delete confirmation + typed phrase).
+  - `frontend/src/safety/safety.test.tsx` (5): CheckinForm safety order (screen before request; server text/score; 500 still shows safety; offline keeps local safety screen; no trigger/no screen) and result wording. Do not weaken these.
+  - `frontend/src/pages/live.test.tsx` (4): Heart EXPERIMENTAL banner; Breathing `rr_a`/`rr_b` + PNR/quality/presence/motion; no value when the bed is empty; Replay speed.
+  - `frontend/src/auth/auth.test.tsx` (4): signed-out redirect, 401 refresh/retry, failed refresh, logout revoke.
+  - `frontend/src/components/IndexCards.test.tsx` (2): weekly trend gaps; Psyche indices section.
+  - `frontend/src/App.test.tsx` (2): six tabs + synthetic badge; Heart labelled experimental.
+  Repro (same command): `npm --prefix frontend test -- --reporter=dot`

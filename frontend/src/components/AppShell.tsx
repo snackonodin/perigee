@@ -4,6 +4,7 @@ import Lenis from "lenis";
 import { useAuth } from "../auth/AuthProvider";
 import { TABS } from "../routes/tabs";
 import { Icon, ROUTE_ICON } from "./icons";
+import { BRAND } from "../brand";
 
 export function AppShell() {
   const { me, logout } = useAuth();
@@ -74,7 +75,7 @@ export function AppShell() {
       <div className="aurora-backdrop" aria-hidden="true"><i/><i/><i/><i/></div>
       <a className="skip" href="#main">Skip to content</a>
       <header className="topbar">
-        <span className="brand"><span className="brand-mark" aria-hidden="true"><BrandIcon/></span>Astronaut Vitals</span>
+        <span className="brand"><span className="brand-mark" aria-hidden="true"><BrandIcon/></span>{BRAND}</span>
         {me?.is_synthetic && <span className="badge">Simulated data</span>}
         <span className="spacer" />
         <span className="muted who">{me?.display_name || me?.email}</span>

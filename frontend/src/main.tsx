@@ -5,6 +5,7 @@ import "@fontsource-variable/space-grotesk";
 import "@fontsource-variable/jetbrains-mono";
 import "./theme/tokens.css";
 import "./theme/shell.css";
+import "./theme/orbit.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

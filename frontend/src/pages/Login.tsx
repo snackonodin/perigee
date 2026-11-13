@@ -2,6 +2,7 @@ import { type FormEvent, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { api } from "../api/client";
 import { useAuth } from "../auth/AuthProvider";
+import { BRAND } from "../brand";
 
 export function Login({ signup = false }: { signup?: boolean }) {
   const { status, login } = useAuth();
@@ -83,7 +84,7 @@ export function Login({ signup = false }: { signup?: boolean }) {
             <button type="submit" disabled={busy || checkingSetup}>{busy ? (signup ? "Creating account…" : "Signing in…") : (signup ? "Create account" : "Sign in")}</button>
             <p className="error" role="alert">{error}</p>
           </form>
-          <p className="login-toggle">{signup ? "Already have an account?" : "New to Perigee?"} <button type="button" className="link" onClick={() => navigate(signup ? "/login" : "/register")}>{signup ? "Sign in" : "Create an account"}</button></p>
+          <p className="login-toggle">{signup ? "Already have an account?" : `New to ${BRAND}?`} <button type="button" className="link" onClick={() => navigate(signup ? "/login" : "/register")}>{signup ? "Sign in" : "Create an account"}</button></p>
           <p className="login-privacy"><span aria-hidden="true">◈</span> Your personal signals stay in your account.</p>
         </section>
       </main>

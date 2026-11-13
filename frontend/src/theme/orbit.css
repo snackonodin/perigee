@@ -1,0 +1,27 @@
+/* Orbit Pop foundations (P2): orbit rings, satellite dot, grain, ultraviolet focus accent. */
+:root { --uv-soft:color-mix(in srgb,var(--uv) 14%,transparent); --orbit-line:color-mix(in srgb,var(--text) 10%,transparent); }
+/* 3 % noise over the backdrop. */
+.aurora-backdrop::after { content:"";position:absolute;inset:0;opacity:.03;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:160px 160px; }
+/* Concentric rings: put .orbit on a positioned box; rings are drawn by ::before/::after. */
+.orbit { position:relative;isolation:isolate; }
+.orbit::before,.orbit::after { content:"";position:absolute;inset:var(--orbit-inset,-16px);z-index:-1;border:1px solid var(--orbit-line);border-radius:50%;pointer-events:none; }
+.orbit::after { inset:calc(var(--orbit-inset,-16px) * 2.2);border-style:dashed;opacity:.7; }
+/* Satellite: a small UV dot that travels a ring of radius --sat-r. */
+.satellite { position:absolute;top:50%;left:50%;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:var(--uv);box-shadow:0 0 0 4px var(--uv-soft);transform:rotate(var(--sat-a,0deg)) translateX(var(--sat-r,100px));pointer-events:none; }
+.satellite.spin { animation:satellite-spin var(--sat-period,24s) linear infinite; }
+@keyframes satellite-spin { to { transform:rotate(calc(var(--sat-a,0deg) + 360deg)) translateX(var(--sat-r,100px)); } }
+/* Telemetry microcopy. */
+.telemetry { font-family:var(--font-mono);font-size:var(--fs-micro);line-height:var(--lh-micro);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-variant-numeric:tabular-nums; }
+.tag-mono { display:inline-flex;align-items:center;min-height:20px;padding:2px 8px;border:1px solid var(--line);border-radius:var(--radius-pill);font-family:var(--font-mono);font-size:10px;line-height:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);background:var(--surface); }
+/* Ultraviolet: focus moments only (active tab pill, primary Monitor buttons, orbit dot). White text on it is 6.0:1. */
+.btn-uv { background:var(--uv);border-color:var(--uv);color:#fff; }
+.btn-uv:hover { background:color-mix(in srgb,var(--uv) 88%,#000); }
+/* Title split-reveal keeps the heading box. */
+.title-reveal { display:block; }
+.title-reveal .split-parent { margin:0;font-size:var(--fs-h1);line-height:var(--lh-h1);font-weight:700;font-family:var(--font-display); }
+/* Hover / press for tappable tiles. */
+.tile-press { transition:transform var(--dur-fast) var(--ease),box-shadow var(--dur-fast) var(--ease); }
+.tile-press:hover { transform:translateY(-2px);box-shadow:var(--shadow-2); }
+.tile-press:active { transform:scale(.98); }
+@media (prefers-reduced-motion:reduce) { .satellite.spin { animation:none; } .tile-press,.tile-press:hover,.tile-press:active { transition:none;transform:none; } }
+html[data-reduce-motion="true"] .satellite.spin { animation:none; }

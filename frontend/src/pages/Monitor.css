@@ -35,3 +35,71 @@
   .monitor-session { align-items:stretch;flex-direction:column; }
   .monitor-stop { width:100%; }
 }
+
+/* ===== Orbit Pop (P2) ===== */
+.monitor-page { max-width:none;gap:var(--gutter); }
+.monitor-header { align-items:center; }
+/* Dynamic-island status pill: the state change is the information. Width morphs between labels. */
+.status-island { interpolate-size:allow-keywords;display:inline-flex;align-items:center;gap:10px;min-height:40px;width:auto;padding:8px 18px 8px 14px;border-radius:var(--radius-pill);background:var(--text);color:#fff;font-family:var(--font-mono);font-size:var(--fs-micro);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;overflow:hidden;box-shadow:0 10px 24px -12px rgba(31,42,55,.6);transition:width var(--dur-slow) var(--ease),padding var(--dur-slow) var(--ease),background var(--dur-base) var(--ease); }
+.island-dot { width:10px;height:10px;flex:none;border-radius:50%;background:#9AA5B1; }
+.island-connecting .island-dot,.island-link_check .island-dot { background:var(--sky);animation:island-pulse 1.2s ease-in-out infinite; }
+.island-calibrating .island-dot { background:var(--butter);animation:island-pulse 1.2s ease-in-out infinite; }
+.island-running { background:var(--uv); }
+.island-running .island-dot { background:#fff;animation:island-pulse 1.6s ease-in-out infinite; }
+.island-finalizing .island-dot { background:var(--lavender); }
+.island-complete .island-dot { background:var(--mint); }
+.island-link_error .island-dot { background:var(--alert-soft); }
+.island-label { animation:island-label-in var(--dur-base) var(--ease) both; }
+@keyframes island-pulse { 50% { opacity:.35;transform:scale(.8); } }
+@keyframes island-label-in { from { opacity:0;transform:translateY(6px); } }
+
+/* Start: three selectable tiles + one Start button. */
+.monitor-start { display:grid;gap:16px; }
+.monitor-start h2,.monitor-start>p { margin:0; }
+.monitor-modes { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px; }
+.monitor-mode { position:relative;display:grid;align-content:start;gap:8px;min-height:160px;padding:20px;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);cursor:pointer; }
+.monitor-mode input { position:absolute;opacity:0;pointer-events:none; }
+.monitor-mode:has(input:focus-visible) { outline:3px solid var(--teal);outline-offset:2px; }
+.monitor-mode.selected { border-color:var(--uv);box-shadow:0 0 0 1px var(--uv),0 12px 28px -16px color-mix(in srgb,var(--uv) 60%,transparent); }
+.monitor-mode.selected::after { content:"";position:absolute;top:16px;right:16px;width:20px;height:20px;border-radius:50%;background:var(--uv) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 12 4 4 8-8'/%3E%3C/svg%3E") center/14px no-repeat; }
+.monitor-mode-icon { width:44px;height:44px;display:grid;place-items:center;border-radius:50%;background:var(--sky);color:var(--text); }
+.monitor-mode strong { font-family:var(--font-display);font-size:var(--fs-h3);line-height:var(--lh-h3); }
+.monitor-mode-line { color:var(--muted);font-size:var(--fs-small);line-height:var(--lh-small); }
+.monitor-start-row { display:flex;justify-content:flex-end; }
+.monitor-go { min-height:52px;padding:12px 28px; }
+
+/* Active session: progress ring with orbiting satellite. */
+.monitor-session { display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:32px;padding:32px; }
+.monitor-session-copy { display:grid;gap:8px;justify-items:start; }
+.monitor-session-copy h2,.monitor-session-copy p { margin:0; }
+.monitor-session-copy .monitor-stop { margin-top:8px; }
+.progress-ring { position:relative;width:200px;height:200px;display:grid;place-items:center; }
+.progress-ring svg { position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg); }
+.ring-track { fill:none;stroke:var(--line);stroke-width:6; }
+.ring-fill { fill:none;stroke:var(--uv);stroke-width:6;stroke-linecap:round;transition:stroke-dashoffset 1s linear; }
+.progress-ring.indeterminate .ring-fill { stroke-dasharray:60 493;animation:ring-spin 1.6s linear infinite;transform-origin:100px 100px; }
+.progress-ring .satellite { transition:transform 1s linear; }
+.progress-ring.indeterminate .satellite { display:none; }
+.progress-ring .monitor-countdown { margin:0;font-family:var(--font-display);font-size:var(--fs-display);line-height:1;font-weight:600; }
+.ring-wait { margin:0; }
+@keyframes ring-spin { to { transform:rotate(360deg); } }
+
+/* Results: flags first. */
+.monitor-flag-card { min-height:0;padding:16px; }
+.monitor-flag-card h3 { font-family:var(--font-display); }
+
+@media (max-width:700px) {
+  .monitor-header { flex-wrap:wrap; }
+  .monitor-modes { grid-template-columns:1fr; }
+  .monitor-mode { min-height:0;grid-template-columns:44px minmax(0,1fr);column-gap:12px; }
+  .monitor-mode-icon { grid-row:span 2; }
+  .monitor-start-row .monitor-go { width:100%; }
+  .monitor-session { grid-template-columns:1fr;justify-items:center;text-align:center;padding:20px; }
+  .monitor-session-copy { justify-items:center; }
+  .progress-ring { width:180px;height:180px; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .status-island,.island-label,.island-dot,.ring-fill,.progress-ring .satellite,.progress-ring.indeterminate .ring-fill { transition:none!important;animation:none!important; }
+}
+.monitor-start h2 { margin:0; }
+@media (max-width:700px) { .monitor-header { flex-direction:column;align-items:flex-start;gap:12px; } }

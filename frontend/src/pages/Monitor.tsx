@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { Icon } from "../components/icons";
 import { api, errorText } from "../api/client";
 import "./Monitor.css";
 
@@ -14,6 +15,11 @@ interface MonitorSession {
 }
 
 const ACTIVE_STATES: SessionState[] = ["connecting", "link_check", "calibrating", "running", "finalizing"];
+const MODE_INFO: Record<Mode, { icon: string; line: string }> = {
+  sleep_analysis: { icon: "sleep", line: "Breathing, heart and movement while you rest, with an experimental session score." },
+  heart_rate: { icon: "monitor", line: "A short experimental heart-rate estimate while you sit still." },
+  breathing_rate: { icon: "breath", line: "Your breathing rate while you sit still near the sensor." },
+};
 const MODE_LABELS: Record<Mode, string> = {
   sleep_analysis: "Sleep analysis",
   heart_rate: "Measure heart rate",
@@ -25,6 +31,8 @@ export function Monitor() {
   const [starting, setStarting] = useState(false);
   const [showRates, setShowRates] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mode, setMode] = useState<Mode>("sleep_analysis");
+  const phaseTotal = useRef<{ state?: SessionState; total: number }>({ total: 0 });
   const active = !!session && ACTIVE_STATES.includes(session.state);
 
   useEffect(() => {
@@ -87,20 +95,29 @@ export function Monitor() {
     <section className="monitor-page" aria-labelledby="monitor-title">
       <header className="monitor-header">
         <div><p className="eyebrow">On-demand sensor session</p><h1 id="monitor-title">Monitor</h1></div>
-        {session && <span className={`monitor-state monitor-state-${session.state}`} role="status">{stateLabel(session.state)}</span>}
+        <StatusIsland state={session?.state} />
       </header>
 
       {!active && <section className="card glass monitor-start" aria-labelledby="monitor-start-title">
         <h2 id="monitor-start-title">Choose a session</h2>
-        <p className="muted">The sensor connects only for the session you choose.</p>
-        <div className="monitor-start-actions">
-          {(Object.keys(MODE_LABELS) as Mode[]).map((mode) => <button key={mode} type="button" disabled={starting} onClick={() => void start(mode)}>{starting ? "Connecting…" : MODE_LABELS[mode]}</button>)}
+        <p className="muted">The sensor connects only for the session you choose. Every session starts with a short empty-room check.</p>
+        <div className="monitor-modes" role="radiogroup" aria-labelledby="monitor-start-title">
+          {(Object.keys(MODE_LABELS) as Mode[]).map((m) => <label key={m} className={`monitor-mode tile-press${mode === m ? " selected" : ""}`}>
+            <input type="radio" name="monitor-mode" value={m} checked={mode === m} onChange={() => setMode(m)} />
+            <span className="monitor-mode-icon" aria-hidden="true"><Icon name={MODE_INFO[m].icon} /></span>
+            <strong>{MODE_LABELS[m]}</strong><span className="monitor-mode-line">{MODE_INFO[m].line}</span>
+          </label>)}
         </div>
+        <div className="monitor-start-row"><button type="button" className="btn-uv monitor-go" disabled={starting} onClick={() => void start(mode)}>{starting ? "Connecting…" : `Start ${MODE_LABELS[mode].toLowerCase()}`}</button></div>
       </section>}
 
       {active && session && <section className="card glass monitor-session" aria-live="polite">
-        {session.state === "calibrating" ? <div className="monitor-calibration"><h2>Please leave the room for 60 s</h2><p className="monitor-countdown" aria-label={`${session.remaining_s ?? 0} seconds remaining`}>{session.remaining_s ?? 0}<span>s</span></p><p className="muted">The sensor is checking the room before measuring.</p></div> : <div><h2>{MODE_LABELS[session.mode]}</h2><p className="muted">{stateLabel(session.state)}</p>{session.state === "running" && session.remaining_s != null && <p className="monitor-countdown">{session.remaining_s}<span>s</span></p>}</div>}
-        <button type="button" className="ghost monitor-stop" onClick={() => void stop()}>Stop session</button>
+        <ProgressRing session={session} totalRef={phaseTotal} />
+        <div className="monitor-session-copy">
+          {session.state === "calibrating" ? <><p className="telemetry">Room check</p><h2>Please leave the room for 60 s</h2><p className="muted">The sensor is checking the empty room before measuring.</p></>
+            : <><p className="telemetry">{stateLabel(session.state)}</p><h2>{MODE_LABELS[session.mode]}</h2><p className="muted">{session.state === "running" ? "Stay still near the sensor until the ring closes." : "Getting the sensor ready."}</p></>}
+          <button type="button" className="ghost monitor-stop" onClick={() => void stop()}>Stop session</button>
+        </div>
       </section>}
 
       {error && <p className="error monitor-error" role="alert">{error}</p>}
@@ -124,6 +141,35 @@ export function Monitor() {
       {session?.state === "stopped" && <p className="muted monitor-ended" role="status">Session stopped.</p>}
     </section>
   );
+}
+
+/** Dynamic-island status pill: one pill that morphs Connecting -> Calibrating -> Running -> Done. */
+function StatusIsland({ state }: { state?: SessionState }) {
+  const label = state ? stateLabel(state) : "Sensor idle";
+  return <span className={`status-island island-${state ?? "idle"}`} role="status" aria-label={`Session status: ${label}`}>
+    <i className="island-dot" aria-hidden="true" /><span key={label} className="island-label">{label}</span>
+  </span>;
+}
+
+/** Progress ring for the current phase; the satellite dot shows time left. The phase total is the
+ *  first remaining_s seen in that phase (durations are config values, not repeated here). */
+function ProgressRing({ session, totalRef }: { session: MonitorSession; totalRef: { current: { state?: SessionState; total: number } } }) {
+  const remaining = session.remaining_s ?? null;
+  if (totalRef.current.state !== session.state) totalRef.current = { state: session.state, total: remaining ?? 0 };
+  else if (remaining != null && remaining > totalRef.current.total) totalRef.current.total = remaining;
+  const total = totalRef.current.total;
+  const timed = remaining != null && total > 0 && (session.state === "calibrating" || session.state === "running");
+  const progress = timed ? 1 - remaining! / total : 0;
+  const r = 88, c = 2 * Math.PI * r;
+  return <div className={`progress-ring ${timed ? "" : "indeterminate"}`} style={{ "--p": progress } as CSSProperties}>
+    <svg viewBox="0 0 200 200" aria-hidden="true">
+      <circle className="ring-track" cx="100" cy="100" r={r} />
+      <circle className="ring-fill" cx="100" cy="100" r={r} strokeDasharray={c} strokeDashoffset={c * (1 - progress)} />
+    </svg>
+    <span className="satellite" style={{ "--sat-a": `${-90 + progress * 360}deg`, "--sat-r": "88px" } as CSSProperties} aria-hidden="true" />
+    {timed ? <p className="monitor-countdown" aria-label={`${remaining} seconds remaining`}>{remaining}<span>s</span></p>
+      : <p className="telemetry ring-wait">{session.state === "finalizing" ? "Finishing" : "Preparing"}</p>}
+  </div>;
 }
 
 function SessionScore({ summary }: { summary: Record<string, unknown> }) {

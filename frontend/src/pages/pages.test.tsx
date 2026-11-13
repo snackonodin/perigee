@@ -100,8 +100,8 @@ describe("Psyche", () => {
     render(<App initialPath="/checkin" />);
     expect(await screen.findByRole("heading", { name: "A quick check-in" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "More reflections" })).toBeTruthy();
-    fireEvent.click(await screen.findByRole("button", { name: "Start Patient Health Questionnaire-9 (PHQ-9)" }));
-    const form = await screen.findByRole("form", { name: phq9.name });
+    fireEvent.click(await screen.findByRole("button", { name: "Start Mood, nine questions" }));
+    const form = await screen.findByRole("form", { name: "Mood, nine questions" });
     expect(within(form).getAllByRole("group")).toHaveLength(1);
     fireEvent.click(within(form).getAllByRole("radio")[0]);
     fireEvent.click(within(form).getByRole("button", { name: "Next" }));

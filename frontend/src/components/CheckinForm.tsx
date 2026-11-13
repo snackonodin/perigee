@@ -3,6 +3,7 @@ import { api, errorText } from "../api/client";
 import type { Instrument, ResponseOut } from "../api/types";
 import { contentFromServer, localSafetyTriggered, SAFETY_FALLBACK } from "../safety/safety";
 import { useSafety } from "../safety/SafetyProvider";
+import { friendlyName } from "./instrumentNames";
 
 /** A questionnaire rendered from its catalog JSON. Safety comes first, always:
  *  1) local safety_trigger check → safety screen before the request is even sent;
@@ -78,7 +79,7 @@ export function CheckinForm({ instrument, onDone }: { instrument: Instrument; on
   }
 
   return (
-    <form onSubmit={submit} aria-label={instrument.name}>
+    <form onSubmit={submit} aria-label={friendlyName(instrument.id, instrument.name)}>
       {instrument.timeframe && <p className="muted">{instrument.timeframe}</p>}
       <div className="checkin-progress" role="status">Question {step + 1} of {instrument.items.length}
         <div className="progress-track" aria-hidden="true"><span style={{width:`${((step+1)/instrument.items.length)*100}%`}}/></div>

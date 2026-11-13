@@ -110,3 +110,4 @@ html[data-reduce-motion="true"] *,html[data-reduce-motion="true"] *::before,html
 .consent-switch-row input[role=switch]:checked { background:var(--teal); }
 .consent-switch-row input[role=switch]:checked::after { transform:translateX(20px); }
 .consent-switch-row input[role=switch]:disabled { opacity:.6;cursor:progress; }
+.instrument-official { margin:4px 0 0;color:var(--muted);font-size:var(--fs-tiny); }

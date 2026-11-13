@@ -7,6 +7,7 @@ import { CheckinCalendar } from "../components/CheckinCalendar";
 import { IndexCards } from "../components/IndexCards";
 import { LoadState } from "../components/LoadState";
 import { QuestionnaireList } from "../components/QuestionnaireList";
+import { friendlyName, officialName } from "../components/instrumentNames";
 
 export function Psyche() {
   const [params,setParams]=useSearchParams();
@@ -21,7 +22,7 @@ export function Psyche() {
     :Promise.resolve({data:undefined}),[selected]);
   const close=()=>{setParams({});history.reload();};
   if(selected)return <div className="screen-page checkin-focused">
-    <header className="page-heading app-page-heading"><button type="button" className="ghost checkin-back" onClick={close}><span aria-hidden="true">←</span> All check-ins</button><div><p className="eyebrow">Your private reflection</p><h1>{(inst.data as Instrument|undefined)?.name??selected}</h1><p>Take this one card at a time.</p></div></header>
+    <header className="page-heading app-page-heading"><button type="button" className="ghost checkin-back" onClick={close}><span aria-hidden="true">←</span> All check-ins</button><div><p className="eyebrow">Your private reflection</p><h1>{friendlyName(selected,(inst.data as Instrument|undefined)?.name)}</h1><p>Take this one card at a time.</p>{officialName(selected,(inst.data as Instrument|undefined)?.name)&&<p className="instrument-official">{officialName(selected,(inst.data as Instrument|undefined)?.name)}</p>}</div></header>
     <section className="checkin-question-panel glass"><LoadState state={inst} label="the check-in">{definition=><CheckinForm key={selected} instrument={definition as unknown as Instrument} onDone={close}/>}</LoadState></section>
   </div>;
   return <div className="checkin-page"><header className="page-heading"><span className="checkin-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/></svg></span><div><p className="eyebrow">A moment for you · private check-in</p><h1>Check-in</h1><p>One card at a time. Answer what feels right for today.</p></div><span className="pill">Your log</span></header>

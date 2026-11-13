@@ -70,7 +70,7 @@ describe("week maths", () => {
 describe("IndexCards", () => {
   it("asks /indices once per week for the last 8 weeks", async () => {
     render(<IndexCards instruments={NAMES} now={NOW} />);
-    await screen.findByRole("article", { name: /PHQ-2/ });
+    await screen.findByRole("article", { name: /Mood, two questions/ });
     const weeks = api.called("GET /api/v1/indices").map((c) => c.query.get("week"));
     expect(weeks).toEqual(lastMondays(8, NOW));
     expect(weeks.at(-1)).toBe("2026-11-09");
@@ -78,7 +78,7 @@ describe("IndexCards", () => {
 
   it("shows value, band and direction, with a cited band-alert badge only when band_alert", async () => {
     render(<IndexCards instruments={NAMES} now={NOW} />);
-    const phq2 = await screen.findByRole("article", { name: /PHQ-2/ });
+    const phq2 = await screen.findByRole("article", { name: /Mood, two questions/ });
     expect(within(phq2).getByText("3")).toBeTruthy();
     expect(within(phq2).getByText("at or above screening cutoff")).toBeTruthy();
     expect(within(phq2).getByText("higher is worse")).toBeTruthy();
@@ -87,7 +87,7 @@ describe("IndexCards", () => {
     expect(await within(phq2).findByText(`Source: ${PHQ2_SOURCE}`)).toBeTruthy();
     expect(within(phq2).getByText(/not a diagnosis/)).toBeTruthy();
 
-    const who5 = card(/WHO-5/);
+    const who5 = card(/Wellbeing, five questions/);
     expect(within(who5).getByText("60 %")).toBeTruthy();
     expect(within(who5).getByText("higher is better")).toBeTruthy();
     expect(within(who5).queryByText("band alert")).toBeNull();
@@ -103,7 +103,7 @@ describe("IndexCards", () => {
 
   it("shows the latest week and connects only consecutive weeks with data", async () => {
     render(<IndexCards instruments={NAMES} now={NOW} />);
-    const who5 = await screen.findByRole("article", { name: /WHO-5/ });
+    const who5 = await screen.findByRole("article", { name: /Wellbeing, five questions/ });
     const svg = within(who5).getByRole("img", { name: /last 8 weeks/ });
     expect(svg.querySelectorAll("circle")).toHaveLength(1);
     expect(svg.querySelector("circle title")?.textContent).toBe("Latest week of 2026-11-09: 60.0");
@@ -115,7 +115,7 @@ describe("IndexCards", () => {
     BY_WEEK["2026-11-09"] = { who5: BY_WEEK["2026-11-09"].who5 };
     try {
       render(<IndexCards instruments={NAMES} now={NOW} />);
-      const phq2 = await screen.findByRole("article", { name: /PHQ-2/ });
+      const phq2 = await screen.findByRole("article", { name: /Mood, two questions/ });
       expect(within(phq2).getByText("no data this week")).toBeTruthy();
       expect(within(phq2).queryByText("band alert")).toBeNull();
       expect(within(phq2).getByText("higher is worse")).toBeTruthy(); // from an earlier week
@@ -148,7 +148,7 @@ describe("Psyche page", () => {
     render(<App initialPath="/checkin" />);
     expect(await screen.findByRole("heading", { name: "Check-in" })).toBeTruthy();
     fireEvent.click(screen.getByText("Weekly patterns"));
-    expect(await screen.findByRole("article", { name: /PHQ-2/ })).toBeTruthy();
+    expect(await screen.findByRole("article", { name: /Mood, two questions/ })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "More reflections" })).toBeTruthy();
   });
 });

@@ -5,6 +5,7 @@ import { useLoad } from "../api/useLoad";
 import { fmt } from "./format";
 import "./IndexCards.css";
 import { LoadState } from "./LoadState";
+import { friendlyName } from "./instrumentNames";
 
 type IndexOut = components["schemas"]["IndexOut"];
 type IndicesOut = components["schemas"]["IndicesOut"];
@@ -117,7 +118,7 @@ export function IndexCards({
     .map(([k]) => k)
     .sort();
   const cites = useCitations(alertIds);
-  const names = new Map(instruments.map((i) => [i.id, i.name]));
+  const names = new Map(instruments.map((i) => [i.id, friendlyName(i.id, i.name)]));
 
   return (
     <LoadState state={load} label="weekly indices">

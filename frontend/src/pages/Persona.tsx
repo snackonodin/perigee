@@ -38,7 +38,7 @@ function Radar({ values, baseline }: { values: number[]; baseline?: number[] }) 
 function Dial({ name, descriptor, value, color, selected, onClick }: {name:string;descriptor:string;value?:number;color:string;selected:boolean;onClick:()=>void}) {
   const r=30, c=2*Math.PI*r, fill=value==null?0:(clamp(value)-4)/16;
   return <button type="button" className={`trait-dial ${selected?"selected":""}`} aria-pressed={selected} onClick={onClick} style={{"--dial-color":color} as React.CSSProperties}>
-    <svg viewBox="0 0 76 76" aria-hidden="true"><circle className="dial-track" cx="38" cy="38" r={r}/><circle className="dial-fill" cx="38" cy="38" r={r} strokeDasharray={c} strokeDashoffset={c*(1-fill)} style={{transform:"rotate(-90deg)"}}/><text x="38" y="43" textAnchor="middle">{value??"—"}</text></svg><strong>{name}</strong><span className={value==null?"trait-missing":undefined}>{value==null?"Not supplied":descriptor}</span>
+    <svg viewBox="0 0 76 76" aria-hidden="true"><circle className="dial-track" cx="38" cy="38" r={r}/><circle className="dial-fill" cx="38" cy="38" r={r} strokeDasharray={c} strokeDashoffset={c*(1-fill)} style={{transform:"rotate(-90deg)"}}/><text x="38" y="43" textAnchor="middle">{value??"—"}</text></svg><strong>{name.replace(/^(Conscien|Agree|Extra)/,"$1\u00AD")}</strong><span className={value==null?"trait-missing":undefined}>{value==null?"Not supplied":descriptor}</span>
   </button>;
 }
 export function Persona() {

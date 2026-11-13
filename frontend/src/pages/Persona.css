@@ -20,7 +20,7 @@
 .trait-dial .dial-track { fill:none;stroke:var(--line);stroke-width:6; }
 .trait-dial .dial-fill { fill:none;stroke:var(--dial-color);stroke-width:6;stroke-linecap:round;transform-origin:38px 38px;transition:stroke-dashoffset var(--dur-slow) var(--ease); }
 .trait-dial text { fill:var(--text);font:700 18px/1 var(--font);font-variant-numeric:tabular-nums; }
-.trait-dial strong { max-width:100%;font-size:var(--fs-small);font-weight:650;text-align:center;hyphens:auto;overflow-wrap:anywhere;line-height:1.3; }
+.trait-dial strong { max-width:100%;font-size:var(--fs-small);font-weight:650;text-align:center;hyphens:manual;line-height:1.3; }
 .trait-dial span { color:var(--muted);font-size:var(--fs-tiny);white-space:nowrap; }
 .trait-dial span.trait-missing { padding:2px 8px;border-radius:var(--radius-pill);background:var(--bg);border:1px solid var(--line); }
 

@@ -58,7 +58,7 @@ export function Body() {
       <header className="page-heading"><div><p className="eyebrow">Personal systems · your recent signals</p><h1>Body</h1><p>Choose a system to see the available reading.</p></div></header>
       {load.apiMock&&<p className="api-mock-note" role="status">Showing sample data: live service unavailable</p>}
       <div className="body-layout">
-        <section className="body-map-card" aria-label="Body systems map"><p className="eyebrow">Five connected systems</p><BodyMap selected={selected} details={details} onSelect={setSelected}/></section>
+        <section className="body-map-card glass" aria-label="Body systems map"><p className="eyebrow">Five connected systems</p><BodyMap selected={selected} details={details} onSelect={setSelected}/></section>
         <section className="body-detail" aria-live="polite" aria-labelledby="body-detail-title" key={selected}>
           <VitalCard label={selected} value={current.value} icon={selected} state={current.state}>
             <h2 id="body-detail-title" className="body-detail-heading">{selected}</h2><p>{current.copy}</p>

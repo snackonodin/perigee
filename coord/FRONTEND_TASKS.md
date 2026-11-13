@@ -1,4 +1,4 @@
-# FRONTEND_TASKS.md: ordered Codex prompts (v2, 2026-11-13)
+# FRONTEND_TASKS.md: ordered Codex prompts (v2, 2026-11-13; glass layer = DESIGN.md §13)
 
 Owner: Claude Code (art director). Codex builds; Codex makes no design decisions.
 This replaces the earlier v1 task list. Run the tasks **in order, one per Codex run**.
@@ -16,6 +16,8 @@ then `bash bus/post_update.sh` if it exists, otherwise append "post_update.sh mi
 `bus/issues_for_claude.md`. Ambiguity → pick the simplest option and log it to
 `bus/issues_for_claude.md` (file, what was unclear, what you chose). Never invent health
 data. Never touch `backend/`, `engine/`, `waiwai1/`, `tests/` or `src/companion/`.
+**Look for every task:** the glass layer in DESIGN.md §13. Cards, sheets and bars use
+`.glass`; chips stay solid; teal text on glass uses `--teal-ink`; the safety screen is never glass.
 
 ---
 
@@ -35,8 +37,11 @@ frontend/src/safety/MissingItemPrompt.tsx, frontend/src/safety/lock.ts
 Read-only: frontend/src/api/types.ts, frontend/src/components/CheckinForm.tsx,
 frontend/src/test/fixtures.ts, frontend/src/test/mockApi.ts
 
-1. tokens.css = DESIGN.md sections 2 (including the companion palette aliases), 3, 4, 7 and
-   the 10 z-index tokens, exactly. Delete every dark-theme token. shell.css: remove all
+1. tokens.css = DESIGN.md sections 2 (including the companion palette aliases), 3, 4, 7,
+   the 10 z-index tokens and the 13.1 glass tokens, exactly. Add the .glass utility, the
+   aurora backdrop (13.2) and all 13.3 fallbacks (no backdrop-filter support,
+   prefers-reduced-transparency, prefers-contrast: more → solid surface). Glass cards and
+   the floating glass tab bar per 13.4. Delete every dark-theme token. shell.css: remove all
    dark/neon/grid/glow/gradient/monospace-HUD styles; set the page to var(--bg); cards,
    tabs and base type per DESIGN.md. npm uninstall @fontsource-variable/inter and remove
    its import. Title "Astronaut Vitals"; favicon per DESIGN.md 6.8.
@@ -83,6 +88,10 @@ Browser checklist (http://localhost:5173, signed in; use DevTools or mockApi to 
 [ ] Answering it with a response that returns false → the lock clears and the dashboard shows
 [ ] Offline (DevTools) while submitting a PHQ-9 → the safety view shows (fail closed)
 [ ] prefers-reduced-motion and normal look identical on this screen (no motion at all)
+[ ] Glass: cards and the tab bar are frosted over a soft pastel aurora; text stays crisp and dark
+[ ] The safety screen is SOLID white: no glass, blur or aurora behind it
+[ ] DevTools > Rendering > prefers-reduced-transparency or prefers-contrast: more → glass turns solid
+[ ] The aurora drifts slowly; it is static under prefers-reduced-motion
 ```
 
 ---

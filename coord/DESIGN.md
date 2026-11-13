@@ -359,3 +359,87 @@ z-scores.
 
 Existing pages not in this flow (Body, Persona, Live, CheckinCalendar standalone) stay
 reachable from Weekly/Settings links and only receive the token restyle.
+
+## 13. Glass layer (glassmorphism over the pastel theme), added 2026-11-13
+
+The app keeps the light pastel theme and adds frosted-glass surfaces floating over a
+soft pastel "aurora" backdrop. It should feel calm, airy and premium, like frosted
+panels in a sunlit station module. It is not a neon or dark glass look. This section
+overrides earlier rules where they conflict (it replaces the "no gradients" rule only
+for the page backdrop).
+
+### 13.1 Tokens (add to tokens.css)
+```css
+:root {
+  --glass: rgba(255, 255, 255, .62);          /* cards, sheets, tab bar */
+  --glass-strong: rgba(255, 255, 255, .78);   /* inputs, pulse trace, popovers, dense text */
+  --glass-border: rgba(255, 255, 255, .75);
+  --glass-edge: rgba(31, 42, 55, .08);        /* outer hairline so the edge is visible on light blobs */
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, .9);
+  --glass-shadow: 0 8px 32px rgba(31, 42, 55, .10);
+  --glass-blur: blur(20px) saturate(140%);
+  --teal-ink: #166457;                        /* teal TEXT on glass (6.1:1 worst case) */
+}
+```
+Glass recipe (one utility class `.glass`, used everywhere):
+`background: var(--glass); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+border: 1px solid var(--glass-border); box-shadow: var(--glass-highlight), 0 0 0 1px var(--glass-edge), var(--glass-shadow);
+border-radius: var(--radius);`
+
+### 13.2 Backdrop ("aurora")
+- One fixed layer behind the app (`position: fixed; inset: 0; z-index: -1`) on `--bg`,
+  with four large blurred blobs: mint (top-left, 60vmax), sky (top-right, 50vmax),
+  lavender (bottom-left, 55vmax), peach (bottom-right, 40vmax). Each blob is a
+  `radial-gradient(circle, color 0%, transparent 70%)` at 70% opacity. These are the only
+  gradients allowed in the app. No purple-to-pink hero gradients, and no gradients on
+  cards, buttons, charts or text.
+- Motion: the blobs drift slowly (`aurora-drift`, translate ±4vmax, 40s, `ease-in-out`,
+  infinite, alternate). They are static under reduced motion. The aurora is GPU-only
+  (`transform`), never animating blur.
+- **Sign-in only:** `VANTA.FOG` in mint/sky/lavender may replace the CSS aurora (DESIGN
+  7.1), lazy-loaded, ≥768px, and not under reduced motion.
+
+### 13.3 Contrast on glass (measured at --glass .62 over the strongest pastel blob)
+- `--text` 12.6:1, `--muted` 4.8:1, `--ok-ink` 5.6:1, `--warn-ink` 6.3:1, and `--alert-ink` 6.2:1 all pass.
+- `--teal` text is only 4.2:1 on glass, so it fails. **Teal text on glass uses `--teal-ink`.** `--teal` stays for icons, rings and strokes.
+- Never use glass below .62 opacity under text. Body copy longer than 2 lines, inputs,
+  the pulse trace and popovers use `--glass-strong`.
+- **Fallbacks (mandatory):** `@supports not (backdrop-filter: blur(1px))`,
+  `@media (prefers-reduced-transparency: reduce)` and `@media (prefers-contrast: more)`
+  all switch `.glass` to solid `--surface` with a 1px `--line` border. The Settings
+  "Reduce motion" switch also sets `data-reduce-transparency` to the same effect.
+
+### 13.4 Components on glass
+| Component | Treatment |
+|---|---|
+| Vital card / section cards | `.glass`; pastel icon disc stays solid; on hover a 1px lift + `--shadow-2`, and a one-time light sheen sweeping across (a `linear-gradient` mask at 8% white, 600ms, once per hover; none under reduced motion) |
+| Tab bar | Floating glass pill (radius-pill) 16px above the bottom edge on phones, a glass top bar on desktop; the selected tab indicator is a solid `--mint` pill that slides 250ms between tabs |
+| Breathing orb | A solid mint orb inside a 200px glass ring (`.glass` circle) with a soft inner glow `inset 0 0 40px rgba(191,233,214,.8)`; it still breathes at the measured rate |
+| Sleep arc | Arc on a `.glass` card; the track uses `--glass-edge`, the arc stays `--sky` |
+| Pulse ("ECG") trace | On `--glass-strong` with faint gridlines; line `--text`; latest dot peach |
+| Status / calibrating chips | **Solid fills** (mint / butter / alert-soft / surface), never glass, so status always reads clearly |
+| Buttons | Primary: solid `--teal` with white text (4.9:1). Secondary: `.glass` with `--text` label. Never glass-on-glass for text |
+| Inputs | `--glass-strong`, 1px `--glass-edge`; focus ring 3px `--teal` |
+| Modals / popovers | `--glass-strong` + backdrop dim `rgba(31,42,55,.18)` |
+| **Safety screen** | **No glass, no aurora, no blur, no motion.** Solid `--surface` full screen, exactly as in section 11 |
+| Companion slot | Unchanged and reserved; not built |
+
+### 13.5 UI from the shared references, mapped to glass
+- **Google Health:** big-number + sparkline + pill cards, now as glass cards.
+- **Happify:** warm, one question per glass card, pastel calendar pills (solid).
+- **Radar / trait wheel / body screen:** drawn as thin `--text`/pastel lines on a glass panel; light, never dark.
+- **Watermelon UI:** clean stat-card spacing.
+- **Cult UI:** personality in hover lifts and sheen.
+- **Skipper UI:** one-off micro-interactions (sliding tab pill, check-in progress fill, orb).
+  These are rebuilt in CSS; nothing is installed.
+- **Repos:** lenis for gentle scroll (optional); vanta for sign-in fog; gsap and react-bits
+  as reference only, their entrance fades rebuilt as CSS `glass-in` (opacity 0→1 +
+  translateY 8px→0, 250ms `--ease`, staggered 40ms, first view only).
+- **"20 ways" checklist:** still applies. Real SVG icons, one accent, one radius, the
+  spacing scale, designed empty/loading/error states, a friendly 404 (a glass card on
+  the aurora).
+
+### 13.6 Performance
+Use at most about 12 blurred glass surfaces per screen (blur is expensive); long lists use
+a single glass container, not glass per row. Test on a phone-width viewport for smooth
+scroll.

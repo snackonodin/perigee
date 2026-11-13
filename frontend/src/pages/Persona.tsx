@@ -1,4 +1,5 @@
 import { useState } from "react";
+import "./Persona.css";
 import { api } from "../api/client";
 import { useLoad } from "../api/useLoad";
 import { LoadState } from "../components/LoadState";
@@ -34,10 +35,10 @@ function Radar({ values, baseline }: { values: number[]; baseline?: number[] }) 
     {values.map((v,i)=>{const [x,y]=point(i,v).split(",");return <circle key={TRAITS[i].key} className="radar-dot" cx={x} cy={y} r="4" style={{fill:TRAITS[i].color}}/>;})}
   </svg><figcaption>Your profile uses your own 4–20 scale. {baseline ? "The violet outline is your prior profile." : "No prior trait profile is available for comparison."}</figcaption></figure>;
 }
-function Dial({ name, descriptor, value, index, color, selected, onClick }: {name:string;descriptor:string;value?:number;index:number;color:string;selected:boolean;onClick:()=>void}) {
+function Dial({ name, descriptor, value, color, selected, onClick }: {name:string;descriptor:string;value?:number;color:string;selected:boolean;onClick:()=>void}) {
   const r=30, c=2*Math.PI*r, fill=value==null?0:(clamp(value)-4)/16;
   return <button type="button" className={`trait-dial ${selected?"selected":""}`} aria-pressed={selected} onClick={onClick} style={{"--dial-color":color} as React.CSSProperties}>
-    <svg viewBox="0 0 76 76" aria-hidden="true"><circle className="dial-track" cx="38" cy="38" r={r}/><circle className="dial-fill" cx="38" cy="38" r={r} strokeDasharray={c} strokeDashoffset={c*(1-fill)} style={{transform:`rotate(${index*18-90}deg)`}}/><text x="38" y="43" textAnchor="middle">{value??"—"}</text></svg><strong>{name}</strong><span>{value==null?"Not supplied":descriptor}</span>
+    <svg viewBox="0 0 76 76" aria-hidden="true"><circle className="dial-track" cx="38" cy="38" r={r}/><circle className="dial-fill" cx="38" cy="38" r={r} strokeDasharray={c} strokeDashoffset={c*(1-fill)} style={{transform:"rotate(-90deg)"}}/><text x="38" y="43" textAnchor="middle">{value??"—"}</text></svg><strong>{name}</strong><span className={value==null?"trait-missing":undefined}>{value==null?"Not supplied":descriptor}</span>
   </button>;
 }
 export function Persona() {
@@ -52,14 +53,14 @@ export function Persona() {
     const baselineValues=baseline&&TRAITS.every(t=>typeof baseline[t.key]==="number"&&Number.isFinite(baseline[t.key]))?TRAITS.map(t=>baseline[t.key]):undefined;
     const active=TRAITS.find(t=>t.key===selected)??TRAITS[0], value=vals[TRAITS.indexOf(active)];
     const matrix=data?.persona_matrix;
-    return <div className="persona-page"><header className="page-heading app-page-heading"><div className="heading-mark" aria-hidden="true">✳</div><div><p className="eyebrow">Personal profile · private to you</p><h1>Persona</h1><p>Your traits, in your own words and context.</p></div><span className="pill">4–20 scale</span></header>
+    return <div className="persona-page"><header className="persona-head"><div><p className="eyebrow">Personal profile · private to you</p><h1>Persona</h1><p>Your traits, in your own words and context.</p></div><span className="persona-scale">4–20 scale</span></header>
       {today.sync_status?.state==="api_mock"&&<p className="api-mock-note" role="status">API unavailable · empty preview; no trait values are shown.</p>}
-      <div className="persona-layout"><section className="persona-arc-panel"><div className="persona-section-title"><div><p className="eyebrow">Five traits</p><h2>Your character arc</h2></div><span className="persona-orbit" aria-hidden="true">✧</span></div>
-        <div className="dial-row">{TRAITS.map((t,i)=><Dial key={t.key} name={t.name} descriptor={t.descriptor} value={vals[i]} index={i} color={t.color} selected={t.key===selected} onClick={()=>setSelected(t.key)}/>)}</div>
+      <div className="persona-layout"><section className="persona-arc-panel"><div className="persona-section-title"><div><p className="eyebrow">Five traits</p><h2>Your character arc</h2></div></div>
+        <div className="dial-row">{TRAITS.map((t,i)=><Dial key={t.key} name={t.name} descriptor={t.descriptor} value={vals[i]} color={t.color} selected={t.key===selected} onClick={()=>setSelected(t.key)}/>)}</div>
         <div className="trait-popover" key={active.key} style={{"--dial-color":active.color} as React.CSSProperties}><span className="popover-glyph" aria-hidden="true">{active.key}</span><div><p className="eyebrow">{active.descriptor} · {active.name}</p><strong>{value??"Not supplied"}{value!=null&&<small> / 20</small>}</strong><p>{value==null?"This response is not part of the available profile.":active.note}</p></div><div className="trait-meter" aria-label={value==null?"No value supplied":`${active.name}: ${value} of 20`}><i style={{width:value==null?"0%":`${((clamp(value)-4)/16)*100}%`}}/></div></div>
         <p className="persona-footnote">Trait values reflect your own responses. They are not a health score or a ranking.</p>
-      </section><section className="persona-radar-panel"><div className="persona-section-title"><div><p className="eyebrow">You now · your 28-night context</p><h2>Personal pattern</h2></div><span className="radar-spark" aria-hidden="true">⌁</span></div>
-        {complete?<Radar values={vals as number[]} baseline={baselineValues}/>:<div className="radar-empty"><div className="radar-empty-orbit" aria-hidden="true">◌</div><p>A complete profile will appear when all five trait values are available.</p><small>Missing traits stay blank; no estimate is filled in.</small></div>}
+      </section><section className="persona-radar-panel"><div className="persona-section-title"><div><p className="eyebrow">You now · your 28-night context</p><h2>Personal pattern</h2></div></div>
+        {complete?<Radar values={vals as number[]} baseline={baselineValues}/>:<div className="radar-empty"><svg viewBox="0 0 120 120" aria-hidden="true"><polygon points="60,12 106,45 88,100 32,100 14,45"/><polygon points="60,36 83,52 74,80 46,80 37,52"/></svg><p>A complete profile will appear when all five trait values are available.</p><small>Missing traits stay blank; no estimate is filled in.</small></div>}
         {matrix&&<div className="persona-quadrant"><span>Profile quadrant</span><strong>{matrix.quadrant_name??"Building your picture"}</strong><p>Stability {matrix.stability_score??"—"} · Agency {matrix.agency_score??"—"}</p></div>}
       </section></div>
     </div>;

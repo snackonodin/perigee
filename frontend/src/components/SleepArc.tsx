@@ -8,10 +8,10 @@ function fraction(night:NightOut) {
 }
 
 export function SleepArc({night,status,explanation,coverage}:{night?:NightOut;status:Status;explanation:string;coverage?:number}) {
-  if(!night?.valid)return <section className="sleep-arc-card" aria-label="Sleep summary"><div className="sleep-empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 15.5A8 8 0 0 1 8.5 4 8 8 0 1 0 20 15.5Z"/></svg></div><h2>Sleep summary</h2><StatusChip state="none"/><p>Readings appear after your first full night near the sensor.</p></section>;
+  if(!night?.valid)return <section className="sleep-arc-card glass" aria-label="Sleep summary"><div className="sleep-empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 15.5A8 8 0 0 1 8.5 4 8 8 0 1 0 20 15.5Z"/></svg></div><h2>Sleep summary</h2><StatusChip state="none"/><p>Readings appear after your first full night near the sensor.</p></section>;
   const at=fraction(night),x=at==null?null:18+164*at,y=at==null?null:100-Math.sin(Math.PI*at)*82;
   const partial=coverage!=null&&coverage<1;
-  return <section className="sleep-arc-card" aria-labelledby="sleep-arc-title">
+  return <section className="sleep-arc-card glass" aria-labelledby="sleep-arc-title">
     <div className="sleep-arc-heading"><p className="eyebrow">Last night · {night.date}</p><h2 id="sleep-arc-title">Time present overnight</h2></div>
     <svg className="sleep-arc" viewBox="0 0 200 118" role="img" aria-label={`${fmtHours(night.presence_hours)} present, ${time(night.onset)} to ${time(night.wake)} UTC${at==null?"":"; midsleep marked on arc"}`}>
       <path className="sleep-arc-track" d="M18 100 A82 82 0 0 1 182 100"/>

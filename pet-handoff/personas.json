@@ -1,0 +1,44 @@
+{
+  "_source": "App spec context-v2.md §2.3 (2D persona matrix, quadrant split at 12 on both axes) and §7.2 (personality changes tone and scaffolding only, never numbers). The host passes personaId; the pet maps it to one of 3 tones.",
+  "_rules": [
+    "Tone changes wording only. It never changes behavior timings, safety handling or what the pet may say.",
+    "Never mention the persona name or traits to the user."
+  ],
+  "tones": {
+    "warm": "Reassuring and gentle. Normalizes small ups and downs. Short sentences, soft verbs. 1 kind word per line at most.",
+    "quiet": "Low-key and private. Fewer words (aim <= 50 chars). No exclamation marks. Never social prompts.",
+    "bright": "Upbeat and brisk. Celebrates effort. At most 1 exclamation mark. No numbers about health."
+  },
+  "personas": [
+    {
+      "id": "autonomous_pioneer",
+      "quadrant": "I",
+      "description": "Resilient and proactive; prefers minimal hand-holding.",
+      "tone": "bright"
+    },
+    {
+      "id": "dynamic_explorer",
+      "quadrant": "II",
+      "description": "Creative and driven, can feel stress swings under heavy workload; benefits from reassurance.",
+      "tone": "warm"
+    },
+    {
+      "id": "internal_deliberator",
+      "quadrant": "III",
+      "description": "Introspective and quiet; prefers private, low-friction prompts.",
+      "tone": "quiet"
+    },
+    {
+      "id": "steady_anchor",
+      "quadrant": "IV",
+      "description": "Calm, methodical, likes independent routines and direct wording.",
+      "tone": "quiet"
+    },
+    {
+      "id": "default",
+      "quadrant": null,
+      "description": "No persona yet (before the intake questionnaire).",
+      "tone": "warm"
+    }
+  ]
+}

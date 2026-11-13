@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pet-dialog-cache",
+  "title": "Pet dialog cache (src/pet/dialog/cache.json)",
+  "description": "event -> tone -> lines. Every event in $defs.event and every tone in $defs.tone must be present. Checked by playground/scripts/lint_dialog.mjs.",
+  "type": "object",
+  "propertyNames": { "$ref": "#/$defs/event" },
+  "required": ["first_run", "app_open", "welcome_back", "quiz_start", "quiz_complete", "bedtime_near", "sleep_start", "wake", "night_logged", "streak_milestone", "idle_long", "pet_tap", "goodbye"],
+  "additionalProperties": {
+    "type": "object",
+    "propertyNames": { "$ref": "#/$defs/tone" },
+    "required": ["warm", "quiet", "bright"],
+    "additionalProperties": {
+      "type": "array",
+      "minItems": 6,
+      "items": { "$ref": "#/$defs/line" }
+    }
+  },
+  "$defs": {
+    "event": { "enum": ["first_run", "app_open", "welcome_back", "quiz_start", "quiz_complete", "bedtime_near", "sleep_start", "wake", "night_logged", "streak_milestone", "idle_long", "pet_tap", "goodbye"] },
+    "tone": { "enum": ["warm", "quiet", "bright"] },
+    "line": {
+      "type": "object",
+      "required": ["id", "text", "tod", "weight"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z_]+\\.(warm|quiet|bright)\\.[0-9]{2}$", "description": "<event>.<tone>.<nn>, unique across the file" },
+        "text": { "type": "string", "minLength": 2, "maxLength": 90, "description": "May contain {petName}. Length is counted with {petName} replaced by 'Clover'." },
+        "tod": { "enum": ["morning", "day", "evening", "night", "any"] },
+        "weight": { "type": "integer", "minimum": 1, "maximum": 5 }
+      }
+    }
+  },
+  "x-minimums": {
+    "default": 6,
+    "quiz_complete": 10,
+    "bedtime_near": 10,
+    "sleep_start": 10,
+    "wake": 10
+  }
+}

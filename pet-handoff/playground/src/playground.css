@@ -1,0 +1,19 @@
+/* Playground-only styles that imitate the host app's glass look (DESIGN.md §13). */
+body { margin: 0; font: 400 var(--fs-body)/1.5 var(--font); color: var(--text); background: var(--bg); }
+.pg { position: relative; min-height: 100vh; padding: 16px 16px 128px; overflow-x: hidden; }
+.aurora { position: fixed; inset: 0; z-index: -1; background:
+  radial-gradient(40vmax 40vmax at 15% 20%, var(--mint), transparent 60%),
+  radial-gradient(40vmax 40vmax at 85% 15%, var(--sky), transparent 60%),
+  radial-gradient(40vmax 40vmax at 80% 85%, var(--lavender), transparent 60%),
+  radial-gradient(35vmax 35vmax at 20% 85%, var(--peach), transparent 60%), var(--bg); }
+.glass { background: var(--glass); border: 1px solid var(--glass-border); border-radius: var(--radius);
+  box-shadow: var(--glass-highlight), var(--glass-shadow); backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur); padding: 16px 24px; }
+.pg-controls { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; }
+.pg-controls h1 { font-size: 20px; margin: 0 16px 0 0; }
+.pg-controls input[type="number"] { width: 56px; }
+.pg-panels { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-top: 64px; }
+.pg-panels section { min-height: 160px; }
+.pg-safety { position: fixed; inset: 0; z-index: var(--z-safety); background: var(--surface);
+  display: grid; place-content: center; padding: 24px; max-width: 100%; text-align: center; }
+@media (max-width: 480px) { .pg-panels { margin-top: 32px; } }

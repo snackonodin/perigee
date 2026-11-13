@@ -1,0 +1,95 @@
+/* TOKENS.css: copied from the app's real token file (frontend/src/theme/tokens.css)
+   and design doc (DESIGN.md §2, §7, §10, §13), 2026-11-13.
+   The host app already defines the "app" tokens. In your pet CSS, always write
+   var(--token, <hex fallback>) so the pet also renders correctly in the playground.
+   Pet tokens marked NEW were added for this handoff; the host will adopt them. */
+
+:root {
+  /* ---- app colors (do not change) ---- */
+  --bg: #F7FBF9;          /* page */
+  --surface: #FFFFFF;     /* solid cards, safety screen */
+  --line: #E3ECE8;
+  --mint: #BFE9D6;
+  --sky: #BFE0F5;
+  --peach: #FFD9C7;
+  --lavender: #D9D0F5;
+  --butter: #FFF1B8;
+  --alert-soft: #FBD5DA;
+  --text: #1F2A37;        /* 13:1+ on glass and frost */
+  --muted: #5B6B7A;       /* 4.9:1+ on glass and frost */
+  --teal: #1E7F6E;        /* accent for icons/strokes; text on glass uses --teal-ink */
+  --teal-ink: #166457;
+  --ok: #2E9E78; --warn: #C98A1B; --alert: #D1495B;      /* never text */
+  --ok-ink: #1D6B50; --warn-ink: #7A4E00; --alert-ink: #A3283A;
+
+  /* ---- glass (DESIGN.md §13) ---- */
+  --glass: rgba(255,255,255,.62);           /* tint alpha 0.62 */
+  --glass-strong: rgba(255,255,255,.78);
+  --glass-border: rgba(255,255,255,.75);    /* 1px */
+  --glass-edge: rgba(31,42,55,.08);
+  --glass-highlight: inset 0 1px 0 rgba(255,255,255,.9);
+  --glass-shadow: 0 8px 32px rgba(31,42,55,.10);
+  --glass-blur: blur(20px) saturate(140%);
+
+  /* ---- type, space, radius, elevation ---- */
+  --font: ui-rounded, "SF Pro Rounded", "Nunito", "Segoe UI", system-ui, sans-serif; /* system fonts only */
+  --fs-body: 16px; --fs-small: 14px; --fs-tiny: 12px;
+  --s-1: 4px; --s-2: 8px; --s-3: 16px; --s-4: 24px;
+  --radius: 16px; --radius-pill: 999px;
+  --shadow-1: 0 1px 2px rgba(31,42,55,.04), 0 2px 8px rgba(31,42,55,.05);
+  --shadow-2: 0 4px 16px rgba(31,42,55,.08);
+
+  /* ---- motion ---- */
+  --dur-fast: 150ms; --dur-base: 250ms; --dur-slow: 400ms;
+  --ease: cubic-bezier(.2,.8,.2,1);
+  --ease-bounce: cubic-bezier(.34,1.56,.64,1);   /* NEW: hop/land only */
+  --ease-soft: cubic-bezier(.45,0,.55,1);        /* NEW: breathing, sway (sine-like) */
+
+  /* ---- companion slot and layers ---- */
+  --companion-size: 96px;       /* 72px under 360px wide */
+  --companion-inset: 16px;
+  --z-base: 0; --z-sticky: 100;
+  --z-companion: 500;           /* the pet */
+  --z-popover: 700; --z-modal: 900;
+  --z-safety: 1000;             /* safety screen: always above the pet */
+
+  /* ---- pet palette (existing names) ---- */
+  --pet-ink: #1F2A37;                      /* eyes, = --text */
+  --pet-outline: rgba(31,42,55,.85);       /* legacy; new art uses NO outlines */
+  --pet-cheek: #FFD9C7;
+  --pet-cheek-on-peach: #FBD5DA;
+  --pet-bubble: #FFFFFF;
+  --pet-star: #FFF1B8;
+
+  /* ---- pet palette: NEW, per species, 3 tones each ---- */
+  --pet-cat-fur: #FFF4D6;    --pet-cat-shade: #F2DDB0;    --pet-cat-deep: #D9BC86;
+  --pet-cat-inner: #FBD5DA;  /* inner ear */
+  --pet-fox-fur: #FFC9A8;    --pet-fox-shade: #F4A882;    --pet-fox-deep: #D9875F;
+  --pet-fox-cream: #FFF1E6;  /* muzzle, chest, tail tip */
+  --pet-fox-tip: #6B4A3A;    /* ear tips and paws (not an outline) */
+  --pet-bunny-fur: #F3EEFF;  --pet-bunny-shade: #DCD2F5;  --pet-bunny-deep: #BDB0E3;
+  --pet-bunny-inner: #FBD5DA;
+
+  /* ---- pet shared: NEW ---- */
+  --pet-eye: #1F2A37;
+  --pet-eye-shine: #FFFFFF;
+  --pet-nose: #E8909C;
+  --pet-mouth: #8A5A5A;      /* "w" mouth stroke, 4-5 units */
+  --pet-blush: #FBB8C2;      /* use at opacity .55 */
+  --pet-rim: #BFE0F5;        /* rim light = glass/sky tint, opacity .5-.7 */
+  --pet-shadow: rgba(31,42,55,.14);
+  --pet-zzz: #5B6B7A;
+
+  /* ---- frost: NEW ---- */
+  --frost-tint: #EAF4FB;
+  --frost-tint-alpha: .55;   /* MAX. Higher breaks AA contrast for --muted */
+  --frost-crystal: rgba(255,255,255,.25);
+  --frost-reform-s: 30;      /* T, seconds, allowed 20-40 */
+  --frost-brush-r0: 28px;
+}
+
+/* Reduced motion: the host app already forces near-zero durations. The pet must ALSO
+   read the reducedMotion prop and stop all loops itself. */
+@media (prefers-reduced-motion: reduce) {
+  :root { --dur-fast: 0ms; --dur-base: 0ms; --dur-slow: 0ms; }
+}

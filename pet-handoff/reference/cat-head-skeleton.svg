@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!--
+    CAT HEAD SKELETON: a starting anchor, not final art. Head only (the body goes below
+    it in the full pet; there the head must be 55-60% of total height).
+    Layer list, bottom (z=0) to top. Coordinates are approximate; keep the proportions.
+
+    z  id              shape                                    approx coords (viewBox units)
+    0  contact-shadow  ellipse                                  c(128,238) rx70 ry9   (full pet: under the body)
+    1  ear-l / ear-r   rounded triangles                        base (48,104)-(108,62), tip (60,28); mirrored at x' = 256-x
+    2  ear-inner-l/r   smaller triangles, token pet-cat-inner       base (62,92)-(98,66), tip (68,42); mirrored
+    3  head            ellipse                                  c(128,132) rx96 ry84 -> x 32..224 (w 192), y 48..216
+    4  shade           ellipse clipped to head, token pet-cat-shade c(128,206) rx112 ry48 (lower third)
+    5  deep            thin crescent under the chin, token pet-cat-deep, clipped
+    6  cheek-fluff     2 small bumps on the head outline        (36,150) and (220,150), r ~14
+    7  rim-light       arc stroke 8 wide, token pet-rim, op .6      from (150,52) to (220,112)
+    8  blush-l/r       ellipses, radial gradient, op .55        c(62,170) and c(194,170), rx16 ry9
+    9  eye-l / eye-r   ellipses, token pet-eye                      c(84,146) and c(172,146), rx14 ry16
+                       (midline y=132; eye center at 58% of head height = below midline;
+                        centers 88 apart = 46% of head width; eye width 28 = 14.6%)
+    10 shine-big       circles r5, white                         eye center + (5,-6)
+    11 shine-small     circles r2.2, white                       eye center + (-5,6)
+    12 nose            rounded triangle, token pet-nose             top edge y=160, width 10 (5%), at x=128
+    13 mouth           "w" stroke 4.5, round caps, token pet-mouth   M118 170 q5 7 10 0 q5 7 10 0 (width 20 = 10.4%)
+
+    Rig pivots (transform-origin, viewBox units):
+      ear-l (78,98)  ear-r (178,98)  eyes: each eye's own center  head group: (128,216)
+    Rules: no stroke under 4 units, no black outlines, every color via var(token, fallback) from TOKENS.css.
+  -->
+  <defs>
+    <clipPath id="cat-head-clip"><ellipse cx="128" cy="132" rx="96" ry="84"/></clipPath>
+    <radialGradient id="cat-blush" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#FBB8C2" stop-opacity="1"/>
+      <stop offset="1" stop-color="#FBB8C2" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="cat-head-fill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFF8E6"/>
+      <stop offset="1" stop-color="#FFF4D6"/>
+    </linearGradient>
+  </defs>
+
+  <g data-part="contact-shadow"><ellipse cx="128" cy="238" rx="70" ry="9" fill="rgba(31,42,55,.14)"/></g>
+
+  <g data-part="ear-l"><path d="M48 104 Q44 40 60 28 Q76 26 108 62 Z" fill="#FFF4D6"/></g>
+  <g data-part="ear-r"><path d="M208 104 Q212 40 196 28 Q180 26 148 62 Z" fill="#FFF4D6"/></g>
+  <g data-part="ear-inner-l"><path d="M62 92 Q60 52 68 42 Q80 44 98 66 Z" fill="#FBD5DA"/></g>
+  <g data-part="ear-inner-r"><path d="M194 92 Q196 52 188 42 Q176 44 158 66 Z" fill="#FBD5DA"/></g>
+
+  <g data-part="head">
+    <ellipse cx="128" cy="132" rx="96" ry="84" fill="url(#cat-head-fill)"/>
+    <g clip-path="url(#cat-head-clip)">
+      <ellipse data-part="shade" cx="128" cy="206" rx="112" ry="48" fill="#F2DDB0" opacity=".7"/>
+      <path data-part="deep" d="M84 210 Q128 226 172 210 Q128 222 84 210 Z" fill="#D9BC86" opacity=".6"/>
+    </g>
+    <circle data-part="cheek-fluff-l" cx="40" cy="150" r="14" fill="#FFF4D6"/>
+    <circle data-part="cheek-fluff-r" cx="216" cy="150" r="14" fill="#FFF4D6"/>
+    <path data-part="rim-light" d="M150 52 Q205 60 220 112" fill="none" stroke="#BFE0F5" stroke-width="8" stroke-linecap="round" opacity=".6"/>
+    <ellipse data-part="blush-l" cx="62" cy="170" rx="16" ry="9" fill="url(#cat-blush)" opacity=".55"/>
+    <ellipse data-part="blush-r" cx="194" cy="170" rx="16" ry="9" fill="url(#cat-blush)" opacity=".55"/>
+
+    <g data-part="eyes">
+      <g data-part="eye-l">
+        <ellipse cx="84" cy="146" rx="14" ry="16" fill="#1F2A37"/>
+        <circle data-part="shine-big" cx="89" cy="140" r="5" fill="#FFFFFF"/>
+        <circle data-part="shine-small" cx="79" cy="152" r="2.2" fill="#FFFFFF"/>
+      </g>
+      <g data-part="eye-r">
+        <ellipse cx="172" cy="146" rx="14" ry="16" fill="#1F2A37"/>
+        <circle data-part="shine-big" cx="177" cy="140" r="5" fill="#FFFFFF"/>
+        <circle data-part="shine-small" cx="167" cy="152" r="2.2" fill="#FFFFFF"/>
+      </g>
+    </g>
+
+    <path data-part="nose" d="M123 160 H133 Q131 166 128 167 Q125 166 123 160 Z" fill="#E8909C"/>
+    <path data-part="mouth" d="M118 170 q5 7 10 0 q5 7 10 0" fill="none" stroke="#8A5A5A" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

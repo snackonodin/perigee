@@ -1,0 +1,54 @@
+{
+  "_note": "Voice anchors: 3 events x 3 tones x 3 lines. Copy these into cache.json and write the rest in the same voice. These lines pass lint_dialog.mjs.",
+  "app_open": {
+    "warm": [
+      { "id": "app_open.warm.01", "text": "Hi again. I saved you a cozy spot on this card.", "tod": "any", "weight": 2 },
+      { "id": "app_open.warm.02", "text": "Good morning! I stretched already, so you can take it slow.", "tod": "morning", "weight": 1 },
+      { "id": "app_open.warm.03", "text": "Evening, friend. The glass is nice and quiet tonight.", "tod": "evening", "weight": 1 }
+    ],
+    "quiet": [
+      { "id": "app_open.quiet.01", "text": "Hi. I'm here.", "tod": "any", "weight": 2 },
+      { "id": "app_open.quiet.02", "text": "Morning. Take your time.", "tod": "morning", "weight": 1 },
+      { "id": "app_open.quiet.03", "text": "Hello. I'll keep this corner warm.", "tod": "any", "weight": 1 }
+    ],
+    "bright": [
+      { "id": "app_open.bright.01", "text": "Hey, you're here! Good to see you.", "tod": "any", "weight": 2 },
+      { "id": "app_open.bright.02", "text": "Morning! I already did my big stretch.", "tod": "morning", "weight": 1 },
+      { "id": "app_open.bright.03", "text": "Welcome back to base. I kept the frost tidy.", "tod": "day", "weight": 1 }
+    ]
+  },
+  "quiz_complete": {
+    "warm": [
+      { "id": "quiz_complete.warm.01", "text": "All done. Thank you for taking a moment for yourself.", "tod": "any", "weight": 2 },
+      { "id": "quiz_complete.warm.02", "text": "You finished it. That was kind of you to make the time.", "tod": "any", "weight": 1 },
+      { "id": "quiz_complete.warm.03", "text": "Done and dusted. I'm proud you showed up today.", "tod": "any", "weight": 1 }
+    ],
+    "quiet": [
+      { "id": "quiz_complete.quiet.01", "text": "Done. Thanks for taking the time.", "tod": "any", "weight": 2 },
+      { "id": "quiz_complete.quiet.02", "text": "Finished. That took care.", "tod": "any", "weight": 1 },
+      { "id": "quiz_complete.quiet.03", "text": "All set. Rest a moment if you like.", "tod": "any", "weight": 1 }
+    ],
+    "bright": [
+      { "id": "quiz_complete.bright.01", "text": "Check-in done! Nice effort.", "tod": "any", "weight": 2 },
+      { "id": "quiz_complete.bright.02", "text": "You finished it. High paw!", "tod": "any", "weight": 1 },
+      { "id": "quiz_complete.bright.03", "text": "That's the check-in wrapped up. Thanks for doing it.", "tod": "any", "weight": 1 }
+    ]
+  },
+  "sleep_start": {
+    "warm": [
+      { "id": "sleep_start.warm.01", "text": "I'm curling up now. The frost will keep me company.", "tod": "night", "weight": 2 },
+      { "id": "sleep_start.warm.02", "text": "Time for my nap. Wake me whenever you like.", "tod": "any", "weight": 1 },
+      { "id": "sleep_start.warm.03", "text": "Snuggling into my corner. Soft night to you.", "tod": "night", "weight": 1 }
+    ],
+    "quiet": [
+      { "id": "sleep_start.quiet.01", "text": "Curling up.", "tod": "any", "weight": 2 },
+      { "id": "sleep_start.quiet.02", "text": "Nap time for me. Quiet night.", "tod": "night", "weight": 1 },
+      { "id": "sleep_start.quiet.03", "text": "I'll rest here.", "tod": "any", "weight": 1 }
+    ],
+    "bright": [
+      { "id": "sleep_start.bright.01", "text": "Nap mode on! See you on the other side.", "tod": "any", "weight": 2 },
+      { "id": "sleep_start.bright.02", "text": "Big yawn. I'm off to dream about stars.", "tod": "night", "weight": 1 },
+      { "id": "sleep_start.bright.03", "text": "Tucking my tail in. Night night!", "tod": "night", "weight": 1 }
+    ]
+  }
+}

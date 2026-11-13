@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router";
 import { api } from "../api/client";
 import { useAuth } from "../auth/AuthProvider";
 import { BRAND } from "../brand";
+import "./Login.css";
 
 export function Login({ signup = false }: { signup?: boolean }) {
   const { status, login } = useAuth();
@@ -72,7 +73,7 @@ export function Login({ signup = false }: { signup?: boolean }) {
   return (
     <div className="login-layout auth-layout">
       <div className="aurora-backdrop" aria-hidden="true"><i /><i /><i /><i /></div>
-      <div className="auth-scene" aria-hidden="true"><div ref={fogRef} className="login-fog auth-fog" /><div className="auth-scene-copy"><span className="auth-scene-mark">✦</span><p>Your nights, understood.</p><span>Gentle insights for your wellbeing.</span></div></div>
+      <div className="auth-scene" aria-hidden="true"><div ref={fogRef} className="login-fog auth-fog" /><div className="auth-scene-copy"><span className="auth-orbit"><i className="auth-planet"/><span className="satellite spin" style={{"--sat-r":"64px","--sat-period":"18s"} as React.CSSProperties}/></span><p>Your nights, understood.</p><span>Gentle insights for your wellbeing.</span></div></div>
       <main className="login-main auth-main">
         <section className="panel login-card glass auth-card" aria-labelledby="login-title">
           <p className="eyebrow">Private health companion</p>

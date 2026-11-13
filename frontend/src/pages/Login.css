@@ -1,0 +1,7 @@
+/* Login / Register, Orbit Pop (P2): the arrival scene carries the orbit motif. */
+.auth-orbit { position:relative;display:grid;place-items:center;width:128px;height:128px;margin-bottom:8px;border:1px solid var(--orbit-line);border-radius:50%; }
+.auth-orbit::before { content:"";position:absolute;inset:-22px;border:1px dashed var(--orbit-line);border-radius:50%; }
+.auth-planet { width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,var(--mint) 45%,color-mix(in srgb,var(--teal) 55%,var(--mint)));box-shadow:0 10px 30px -8px color-mix(in srgb,var(--uv) 45%,transparent); }
+.auth-scene-copy p { font-family:var(--font-display);letter-spacing:-.02em; }
+.login-card h1,.auth-card h1 { font-family:var(--font-display); }
+.login-card button[type=submit],.auth-card button[type=submit] { background:var(--uv);border-color:var(--uv); }

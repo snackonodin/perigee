@@ -12,6 +12,7 @@ import { Sleep } from "./pages/Sleep";
 import { Placeholder } from "./routes/Placeholder";
 import { TABS } from "./routes/tabs";
 import { SafetyProvider } from "./safety/SafetyProvider";
+import { CompanionGallery } from "./pages/CompanionGallery";
 
 const PAGES: Record<string, ReactElement> = {
   "/": <Overview />,
@@ -35,6 +36,7 @@ const routes = [
   {
     element: <Root />,
     children: [
+      ...(import.meta.env.DEV ? [{ path: "/dev/companion", element: <CompanionGallery /> }] : []),
       { path: "/login", element: <Login /> },
       {
         path: "/",

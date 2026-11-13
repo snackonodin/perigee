@@ -1,0 +1,19 @@
+{
+  "name": "crisis",
+  "description": "PHQ-9 Item 9 > 0 only on night 6. Override must fire that night and never before.",
+  "persona": {
+    "user_id": "demo-crisis",
+    "baselines": {"rr_med": 16.0, "mad_rr": 0.5}
+  },
+  "nights": [
+    {"date": "2026-12-01", "sensing_data": {"rr_med": 16.0, "quality": 0.90, "valid_hours": 7.0}},
+    {"date": "2026-12-02", "sensing_data": {"rr_med": 16.1, "quality": 0.90, "valid_hours": 7.0}},
+    {"date": "2026-12-03", "sensing_data": {"rr_med": 15.9, "quality": 0.90, "valid_hours": 7.0}},
+    {"date": "2026-12-04", "sensing_data": {"rr_med": 16.0, "quality": 0.90, "valid_hours": 7.0}},
+    {"date": "2026-12-05", "sensing_data": {"rr_med": 16.2, "quality": 0.90, "valid_hours": 7.0}},
+    {"date": "2026-12-06", "sensing_data": {"rr_med": 16.0, "quality": 0.90, "valid_hours": 7.0}, "clinical_scales": {"phq9_item9": 1}},
+    {"date": "2026-12-07", "sensing_data": {"rr_med": 16.1, "quality": 0.90, "valid_hours": 7.0}},
+    {"date": "2026-12-08", "sensing_data": {"rr_med": 15.9, "quality": 0.90, "valid_hours": 7.0}}
+  ],
+  "expect": {"crisis_on_night": "2026-12-06"}
+}

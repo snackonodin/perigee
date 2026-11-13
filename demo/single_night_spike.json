@@ -1,0 +1,18 @@
+{
+  "name": "single_night_spike",
+  "description": "One elevated night inside a stable week. Must not reach Alert on its own.",
+  "persona": {
+    "user_id": "demo-spike",
+    "baselines": {"rr_med": 16.0, "mad_rr": 0.5}
+  },
+  "nights": [
+    {"date": "2026-11-01", "sensing_data": {"rr_med": 16.0, "quality": 0.90, "valid_hours": 7.0}},
+    {"date": "2026-11-02", "sensing_data": {"rr_med": 16.1, "quality": 0.90, "valid_hours": 7.0}},
+    {"date": "2026-11-03", "sensing_data": {"rr_med": 15.9, "quality": 0.90, "valid_hours": 7.0}},
+    {"date": "2026-11-04", "sensing_data": {"rr_med": 18.2, "quality": 0.90, "valid_hours": 7.0}},
+    {"date": "2026-11-05", "sensing_data": {"rr_med": 16.0, "quality": 0.90, "valid_hours": 7.0}},
+    {"date": "2026-11-06", "sensing_data": {"rr_med": 16.1, "quality": 0.90, "valid_hours": 7.0}},
+    {"date": "2026-11-07", "sensing_data": {"rr_med": 15.9, "quality": 0.90, "valid_hours": 7.0}}
+  ],
+  "expect": {"never_crisis": true, "below_alert": true}
+}

@@ -1,0 +1,18 @@
+{
+  "name": "stable_week",
+  "description": "Seven steady nights around the personal baseline. Must never reach Alert.",
+  "persona": {
+    "user_id": "demo-stable",
+    "baselines": {"rr_med": 16.0, "mad_rr": 0.5}
+  },
+  "nights": [
+    {"date": "2026-11-01", "sensing_data": {"rr_med": 15.8, "quality": 0.90, "valid_hours": 7.2}},
+    {"date": "2026-11-02", "sensing_data": {"rr_med": 16.2, "quality": 0.92, "valid_hours": 7.0}},
+    {"date": "2026-11-03", "sensing_data": {"rr_med": 15.9, "quality": 0.88, "valid_hours": 6.8}},
+    {"date": "2026-11-04", "sensing_data": {"rr_med": 16.1, "quality": 0.95, "valid_hours": 7.5}},
+    {"date": "2026-11-05", "sensing_data": {"rr_med": 16.0, "quality": 0.90, "valid_hours": 7.1}},
+    {"date": "2026-11-06", "sensing_data": {"rr_med": 16.3, "quality": 0.91, "valid_hours": 7.3}},
+    {"date": "2026-11-07", "sensing_data": {"rr_med": 15.7, "quality": 0.89, "valid_hours": 7.0}}
+  ],
+  "expect": {"never_crisis": true, "below_alert": true}
+}

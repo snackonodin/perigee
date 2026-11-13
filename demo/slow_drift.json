@@ -1,0 +1,32 @@
+{
+  "name": "slow_drift",
+  "description": "About three weeks of gradual respiratory-rate drift. Must reach Watch before Alert.",
+  "persona": {
+    "user_id": "demo-drift",
+    "baselines": {"rr_med": 16.0, "mad_rr": 0.5}
+  },
+  "nights": [
+    {"date": "2026-11-01", "sensing_data": {"rr_med": 16.0, "quality": 0.90, "valid_hours": 7.0}},
+    {"date": "2026-11-02", "sensing_data": {"rr_med": 16.2, "quality": 0.90, "valid_hours": 7.0}},
+    {"date": "2026-11-03", "sensing_data": {"rr_med": 16.4, "quality": 0.90, "valid_hours": 7.0}},
+    {"date": "2026-11-04", "sensing_data": {"rr_med": 16.6, "quality": 0.90, "valid_hours": 7.0}},
+    {"date": "2026-11-05", "sensing_data": {"rr_med": 16.8, "quality": 0.90, "valid_hours": 7.0}},
+    {"date": "2026-11-06", "sensing_data": {"rr_med": 17.0, "quality": 0.90, "valid_hours": 7.0}},
+    {"date": "2026-11-07", "sensing_data": {"rr_med": 17.2, "quality": 0.90, "valid_hours": 7.0}},
+    {"date": "2026-11-08", "sensing_data": {"rr_med": 17.4, "quality": 0.90, "valid_hours": 7.0}},
+    {"date": "2026-11-09", "sensing_data": {"rr_med": 17.6, "quality": 0.90, "valid_hours": 7.0}},
+    {"date": "2026-11-10", "sensing_data": {"rr_med": 17.8, "quality": 0.90, "valid_hours": 7.0}},
+    {"date": "2026-11-11", "sensing_data": {"rr_med": 18.0, "quality": 0.90, "valid_hours": 7.0}},
+    {"date": "2026-11-12", "sensing_data": {"rr_med": 18.2, "quality": 0.90, "valid_hours": 7.0}},
+    {"date": "2026-11-13", "sensing_data": {"rr_med": 18.4, "quality": 0.90, "valid_hours": 7.0}},
+    {"date": "2026-11-14", "sensing_data": {"rr_med": 18.6, "quality": 0.90, "valid_hours": 7.0}},
+    {"date": "2026-11-15", "sensing_data": {"rr_med": 18.8, "quality": 0.90, "valid_hours": 7.0}},
+    {"date": "2026-11-16", "sensing_data": {"rr_med": 19.0, "quality": 0.90, "valid_hours": 7.0}},
+    {"date": "2026-11-17", "sensing_data": {"rr_med": 19.2, "quality": 0.90, "valid_hours": 7.0}},
+    {"date": "2026-11-18", "sensing_data": {"rr_med": 19.4, "quality": 0.90, "valid_hours": 7.0}},
+    {"date": "2026-11-19", "sensing_data": {"rr_med": 19.6, "quality": 0.90, "valid_hours": 7.0}},
+    {"date": "2026-11-20", "sensing_data": {"rr_med": 19.8, "quality": 0.90, "valid_hours": 7.0}},
+    {"date": "2026-11-21", "sensing_data": {"rr_med": 20.0, "quality": 0.90, "valid_hours": 7.0}}
+  ],
+  "expect": {"never_crisis": true, "watch_before_alert": true}
+}

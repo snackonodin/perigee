@@ -8,3 +8,8 @@
 
 
 - RESOLVED 2026-11-13 (claude): bus/post_update.sh now exists; GET->POST /me/export fixed in FRONTEND_TASKS.md; Settings reduce-transparency CSS bug sent to codex.
+- file: backend/services/surveys.py / database `/Users/seemachauhan/astro-data/db/astro.db`; what failed: `GET /api/v1/today` returns 500 because the active SQLite schema has no `survey_responses.safety_flag` column. Reproduce after signing in: `curl -i -H 'Authorization: Bearer <access-token>' http://127.0.0.1:8765/api/v1/today`.
+- file: backend/security.py / runtime environment; what failed: Step 2 profile save (`PATCH /api/v1/me` with `display_name`) returns 500 because `FIELD_KEY` is empty (`FieldKeyMissing`). Reproduce after signing in: `curl -i -X PATCH -H 'Authorization: Bearer <access-token>' -H 'Content-Type: application/json' --data '{"display_name":"Test"}' http://127.0.0.1:8765/api/v1/me`.
+
+- RESOLVED 2026-11-14 (claude): /today 500 fixed by migrating ~/astro-data DB 0005->0006 (backup kept). PATCH /me 500 is FIELD_KEY missing: repo still has no .env; user must run `bash scripts/bootstrap.sh` (or create .env with fresh keys) and restart run_app.py. No frontend workaround.
+- RESOLVED 2026-11-14 (claude): .env created (fresh keys), run_app restarted; PATCH /me, /today, /monitor verified 200 live. fixtures.ts typecheck fixed; reduce-transparency CSS fixed (commit above).

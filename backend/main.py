@@ -51,6 +51,26 @@ def _git_sha() -> str:
         return "unknown"
 
 
+def spa_files(directory):
+    """Static files for the React app with a single-page fallback: a page route such as
+    /body or /monitor (no file extension, not /api) returns index.html so a refresh or a
+    deep link opens the app instead of a JSON 404. API paths and missing assets still 404."""
+    from fastapi.staticfiles import StaticFiles
+    from starlette.exceptions import HTTPException as StarletteHTTPException
+
+    class SpaStaticFiles(StaticFiles):
+        async def get_response(self, path: str, scope):  # type: ignore[override]
+            try:
+                return await super().get_response(path, scope)
+            except StarletteHTTPException as exc:
+                last = path.rsplit("/", 1)[-1]
+                if exc.status_code == 404 and not path.startswith("api") and "." not in last:
+                    return await super().get_response("index.html", scope)
+                raise
+
+    return SpaStaticFiles(directory=directory, html=True)
+
+
 def mount_routers(app: FastAPI) -> list[str]:
     mounted = []
     for mod_name, attr in ROUTER_MODULES:
@@ -121,9 +141,7 @@ def create_app(*, with_lifespan: bool = True) -> FastAPI:
         app.mount("/demo", StaticFiles(directory=demo_dir, html=True), name="demo")
     frontend_dir = ROOT / "backend" / "static" / "app"
     if frontend_dir.is_dir():
-        from fastapi.staticfiles import StaticFiles
-
-        app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="frontend")
+        app.mount("/", spa_files(frontend_dir), name="frontend")
     else:
         from fastapi.responses import RedirectResponse
 

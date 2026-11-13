@@ -25,7 +25,11 @@ class MeOut(BaseModel):
     created_at: datetime
     is_synthetic: bool
     display_name: str | None
-    timezone: str | None
+    timezone: str | None = Field(default=None, description="Legacy; not used. See station time.")
+    station_time_offset_min: int | None = Field(
+        default=None,
+        description="Optional station clock as minutes from UTC (atomic time). Null = UTC.",
+    )
 
 
 class ProfilePatch(BaseModel):
@@ -33,7 +37,8 @@ class ProfilePatch(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
     display_name: str | None = Field(default=None, max_length=svc.DISPLAY_NAME_MAX)
-    timezone: str | None = Field(default=None, max_length=64)
+    timezone: str | None = Field(default=None, max_length=64)  # legacy, kept for old clients
+    station_time_offset_min: int | None = Field(default=None, ge=-720, le=840)
 
 
 class ConsentOut(BaseModel):

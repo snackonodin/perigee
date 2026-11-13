@@ -714,6 +714,18 @@
             "title": "Is Synthetic",
             "type": "boolean"
           },
+          "station_time_offset_min": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Optional station clock as minutes from UTC (atomic time). Null = UTC.",
+            "title": "Station Time Offset Min"
+          },
           "timezone": {
             "anyOf": [
               {
@@ -723,6 +735,7 @@
                 "type": "null"
               }
             ],
+            "description": "Legacy; not used. See station time.",
             "title": "Timezone"
           }
         },
@@ -731,8 +744,7 @@
           "email",
           "created_at",
           "is_synthetic",
-          "display_name",
-          "timezone"
+          "display_name"
         ],
         "title": "MeOut",
         "type": "object"
@@ -1030,6 +1042,19 @@
               }
             ],
             "title": "Display Name"
+          },
+          "station_time_offset_min": {
+            "anyOf": [
+              {
+                "maximum": 840.0,
+                "minimum": -720.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Station Time Offset Min"
           },
           "timezone": {
             "anyOf": [

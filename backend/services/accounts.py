@@ -23,6 +23,7 @@ from sqlalchemy.orm import Session
 from backend import security
 from backend.config import get_settings
 from backend.models import AuditLog, Base, Consent, Profile, RefreshToken, User
+from backend.services.station_time import SETTINGS_KEY, offset_from_settings, validate_offset
 
 log = logging.getLogger(__name__)
 
@@ -266,14 +267,19 @@ def get_me(db: Session, user_id: str) -> dict[str, Any]:
         "created_at": _aware(user.created_at),
         "is_synthetic": user.is_synthetic,
         "display_name": prof.display_name if prof else None,
-        "timezone": prof.timezone if prof else None,
+        "timezone": prof.timezone if prof else None,  # legacy, not used for night math
+        "station_time_offset_min": offset_from_settings(prof.settings) if prof else None,
     }
 
 
 def update_profile(db: Session, user_id: str, changes: dict[str, Any]) -> dict[str, Any]:
-    """Apply only the keys present in changes (display_name, timezone)."""
+    """Apply only the keys present in changes (display_name, timezone, station_time_offset_min).
+
+    station_time_offset_min: optional station clock as minutes from UTC; None clears it (UTC).
+    """
     _active_user(db, user_id)
-    unknown = set(changes) - {"display_name", "timezone"}
+    changes = dict(changes)
+    unknown = set(changes) - {"display_name", "timezone", "station_time_offset_min"}
     if unknown:
         raise InvalidInput(f"unknown profile fields: {sorted(unknown)}")
     if "timezone" in changes:
@@ -281,6 +287,12 @@ def update_profile(db: Session, user_id: str, changes: dict[str, Any]) -> dict[s
             ZoneInfo(str(changes["timezone"]))
         except (ZoneInfoNotFoundError, ValueError):
             raise InvalidInput("unknown timezone") from None
+    station_set = "station_time_offset_min" in changes
+    if station_set:
+        try:
+            station_offset = validate_offset(changes.pop("station_time_offset_min"))
+        except ValueError as exc:
+            raise InvalidInput(str(exc)) from None
     name = changes.get("display_name")
     if name is not None and len(name) > DISPLAY_NAME_MAX:
         raise InvalidInput(f"display_name is longer than {DISPLAY_NAME_MAX} characters")
@@ -290,6 +302,13 @@ def update_profile(db: Session, user_id: str, changes: dict[str, Any]) -> dict[s
         db.add(prof)
     for k, v in changes.items():
         setattr(prof, k, v)
+    if station_set:
+        settings = dict(prof.settings or {})
+        if station_offset is None:
+            settings.pop(SETTINGS_KEY, None)
+        else:
+            settings[SETTINGS_KEY] = station_offset
+        prof.settings = settings
     prof.updated_at = _now()
     db.commit()
     return get_me(db, user_id)

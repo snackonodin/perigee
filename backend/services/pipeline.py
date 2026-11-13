@@ -8,9 +8,8 @@ results are idempotent and every row carries the run that produced it.
 from __future__ import annotations
 
 import hashlib
-from datetime import UTC, date, datetime, time, timedelta
+from datetime import UTC, date, datetime, time, timedelta, tzinfo
 from pathlib import Path
-from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
@@ -20,7 +19,6 @@ from backend.models import (
     CaptureSession,
     HeartEstimateRow,
     PipelineRun,
-    Profile,
     RawFile,
     WindowEstimateRow,
     scoped,
@@ -38,22 +36,20 @@ NIGHT_SPLIT = time(12, 0)
 # ----------------------------------------------------------------- night dates
 
 
-def user_tz(db: Session, user_id: str) -> ZoneInfo:
-    """Profile timezone, falling back to UTC when missing or unknown."""
-    name = db.scalar(scoped(select(Profile.timezone), Profile, user_id))
-    try:
-        return ZoneInfo(name or "UTC")
-    except (ZoneInfoNotFoundError, ValueError):
-        return ZoneInfo("UTC")
+def user_tz(db: Session, user_id: str) -> tzinfo:
+    """Station time (optional offset from UTC, see services.station_time); UTC if unset."""
+    from backend.services.station_time import station_tz
+
+    return station_tz(db, user_id)
 
 
-def night_date(ts: datetime, tz: ZoneInfo) -> date:
+def night_date(ts: datetime, tz: tzinfo) -> date:
     """Local evening date of the night that contains ``ts``."""
     local = ts.astimezone(tz)
     return (local - timedelta(hours=NIGHT_SPLIT.hour, minutes=NIGHT_SPLIT.minute)).date()
 
 
-def night_bounds_utc(day: date, tz: ZoneInfo) -> tuple[datetime, datetime]:
+def night_bounds_utc(day: date, tz: tzinfo) -> tuple[datetime, datetime]:
     """[start, end) in UTC of the night named ``day``."""
     a = datetime.combine(day, NIGHT_SPLIT, tzinfo=tz)
     b = datetime.combine(day + timedelta(days=1), NIGHT_SPLIT, tzinfo=tz)

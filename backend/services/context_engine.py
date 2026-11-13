@@ -181,10 +181,6 @@ def run_night(
 
 
 def _timezone(db: Session, user_id: str):
-    from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+    from backend.services.station_time import station_tz
 
-    name = db.scalar(scoped(select(Profile.timezone), Profile, user_id))
-    try:
-        return ZoneInfo(name or "UTC")
-    except (ZoneInfoNotFoundError, ValueError):
-        return ZoneInfo("UTC")
+    return station_tz(db, user_id)

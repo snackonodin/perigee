@@ -52,3 +52,11 @@ calibration and run phases.
 `value` and `deviation` only when values are shown), `motion` (`flag` `still` | `motion_flags`
 | `no_data`, `flag_timestamps_s`), `limitations`, `calibration`, `run_seconds`, `stopped_early`.
 Values are shown only with `show_rates=true`, or for the measure chosen in a Measure mode.
+
+## Station time (replaces time zones), added 2026-11-14
+
+`GET /api/v1/me` returns `station_time_offset_min` (int minutes from UTC, or null = UTC).
+`PATCH /api/v1/me` accepts `{"station_time_offset_min": <int -720..840> | null}`; null clears it.
+`timezone` remains in the schema for old clients but is not used. Frontend: compute the offset
+from the station clock time the person types (HH:MM) minus current UTC, rounded to the nearest
+15 minutes and wrapped into -720..840; leave the field blank to send nothing (UTC).

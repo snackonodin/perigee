@@ -12,10 +12,12 @@
 |---|---|---|
 | `pipeline.py` | `14c8fc7ab75e599de483921fe30edba2f0fe2d292f3c9e9d03cdcd20b0d03ee4` | breath (rate A/B, PNR) and amplitude motion feature |
 | `heart_rate.py` | `85c83d5d112258f33dcc89b28a3617d88bfab8cb21f6444e0607a9f4dd42af6d` | experimental I/Q heart rate (SCR-2, vendored 2026-11-12) |
+| `movement.py` | `f7267bb7180be13d82dfe52c4ace6a61d17a4499071737542146017333382e9d` | I/Q Doppler acceleration for Monitor sessions (vendored 2026-11-14; adapter `plugins/team_movement.py` aliases `heart_rate`) |
+| `logger.py` | `2daf7946aa59b296776167ccc74f86e30c0b636e49f2717ed950f545280fcf77` | ESP serial row parser (`parse_c_line`, `PACKET_FIELDS`) for on-demand Monitor capture (vendored 2026-11-14) |
 
-Not vendored yet: `movement.py` (I/Q Doppler movement; imports `heart_rate` absolutely,
-so its adapter will alias the vendored module rather than edit the file). `logger.py`/`capture.py`
-(pyserial) and `calibrate.py` (matplotlib) run on the capture device, not in the app.
+Not vendored: `capture.py` and `calibrate.py` (matplotlib) run on the capture device, not in the app.
+`movement.py` imports `heart_rate` absolutely, so `plugins/team_movement.py` aliases the vendored
+module instead of editing the file.
 
 Upstream dependency pins: numpy==1.26.4, scipy==1.13.1. The app runs them with its own
 pins (requirements.txt); the golden test in `tests/pipeline/test_team_plugins.py` checks

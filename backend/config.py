@@ -22,6 +22,8 @@ class Settings(BaseSettings):
     api_port: int = 8000
     access_token_minutes: int = 15
     refresh_token_days: int = 14
+    # ESP receiver serial port for on-demand Monitor sessions (device-specific; .env only)
+    monitor_serial_port: str = ""
 
     @field_validator("data_dir")
     @classmethod

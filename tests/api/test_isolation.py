@@ -116,6 +116,13 @@ ISOLATION_CASES: list[IsolationCase] = [
     IsolationCase("get", "/api/v1/today", 200),
     # injection (INJ-1): estimates for A's session must look like a missing session, write
     # nothing and reveal nothing, whatever else the request carries
+    # monitor (on-demand ESP sessions): B's list is B's own; A's session ids look missing.
+    # Starting a session never touches A; with no receiver configured in tests it is 503.
+    IsolationCase("get", "/api/v1/monitor/sessions", 200),
+    IsolationCase("post", "/api/v1/monitor/sessions", 503, json={"mode": "heart_rate"}),
+    IsolationCase("get", "/api/v1/monitor/sessions/{session_id}", 404,
+                  params={"show_rates": "true"}),
+    IsolationCase("post", "/api/v1/monitor/sessions/{session_id}/stop", 404),
     IsolationCase(
         "post",
         "/api/v1/ingest/estimates",
@@ -238,6 +245,16 @@ def world(app_client, db, tmp_path) -> dict[str, Any]:
         },
     )
     assert resp.status_code == 200 and resp.json()["stored"], resp.text
+    # A finished Monitor session stored under A, with the same id the {session_id} routes use,
+    # so B addressing it proves the monitor routes are user-scoped (not just "id not found").
+    from backend.services import monitor as monitor_svc
+
+    mon_dir = monitor_svc.runs_root(a["user_id"]) / session.id
+    mon_dir.mkdir(parents=True)
+    (mon_dir / "summary.json").write_text(
+        f'{{"id": "{session.id}", "mode": "heart_rate", '
+        '"created_at": "2026-11-01T23:00:00+00:00"}'
+    )
     return {
         "a": a,
         "b": b,

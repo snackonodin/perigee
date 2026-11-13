@@ -27,3 +27,28 @@ The stored JSON contains the engine's structured output. Its `state` always cont
 - Engine results and state are persisted atomically with the nightly run; duplicate user/date runs update the same row and use the preceding night’s state.
 - `NO_ESTIMATE` engine outputs may be stored for audit, but the engine receives quality/duration and controls its own state update.
 - Clinical item values are not logged; raw engine payloads are not persisted.
+
+## Monitor sessions (on-demand ESP), added 2026-11-14
+
+Authenticated (Bearer). Decided by the user in INTEGRATION_PLAN.md §7. The ESP opens only for a
+chosen session and closes after it. One session at a time per device.
+
+| Method | Path | Body / query | Success | Errors |
+|---|---|---|---|---|
+| POST | `/api/v1/monitor/sessions` | `{"mode": "sleep_analysis" \| "heart_rate" \| "breathing_rate"}` | 202 `MonitorSessionOut` (state `connecting`) | 409 `busy`, 503 `no_receiver` |
+| GET | `/api/v1/monitor/sessions` | `show_rates` (bool, default false) | 200 `MonitorSessionOut[]`, newest first, caller's only | |
+| GET | `/api/v1/monitor/sessions/{session_id}` | `show_rates` | 200 `MonitorSessionOut` | 404 (also for another user's id) |
+| POST | `/api/v1/monitor/sessions/{session_id}/stop` | — | 202 `MonitorSessionOut` | 404 if not the caller's active session |
+
+States: `connecting → link_check → calibrating (60 s empty room, every session) → running →
+finalizing → complete`; or `link_error` (with a plain `error` message; partial capture kept) or
+`stopped` (stopped before running). Poll every 1 s while active; `remaining_s` counts down the
+calibration and run phases.
+
+`summary` (when complete): `sleep_score` (experimental; `null` with `score_status`
+`insufficient_inputs`, or `not_applicable` for the two Measure modes), `components`,
+`respiration` / `heart_rate` blocks with `flag` (`in_range` | `below_range` | `above_range` |
+`no_data`), `counts`, `in_range_pct`, `values_shown`, `readings` (`time_s`, `position`, plus
+`value` and `deviation` only when values are shown), `motion` (`flag` `still` | `motion_flags`
+| `no_data`, `flag_timestamps_s`), `limitations`, `calibration`, `run_seconds`, `stopped_early`.
+Values are shown only with `show_rates=true`, or for the measure chosen in a Measure mode.

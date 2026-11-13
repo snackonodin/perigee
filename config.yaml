@@ -88,3 +88,18 @@ session_scoring:
     mad_multiplier: 0.85           # PLACEHOLDER: rolling robust threshold multiplier
     floor_m_s2: 0.02               # PLACEHOLDER: minimum acceleration threshold
     jerk_threshold_m_s3: null      # unset until the operator supplies one
+
+# On-demand Monitor sessions (INTEGRATION_PLAN.md §7, D3). The ESP is opened only when a person
+# chooses Sleep analysis / Measure heart rate / Measure breathing rate, then closed again.
+# The serial port name comes from .env (MONITOR_SERIAL_PORT), never from this file.
+monitor:
+  baud: 921600                     # ESP-A firmware rate (waiwai1/logger.py default)
+  link_min_rows_per_s: 90          # PLACEHOLDER: receiver preflight (sleep-monitor handoff)
+  link_interval_s: 2               # PLACEHOLDER: preflight interval length
+  link_good_intervals: 3           # PLACEHOLDER: consecutive passing intervals required
+  link_timeout_s: 30               # PLACEHOLDER: give up if the link never passes
+  calibration_s: 60                # PLACEHOLDER: empty-room calibration, run EVERY session (user, 2026-11-14)
+  duration_s:
+    sleep_analysis: 180            # PLACEHOLDER: handoff default (3 minutes)
+    heart_rate: 60                 # PLACEHOLDER
+    breathing_rate: 90             # PLACEHOLDER

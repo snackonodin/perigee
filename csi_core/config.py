@@ -126,6 +126,24 @@ class SessionScoringCfg(_Section):
     motion: SessionMotionCfg
 
 
+class MonitorDurationsCfg(_Section):
+    sleep_analysis: float = Field(gt=0)
+    heart_rate: float = Field(gt=0)
+    breathing_rate: float = Field(gt=0)
+
+
+class MonitorCfg(_Section):
+    """On-demand ESP sessions. All values are placeholders (TUNING.md)."""
+
+    baud: int = Field(gt=0)
+    link_min_rows_per_s: float = Field(gt=0)
+    link_interval_s: float = Field(gt=0)
+    link_good_intervals: int = Field(ge=1)
+    link_timeout_s: float = Field(gt=0)
+    calibration_s: float = Field(ge=0)
+    duration_s: MonitorDurationsCfg
+
+
 class CoreConfig(_Section):
     capture: CaptureCfg
     preprocess: PreprocessCfg
@@ -137,6 +155,7 @@ class CoreConfig(_Section):
     estimators: EstimatorsCfg = EstimatorsCfg()
     auth: AuthCfg = AuthCfg()
     session_scoring: SessionScoringCfg | None = None
+    monitor: MonitorCfg | None = None
 
 
 def resolve_estimator(spec: str) -> Callable[..., Any]:

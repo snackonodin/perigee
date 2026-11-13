@@ -27,6 +27,10 @@ When a value is validated, record the data and date next to it.
 | session_scoring.*.falloff_low / falloff_high | 0.25 / 0.25 | Fraction of range width beyond an edge at which a reading earns 0 credit; low and high tuned separately | no |
 | session_scoring.weights | 0.40 / 0.40 / 0.20 | Respiration / heart rate / motion share of the experimental session score | no |
 | session_scoring.motion.mad_multiplier / floor_m_s2 | 0.85 / 0.02 | Motion flag threshold for Monitor sessions (engine motion_features) | no |
+| monitor.link_min_rows_per_s / link_interval_s / link_good_intervals | 90 / 2 / 3 | Receiver preflight before a Monitor session (sleep-monitor handoff) | no |
+| monitor.link_timeout_s | 30 | Stop waiting for a usable link | no |
+| monitor.calibration_s | 60 | Empty-room calibration before every Monitor session (user decision 2026-11-14) | no |
+| monitor.duration_s | 180 / 60 / 90 | Sleep analysis / heart rate / breathing rate session length | no |
 | auth.login_window_s | 900 | Login-failure counting window (s) | no |
 | auth.max_failures_per_email_ip | 5 | Failed logins per (email, IP) before 429 | no |
 | auth.max_failures_per_email | 20 | Failed logins per email across IPs before 429 | no |

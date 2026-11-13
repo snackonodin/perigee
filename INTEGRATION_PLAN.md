@@ -76,3 +76,13 @@ Owner: Claude (coordinator). Contract changes happen only after the decisions in
 Next: task 5 becomes (a) session scoring, done; (b) on-demand `services/sleep_monitor.py` (serial
 open on start, link check, calibration, run, close) + `/api/v1/monitor/*` + openapi; then task 6
 (Codex Monitor screen, DESIGN.md §14).
+
+## 8. Built (2026-11-14)
+
+- Calibration: 60 s empty room before **every** session (user). pyserial==3.5 added (user).
+- `backend/services/monitor.py`: on-demand session (open port → link check → calibration → run →
+  finalize → close), one at a time; capture/markers/summary under DATA_DIR/monitor/<user>/<id>/.
+- `backend/api/v1/monitor.py`: 4 routes (coord/API_CONTRACT.md "Monitor sessions"); openapi.json
+  regenerated (additions only); isolation cases added.
+- Vendored byte-identical `movement.py` and `logger.py` (PROVENANCE.md); `plugins/team_movement.py`.
+- Not yet tested on a real ESP: needs MONITOR_SERIAL_PORT in .env on the device with the receiver.

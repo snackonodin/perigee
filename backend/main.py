@@ -34,6 +34,7 @@ ROUTER_MODULES: list[tuple[str, str]] = [
     ("backend.api.v1.today", "router"),
     ("backend.api.v1.ingest", "router"),
     ("backend.api.v1.live", "router"),
+    ("backend.api.v1.monitor", "router"),
 ]
 
 

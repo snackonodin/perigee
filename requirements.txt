@@ -11,6 +11,7 @@ pydantic-settings==2.16.2
 PyJWT==2.15.1
 pytest==9.2.0
 pytest-randomly==5.1.0
+pytest-timeout==2.4.0
 python-multipart==0.0.33
 PyYAML==6.0.3
 pyserial==3.5

@@ -5,7 +5,7 @@ import { writeFileSync, mkdirSync } from "node:fs";
 
 const [out, access, refresh, w, h, ...routes] = process.argv.slice(2);
 mkdirSync(out, { recursive: true });
-const BASE = "http://127.0.0.1:8765";
+const BASE = process.env.BASE || "http://127.0.0.1:8765";
 const port = 9333 + Math.floor(Math.random() * 500);
 const chrome = spawn("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", [
   "--headless=new", `--remote-debugging-port=${port}`, "--no-first-run", "--no-default-browser-check",

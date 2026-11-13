@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { StatusChip, type Status } from "./StatusChip";
 export function VitalCard({label,value,unit,state,icon,children,advisory,experimental=false}:{label:string;value:ReactNode;unit?:string;state?:Status;icon:ReactNode;children?:ReactNode;advisory?:string;experimental?:boolean}) {
-  return <article className={`vital-card state-${state}`}>
+  return <article className={`vital-card glass state-${state}`}>
     <div className="vital-title"><span className="vital-glyph" aria-hidden="true"><svg viewBox="0 0 24 24"><path d={typeof icon==="string"?iconFor(String(icon)):"M5 12h14M12 5v14"}/></svg></span><div><h2>{label}</h2>{experimental&&<span className="experimental">Experimental estimate</span>}</div></div>
     <div className="vital-card-value">{value}{unit&&<small>{unit}</small>}</div>
     {advisory&&<p>{advisory}</p>}{children}{state&&<StatusChip state={state}/>}<span className="vital-baseline">vs your 28-night usual</span>

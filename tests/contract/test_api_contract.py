@@ -35,7 +35,9 @@ class ContractClient:
     def __init__(self, base_url: str) -> None:
         self.base_url = base_url
 
-    def request(self, method: str, path: str, body=None, token: str | None = None):
+    def request(self, method: str, path: str, body=None, token: str | None = None, retries: int = 2):
+        """One request. A bounded retry covers a transient socket timeout when the full
+        suite loads the machine; it does not relax the 5 s per-request timeout."""
         data = None if body is None else json.dumps(body).encode("utf-8")
         headers = {}
         if data is not None:
@@ -43,13 +45,24 @@ class ContractClient:
         if token:
             headers["Authorization"] = f"Bearer {token}"
         request = Request(self.base_url + path, data=data, headers=headers, method=method)
-        try:
-            with urlopen(request, timeout=5) as response:
-                raw = response.read()
-                return response.status, response.headers, self._decode(raw, response.headers)
-        except HTTPError as error:
-            raw = error.read()
-            return error.code, error.headers, self._decode(raw, error.headers)
+        for attempt in range(retries + 1):
+            try:
+                with urlopen(request, timeout=5) as response:
+                    raw = response.read()
+                    return response.status, response.headers, self._decode(raw, response.headers)
+            except HTTPError as error:
+                raw = error.read()
+                return error.code, error.headers, self._decode(raw, error.headers)
+            except (TimeoutError, ConnectionError):
+                if attempt == retries:
+                    raise
+                time.sleep(0.2 * (attempt + 1))
+            except URLError as error:
+                # urlopen wraps a socket timeout in URLError(reason=TimeoutError).
+                if isinstance(error.reason, (TimeoutError, ConnectionError)) and attempt < retries:
+                    time.sleep(0.2 * (attempt + 1))
+                    continue
+                raise
 
     @staticmethod
     def _decode(raw: bytes, headers):
@@ -79,6 +92,52 @@ def _check(request: str, expected: str, actual: str, ok: bool) -> None:
     assert ok, f"{request}: expected {expected}; actual {actual}"
 
 
+def _spawn_api(env: dict[str, str], tmp_path: Path) -> tuple[subprocess.Popen, ContractClient, Path]:
+    """Start uvicorn on a fresh port and wait for /api/v1/health with a bounded retry loop.
+
+    A port is probed once and can be taken between probe and bind, so a failed start is
+    retried on a new port (3 attempts). The captured log tail is part of the failure."""
+    log_path = tmp_path / "api.log"
+    for attempt in range(1, 4):
+        port = _free_port()
+        base_url = f"http://127.0.0.1:{port}"
+        with log_path.open("a", encoding="utf-8") as log:
+            process = subprocess.Popen(
+                [sys.executable, "-m", "uvicorn", "backend.main:app", "--host", "127.0.0.1", "--port", str(port)],
+                cwd=ROOT,
+                env=env,
+                stdout=log,
+                stderr=subprocess.STDOUT,
+            )
+        client = ContractClient(base_url)
+        deadline = time.monotonic() + 20
+        while time.monotonic() < deadline:
+            if process.poll() is not None:
+                break
+            try:
+                status, _, body = client.request("GET", "/api/v1/health", retries=0)
+            except (OSError, URLError):
+                status, body = None, None
+            if status == 200 and body == {"status": "ok"}:
+                return process, client, log_path
+            time.sleep(0.2)
+        _stop(process)
+    log_tail = log_path.read_text(encoding="utf-8")[-2000:]
+    raise AssertionError(
+        f"fresh app did not become healthy on 3 ports within 20 s each; last log:\n{log_tail}"
+    )
+
+
+def _stop(process: subprocess.Popen) -> None:
+    if process.poll() is None:
+        process.terminate()
+    try:
+        process.wait(timeout=8)
+    except subprocess.TimeoutExpired:
+        process.kill()
+        process.wait(timeout=3)
+
+
 @pytest.fixture
 def live_api(tmp_path: Path):
     data_dir = tmp_path / "astro-data"
@@ -90,6 +149,7 @@ def live_api(tmp_path: Path):
         DATA_DIR=str(data_dir),
         DATABASE_URL=f"sqlite:///{data_dir / 'astro.db'}",
         ASTRO_DISABLE_WORKER="0",
+        MONITOR_SERIAL_PORT="",
         PYTHONDONTWRITEBYTECODE="1",
     )
     migrated = subprocess.run(
@@ -108,44 +168,12 @@ def live_api(tmp_path: Path):
         )
     assert migrated.returncode == 0, f"fresh DB migration failed:\n{migrated.stdout}\n{migrated.stderr}"
 
-    port = _free_port()
-    base_url = f"http://127.0.0.1:{port}"
-    log_path = tmp_path / "api.log"
-    with log_path.open("w", encoding="utf-8") as log:
-        process = subprocess.Popen(
-            [sys.executable, "-m", "uvicorn", "backend.main:app", "--host", "127.0.0.1", "--port", str(port)],
-            cwd=ROOT,
-            env=env,
-            stdout=log,
-            stderr=subprocess.STDOUT,
-        )
-        try:
-            deadline = time.monotonic() + 20
-            while time.monotonic() < deadline:
-                if process.poll() is not None:
-                    break
-                try:
-                    status, _, body = ContractClient(base_url).request("GET", "/api/v1/health")
-                    if status == 200 and body == {"status": "ok"}:
-                        break
-                except (OSError, URLError):
-                    time.sleep(0.2)
-            else:
-                _record_mismatch(
-                    "GET /api/v1/health during fresh app startup",
-                    "200 {status: ok} within 20 seconds",
-                    f"server did not become healthy; log={log_path.read_text(encoding='utf-8')[-1500:]!r}",
-                )
-                raise AssertionError("fresh app did not become healthy within 20 seconds")
-            assert process.poll() is None, f"app exited during startup; see {log_path}"
-            yield ContractClient(base_url), data_dir
-        finally:
-            process.terminate()
-            try:
-                process.wait(timeout=8)
-            except subprocess.TimeoutExpired:
-                process.kill()
-                process.wait(timeout=3)
+    process, client, log_path = _spawn_api(env, tmp_path)
+    try:
+        assert process.poll() is None, f"app exited during startup; see {log_path}"
+        yield client, data_dir
+    finally:
+        _stop(process)
 
 
 def test_api_contract_endpoints_and_bad_inputs(live_api) -> None:
@@ -300,3 +328,140 @@ def test_api_contract_endpoints_and_bad_inputs(live_api) -> None:
             ("2026-11-12",),
         ).fetchone()[0]
     _check("duplicate nightly submissions", "one context_engine_nights row for user/date", str(rows), rows == 1)
+
+
+def test_station_time_and_monitor_contract(live_api) -> None:
+    client, _data_dir = live_api
+
+    status, _, body = client.request("GET", "/api/v1/me")
+    _check(
+        "GET /api/v1/me without token",
+        "401 unauthorized error response",
+        f"{status} {body!r}",
+        status == 401 and isinstance(body, dict) and body.get("error") == "unauthorized",
+    )
+
+    status, _, signup = client.request(
+        "POST", "/api/v1/auth/signup", {"email": "time@example.test", "password": "contract-test-password"}
+    )
+    _check("POST /api/v1/auth/signup (station time setup)", "201 with access_token", repr(signup), status == 201)
+    token = signup["access_token"]
+
+    status, _, me = client.request("GET", "/api/v1/me", token=token)
+    _check(
+        "GET /api/v1/me station_time_offset_min default",
+        "200 with null (UTC)",
+        f"{status} {me!r}",
+        status == 200 and isinstance(me, dict) and me.get("station_time_offset_min") is None,
+    )
+
+    status, _, patched = client.request("PATCH", "/api/v1/me", {"station_time_offset_min": 330}, token)
+    _check(
+        "PATCH /api/v1/me station_time_offset_min=330",
+        "200 with station_time_offset_min 330",
+        f"{status} {patched!r}",
+        status == 200 and isinstance(patched, dict) and patched.get("station_time_offset_min") == 330,
+    )
+    status, _, me = client.request("GET", "/api/v1/me", token=token)
+    _check(
+        "GET /api/v1/me reads back station_time_offset_min",
+        "200 with 330",
+        f"{status} {me!r}",
+        status == 200 and isinstance(me, dict) and me.get("station_time_offset_min") == 330,
+    )
+
+    status, _, cleared = client.request("PATCH", "/api/v1/me", {"station_time_offset_min": None}, token)
+    _check(
+        "PATCH /api/v1/me station_time_offset_min=null",
+        "200 with null (cleared to UTC)",
+        f"{status} {cleared!r}",
+        status == 200 and isinstance(cleared, dict) and cleared.get("station_time_offset_min") is None,
+    )
+    status, _, me = client.request("GET", "/api/v1/me", token=token)
+    _check(
+        "GET /api/v1/me after clearing station time",
+        "200 with null",
+        f"{status} {me!r}",
+        status == 200 and isinstance(me, dict) and me.get("station_time_offset_min") is None,
+    )
+
+    status, _, body = client.request("PATCH", "/api/v1/me", {"station_time_offset_min": 841}, token)
+    _check(
+        "PATCH /api/v1/me station_time_offset_min=841",
+        "422 validation response (allowed range is -720..840)",
+        f"{status} {body!r}",
+        status == 422,
+    )
+
+    # Monitor sessions (INTEGRATION_PLAN.md §7): no receiver configured in this fixture.
+    status, _, body = client.request("GET", "/api/v1/monitor/sessions")
+    _check(
+        "GET /api/v1/monitor/sessions without token",
+        "401 unauthorized error response",
+        f"{status} {body!r}",
+        status == 401 and isinstance(body, dict) and body.get("error") == "unauthorized",
+    )
+    status, _, body = client.request("POST", "/api/v1/monitor/sessions", {"mode": "heart_rate"})
+    _check(
+        "POST /api/v1/monitor/sessions without token",
+        "401 unauthorized error response",
+        f"{status} {body!r}",
+        status == 401 and isinstance(body, dict) and body.get("error") == "unauthorized",
+    )
+
+    status, _, sessions = client.request("GET", "/api/v1/monitor/sessions", token=token)
+    _check(
+        "GET /api/v1/monitor/sessions (empty)",
+        "200 []",
+        f"{status} {sessions!r}",
+        status == 200 and sessions == [],
+    )
+
+    status, _, body = client.request("POST", "/api/v1/monitor/sessions", {"mode": "heart_rate"}, token)
+    _check(
+        "POST /api/v1/monitor/sessions with no receiver",
+        "503 error no_receiver",
+        f"{status} {body!r}",
+        status == 503 and isinstance(body, dict) and body.get("error") == "no_receiver",
+    )
+
+    status, _, body = client.request("GET", "/api/v1/monitor/sessions/not-a-session", token=token)
+    _check(
+        "GET /api/v1/monitor/sessions/{unknown}",
+        "404 error not_found",
+        f"{status} {body!r}",
+        status == 404 and isinstance(body, dict) and body.get("error") == "not_found",
+    )
+    status, _, body = client.request("POST", "/api/v1/monitor/sessions/not-a-session/stop", token=token)
+    _check(
+        "POST /api/v1/monitor/sessions/{unknown}/stop",
+        "404 error not_found",
+        f"{status} {body!r}",
+        status == 404 and isinstance(body, dict) and body.get("error") == "not_found",
+    )
+
+
+def test_spa_deep_links_and_unknown_api(live_api) -> None:
+    client, _data_dir = live_api
+
+    status, headers, body = client.request("GET", "/api/v1/nope")
+    content_type = headers.get("Content-Type", "")
+    _check(
+        "GET /api/v1/nope",
+        "404 JSON error response",
+        f"{status} {content_type!r} {body!r}",
+        status == 404 and "json" in content_type.lower() and isinstance(body, dict) and bool(body.get("error")),
+    )
+
+    app_dir = ROOT / "backend" / "static" / "app"
+    if not app_dir.is_dir():
+        pytest.skip("backend/static/app is not built")
+    for route in ("/body", "/monitor", "/settings"):
+        status, headers, body = client.request("GET", route)
+        content_type = headers.get("Content-Type", "")
+        _check(
+            f"GET {route} deep link",
+            "200 HTML (single-page fallback)",
+            f"{status} {content_type!r}",
+            status == 200 and "html" in content_type.lower() and isinstance(body, str) and "<div id=\"root\"" in body,
+        )

@@ -1,5 +1,3 @@
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "./App";
@@ -8,9 +6,8 @@ import { SAFETY_FALLBACK } from "./safety/safety";
 import { instruments, me, today } from "./test/fixtures";
 import { mockApi, signIn } from "./test/mockApi";
 import tokensCss from "./theme/tokens.css?raw";
+import shellCss from "./theme/shell.css?raw";
 
-// shell.css is not in vitest's CSS include list, so read it as text instead of ?raw.
-const shellCss = readFileSync(resolve(process.cwd(), "src/theme/shell.css"), "utf8");
 
 /** Innermost CSS rules as written (selector, declarations); at-rule wrappers are skipped. */
 function rules(css: string): { selector: string; decls: string }[] {

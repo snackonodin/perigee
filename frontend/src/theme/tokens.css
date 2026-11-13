@@ -5,6 +5,14 @@
   --text:#1F2A37; --muted:#5B6B7A; --teal:#1E7F6E;
   --ok:#2E9E78; --warn:#C98A1B; --alert:#D1495B;
   --ok-ink:#1D6B50; --warn-ink:#7A4E00; --alert-ink:#A3283A;
+  --glass:rgba(255,255,255,.62);
+  --glass-strong:rgba(255,255,255,.78);
+  --glass-border:rgba(255,255,255,.75);
+  --glass-edge:rgba(31,42,55,.08);
+  --glass-highlight:inset 0 1px 0 rgba(255,255,255,.9);
+  --glass-shadow:0 8px 32px rgba(31,42,55,.10);
+  --glass-blur:blur(20px) saturate(140%);
+  --teal-ink:#166457;
   --font:ui-rounded,"SF Pro Rounded","Nunito","Segoe UI",system-ui,sans-serif;
   --fs-display:48px; --fs-h1:32px; --fs-h2:24px; --fs-metric:28px; --fs-h3:20px; --fs-body:16px; --fs-small:14px; --fs-tiny:12px;
   --s-1:4px; --s-2:8px; --s-3:16px; --s-4:24px; --s-5:32px; --s-6:48px; --s-7:64px;

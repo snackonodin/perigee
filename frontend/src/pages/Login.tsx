@@ -14,7 +14,7 @@ export function Login() {
   const fogRef=useRef<HTMLDivElement>(null);
   useEffect(()=>{
     const host=fogRef.current;
-    if(!host||!window.matchMedia||window.matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+    if(!host||!window.matchMedia||!window.matchMedia("(min-width: 768px)").matches||window.matchMedia("(prefers-reduced-motion: reduce)").matches)return;
     let effect:{destroy:()=>void}|undefined,disposed=false;
     // Vanta ships without TypeScript declarations; the dynamic import keeps its renderer lazy.
     // @ts-expect-error Vanta's distribution has no declaration file.
@@ -26,8 +26,9 @@ export function Login() {
       const create=(vanta.default??vanta) as (options:Record<string,unknown>)=>{destroy:()=>void};
       const color=(name:string)=>Number(`0x${getComputedStyle(document.documentElement).getPropertyValue(name).trim().replace("#","")}`);
       effect=create({el:host,THREE:three.default??three,highlightColor:color("--mint"),midtoneColor:color("--sky"),lowlightColor:color("--lavender"),baseColor:color("--bg"),speed:0.6});
+      host.dataset.vanta="true";
     }).catch(()=>undefined);
-    return()=>{disposed=true;effect?.destroy();};
+    return()=>{disposed=true;effect?.destroy();if(host)delete host.dataset.vanta;};
   },[]);
 
   if (status === "signed-in") return <Navigate to={from} replace />;
@@ -44,9 +45,10 @@ export function Login() {
 
   return (
     <div className="login-layout">
+      <div className="aurora-backdrop" aria-hidden="true"><i/><i/><i/><i/></div>
       <main className="login-main">
        <div ref={fogRef} className="login-fog" aria-hidden="true" />
-       <section className="panel login-card" aria-labelledby="login-title">
+       <section className="panel login-card glass" aria-labelledby="login-title">
         <p className="eyebrow">Private health companion</p>
         <h1 id="login-title">{signup ? "Create your account" : "Welcome back"}</h1>
         <p className="login-subtitle">{signup ? "Set up your private crew profile." : "Sign in to continue to your personal log."}</p>

@@ -1,7 +1,6 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type CSSProperties } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router";
 import Lenis from "lenis";
-import { gsap } from "gsap";
 import { useAuth } from "../auth/AuthProvider";
 import { TABS } from "../routes/tabs";
 
@@ -17,18 +16,19 @@ export function AppShell() {
     const media=window.matchMedia("(prefers-reduced-motion: reduce)");
     if(media.matches)return;
     const lenis=new Lenis({lerp:0.12,autoRaf:false});
-    const tick=(time:number)=>lenis.raf(time*1000);
-    gsap.ticker.add(tick);
+    let frame=0;
+    const tick=(time:number)=>{lenis.raf(time);frame=requestAnimationFrame(tick);};
+    frame=requestAnimationFrame(tick);
     const safetyObserver=new MutationObserver(()=>{document.querySelector(".safety")?lenis.stop():lenis.start();});
     safetyObserver.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:["class"]});
-    return()=>{safetyObserver.disconnect();gsap.ticker.remove(tick);lenis.destroy();};
+    return()=>{safetyObserver.disconnect();cancelAnimationFrame(frame);lenis.destroy();};
   },[]);
   useEffect(()=>{
     const mainElement=main.current?.querySelector(".screen-transition");
-    if(!mainElement||!window.matchMedia)return;
-    const mm=gsap.matchMedia();
-    mm.add("(prefers-reduced-motion: no-preference)",()=>{gsap.fromTo(mainElement,{opacity:0,y:4},{opacity:1,y:0,duration:.25,ease:"power1.out"});});
-    return()=>mm.revert();
+    if(!mainElement||!window.matchMedia||window.matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+    mainElement.classList.remove("glass-in");
+    void mainElement.getBoundingClientRect();
+    mainElement.classList.add("glass-in");
   },[pathname]);
   // After a tab change, move focus to the new page so keyboard and screen-reader users
   // land on its content (not on the first load).
@@ -60,6 +60,7 @@ export function AppShell() {
   }
   return (
     <div className="shell">
+      <div className="aurora-backdrop" aria-hidden="true"><i/><i/><i/><i/></div>
       <a className="skip" href="#main">Skip to content</a>
       <header className="topbar">
         <span className="brand"><span className="brand-mark" aria-hidden="true"><BrandIcon/></span>Astronaut Vitals</span>
@@ -69,7 +70,8 @@ export function AppShell() {
         <NavLink className="tab settings-shortcut" to="/settings" aria-label="Settings"><span className="tab-icon" aria-hidden="true"><NavIcon path="/settings"/></span><span>Settings</span></NavLink>
         <button type="button" className="ghost" onClick={() => void logout()}>Log out</button>
       </header>
-      <nav className="tabs" aria-label="Sections. Tap a tab or swipe across a screen to switch">
+      <nav className="tabs glass" aria-label="Sections. Tap a tab or swipe across a screen to switch">
+        <span className="tab-indicator" aria-hidden="true" style={{"--tab-index":Math.max(0,TABS.findIndex(t=>t.path===pathname)),"--tab-count":TABS.length} as CSSProperties}/>
         {TABS.map((t) => (
           <NavLink key={t.path} to={t.path} end={t.path === "/"} className="tab">
             <span className="tab-icon" aria-hidden="true"><NavIcon path={t.path}/></span>

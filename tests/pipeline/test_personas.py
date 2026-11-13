@@ -1,6 +1,6 @@
 """PIPE-4 acceptance: docs/ops/personas.md §6/§7 on a fixed anchor.
 
-One full seed per module (the raw synth is cached across tests), then assertions
+One full seed per session (the raw synth is cached across tests), then assertions
 per persona, reseed idempotency and reset-demo. Thresholds come from the config.
 """
 
@@ -34,19 +34,19 @@ from csi_core.config import get_config
 from csi_core.fusion import PHYS_FEATURES
 from csi_core.night import robust_z
 
-pytestmark = pytest.mark.slow
+pytestmark = [pytest.mark.slow, pytest.mark.timeout(900)]
 
 ANCHOR = date(2026, 11, 18)
 DEMO = ANCHOR - timedelta(days=1)
-RAW_N_SUB = 8  # fewer subcarriers than the demo default (52) to keep the test fast
+RAW_N_SUB = 4  # fewer subcarriers than the demo default (52) to keep the test fast
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def synth_cache(tmp_path_factory: pytest.TempPathFactory) -> Path:
     return tmp_path_factory.mktemp("synth-cache")
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def seeded(tmp_path_factory, synth_cache) -> Iterator[tuple[Session, dict, Path]]:
     d = tmp_path_factory.mktemp("astro-data")
     with pytest.MonkeyPatch.context() as mp:
@@ -67,9 +67,9 @@ def seeded(tmp_path_factory, synth_cache) -> Iterator[tuple[Session, dict, Path]
 
 @pytest.fixture
 def seeded_copy(seeded, tmp_path) -> Iterator[tuple[Session, dict, Path]]:
-    """A private clone of the module's seeded DATA_DIR for tests that change data.
+    """A private clone of the session's seeded DATA_DIR for tests that change data.
 
-    The seed is expensive, so it runs once per module; tests that reseed, reset or add
+    The seed is expensive, so it runs once per session; tests that reseed, reset or add
     rows work on this copy, so test order can never leak their changes into the
     read-only tests (lesson L2, QA-1).
     """

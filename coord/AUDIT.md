@@ -181,3 +181,18 @@ Failures are only the four read-only engine tests classified above:
 `::test_crisis_item9_fails_closed_before_routine_output[None]`,
 `::test_crisis_item9_fails_closed_before_routine_output[invalid]`,
 and `tests/safety/test_engine_state.py::test_state_has_schema_version`.
+
+## Engine test verdicts — 2026-11-13 (user rubric: a = spec lacks it, b = test wrong, c = engine bug)
+
+Engine is not edited. Item 9 is treated as safety-critical. The engine reads it as `crisis=_num(clinical,"phq9_item9")>0` (waiwai1/engine/api.py:123). `_num` maps None, non-numeric and absent values to 0.0 (api.py:15-19), so an unreadable or missing Item 9 yields no override.
+
+| Test | Assertion | Spec (context-v2.md) | Expected vs actual | Verdict |
+|---|---|---|---|---|
+| tests/safety/test_engine_safety.py::test_crisis_item9_fails_closed_before_routine_output[None] | :21 `assert result["safety_status"]["crisis_override_triggered"] is True` | §9 Module 5, l.541: "Zero-Latency Item 9 Override: PHQ-9 Item 9 > 0 halts normal flow…" | True vs False | **(a)** the spec defines only > 0, with nothing about null |
+| …[invalid] | :21 (same line) | same l.541 | True vs False | **(a)** the spec has no rule for unparseable values |
+| test_missing_crisis_item_fails_closed | :30 `assert result["safety_status"]["crisis_override_triggered"] is True` | same l.541; also l.32 "Any detected suicidal ideation… (e.g., PHQ-9 Item 9 > 0)" | True vs False | **(a)** an absent item is not "detected"; the spec has no fail-closed rule |
+| tests/safety/test_engine_state.py::test_state_has_schema_version | :32 `assert result["state"].get("schema_version") is not None` | §9 INPUT / OUTPUT SPECIFICATION (l.549 ff.) shows no `state`/`schema_version` field | non-null vs None | **(a)** the spec lacks it |
+
+**No (c).** The engine matches the written spec. However, the engine **fails open** on null, unparseable or missing Item 9. That is a real safety gap in the spec, not a code defect. Recommend the spec owner add "missing or unreadable Item 9 ⇒ override" to §9 Module 5. Mitigation in place: the backend decides survey safety before the engine (top-level `safety_screen_required`, server-driven `/today` lock).
+
+**Offer (not done):** add `schema_version` in the backend envelope only. The backend already wraps persisted and returned state with `schema_version: "1"` (backend/services/context_engine.py). The engine test calls `run()` directly, so it would still fail; passing it requires an engine or spec change. Spec numbers unchanged.

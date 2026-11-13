@@ -14,7 +14,7 @@ their own 28-night baseline. It is a screening and awareness tool, not a diagnos
 Read, in this order and nothing else unless a task names it:
 1. coord/CODEX_FRONTEND_BRIEF.md (this file): the vision
 2. coord/DESIGN.md: tokens, components, motion, accessibility (the source of truth)
-3. coord/FRONTEND_TASKS.md: the 4 build tasks, run in order 1 → 4, one per run
+3. coord/FRONTEND_TASKS.md (v2): the ordered build tasks, safety screen first, one per run
 Do NOT read or build coord/PET_SPEC.md or coord/PET_CODEX_TASKS.md (on hold).
 
 You may edit only frontend/. Never touch backend/, engine/, waiwai1/, tests/ or

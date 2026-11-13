@@ -55,6 +55,17 @@ dark-theme token. No other hex values may appear in component CSS.
   --ok-ink: #1D6B50;
   --warn-ink: #7A4E00;
   --alert-ink: #A3283A;
+
+  /* companion palette (Codex reported these missing; aliases only, no new hues) */
+  --pet-nimbus: var(--mint);
+  --pet-pip: var(--peach);
+  --pet-lumi: var(--lavender);
+  --pet-star: var(--butter);
+  --pet-ink: var(--text);
+  --pet-outline: rgba(31, 42, 55, .85);   /* --text at 85% */
+  --pet-cheek: var(--peach);
+  --pet-cheek-on-peach: var(--alert-soft);
+  --pet-bubble: var(--surface);
 }
 ```
 
@@ -215,6 +226,12 @@ and get it from API data only. Never compute status in the frontend.
 
 ### 7.1 Motion libraries (lenis, gsap, vanta, react-bits)
 
+**Revised 2026-11-13:** all core motion (breathing orb, pulse/ECG trace, sleep arc, card
+and route transitions) is **plain CSS keyframes + SVG**, with no animation library.
+`lenis` (scroll) and `vanta` (sign-in fog) stay approved as optional polish in the
+Settings/login task. `gsap` and `react-bits` are reference only: rebuild their effects
+in CSS. The table below applies only where a library is still used.
+
 These four libraries are approved, **only for the uses below**. Pin the versions exactly in
 `frontend/package.json` (npm, `--save-exact`). Anything not listed here stays plain CSS.
 Every use must be disabled under `prefers-reduced-motion: reduce`, and none of them may
@@ -283,3 +300,62 @@ only; do not design or build the pet.
 - **Motion exception:** the companion layer is the only place besides the breathing orb
   where looping idle motion (bob, breathe, zzz) is allowed. It stops under reduced motion.
   Full companion spec: coord/PET_SPEC.md.
+
+## 11. Safety screen (priority 1)
+
+- **Trigger: `safety_screen_required === true` on ANY API response body, and nothing
+  else.** Never key it off `safety.show`, local answer values or `crisis`. `api/client.ts`
+  inspects every JSON response; one `true` locks the app.
+- **Fail closed:** a `POST /api/v1/responses` for an instrument with a safety item that
+  ends in a network error, a non-JSON body, or a body without a boolean
+  `safety_screen_required` also locks the app.
+- **Lock:** a full-screen view at `--z-safety`, rendered before any route content on
+  every load. **The server is the source of truth:** on every app load the client calls
+  `GET /api/v1/today`, whose top-level `safety_screen_required` and `missing_safety_item`
+  drive the lock (they stay true until a later clean check-in clears them). A
+  `sessionStorage` copy only covers the moment before `/today` answers, or when it is
+  unreachable; it never clears a lock that the server reports. Routes, tabs, the back button and deep links all
+  render the safety view while the lock is on. The dashboard is unreachable until the
+  flag clears.
+- **Clears only when the server says so:** `GET /api/v1/today` (or the re-submission
+  response) returns `safety_screen_required: false`. There is no close button and no "skip". There is
+  an "I've read this" acknowledgement, which only reveals the next step (the missing
+  item, or "Return when you're ready"). It does not unlock.
+- **Content, top to bottom:** heading "You're not alone", `safety.reason` **verbatim**,
+  then `safety.resources` **verbatim** as large 56px rows (`tel:` links when a number
+  is present), then the acknowledgement button. When `safety.reason` is empty, use the
+  fixed fallback text already in `safety.ts`.
+- **Missing item:** when `missing_safety_item` is present, after acknowledgement show
+  exactly that one question (text and options from `GET /api/v1/instruments/{id}`), then
+  re-submit the full, previously entered answers plus this item to `POST /responses`.
+  The response decides whether the lock clears.
+- **Look:** `--surface`, `--text`, a 560px column, one lavender icon disc. No
+  animation, no pastel decoration, no pet, no Lenis. Focus goes to the heading on open;
+  focus is trapped inside; `role="alertdialog"`, `aria-modal="true"`.
+- Advisory text anywhere in the app (`context_engine.user_facing_advisory.*`,
+  `/guidance` cards) is shown **verbatim**, never rewritten or summarized.
+
+## 12. Page flow (mobile first; desktop at 768px+)
+
+`/login` ↔ `/register` → `/setup` (first run only) → `/` nightly dashboard →
+`/night/:date` night detail → `/weekly` weekly check-in + trends → `/settings`.
+The safety lock (section 11) overrides every route. Tabs: Tonight · Weekly · Settings
+(bottom bar on phones, top bar on desktop). Every page bottom-pads for the companion slot.
+
+**Calibrating rule:** when `today.baselines[].n < 28` (or no baseline exists), every
+comparison says **"Calibrating · {n} of 28 nights"** in a `--butter` chip (word + clock
+icon). Status chips show "Calibrating" instead of Normal/Watch/Alert, sparklines draw
+without the baseline band, and copy says "We're still learning your usual". Never show
+z-scores.
+
+| Screen | Mobile layout | Desktop | Components / data | Loading | Empty | Error |
+|---|---|---|---|---|---|---|
+| Login / Register | Single card centered on `--bg`; email, password, primary button; switch link | Two columns: card left, calm pastel panel right (Vanta fog optional, CSS fallback) | `POST /auth/login`, `/auth/signup`; field errors under inputs | Button spinner + "Signing in…" | — | Plain message from the API `message`, never "error 401" |
+| Baseline setup `/setup` | 3 steps, one card each with a progress text "Step 2 of 3": (1) consents (`GET/PUT /me/consents`), (2) name + timezone (`PATCH /me`), (3) "Sleep near the sensor for 28 nights to build your baseline" + optional first weekly check-in | Same cards centered, max 560px | Consents, Stepper, CheckinForm | Skeleton card | — | Retry card |
+| Nightly dashboard `/` | Breathing orb hero (last night `latest_night.rr_med`), calibrating/status chip, advisory headline **verbatim**, then cards: Breathing, Sleep (sleep arc), Mind (pending check-ins), Heart (experimental live estimate + pulse trace) | Orb + advisory left column, 2×2 card grid right | `GET /today`, `GET /live/vitals` | Skeleton orb + 4 card skeletons | "Your first night will appear here tomorrow morning." | Error card + retry; 401 → login |
+| Night detail `/night/:date` | Back link; sleep arc; breathing vs your usual (rr_med vs baseline median ± MAD band); quality + valid chips; flags with "why" (FlagWhy) | Arc left, metrics right | `GET /nights/{day}`, `GET /flags` | Skeleton | "No reading for this night: {reason}" | Error card |
+| Weekly / trends `/weekly` | Weekly check-in prompt card (if pending) → 28-night breathing trend (RrTrend) → presence bars → weekly indices (IndexCards: word + direction, no raw scores) → check-in calendar | Trend full width; indices and calendar side by side | `GET /nights?from&to`, `/indices`, `/checkins`, `/instruments` | Skeletons | "Trends appear after 3 nights." | Error card |
+| Settings `/settings` | Sections: Profile, Consents, Data (export/delete via DataControls), Accessibility (reduce motion override), Companion (disabled "Coming soon"), Sign out | Two-column sections | `/me`, `/me/consents`, `/me/export`, `DELETE /me` | Skeleton rows | — | Inline error per section |
+
+Existing pages not in this flow (Body, Persona, Live, CheckinCalendar standalone) stay
+reachable from Weekly/Settings links and only receive the token restyle.

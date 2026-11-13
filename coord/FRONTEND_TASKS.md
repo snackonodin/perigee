@@ -1,264 +1,259 @@
-# FRONTEND_TASKS.md: Codex prompts for the pastel redesign
+# FRONTEND_TASKS.md: ordered Codex prompts (v2, 2026-11-13)
 
-Owner: Claude Code (art director). Run the tasks **in order 1 → 4**, one at a time:
-they share `frontend/src/theme/shell.css`, and later tasks build on Task 1's tokens and
-components. Paste one prompt per Codex run.
+Owner: Claude Code (art director). Codex builds; Codex makes no design decisions.
+This replaces the earlier v1 task list. Run the tasks **in order, one per Codex run**.
+They share `frontend/src/theme/shell.css`; each task edits only its own selector prefix.
 
-Screens not covered here (Persona, Settings, and the Sign-in form beyond its Task 1 background) pick up the new tokens
-automatically. Any hard-coded dark colors left on them get their own task later; Codex
-logs them to `bus/issues_for_claude.md` and does not fix them now.
+**Assumptions (art director):**
+1. `backend/openapi.json` (exported 2026-11-13) is the contract. The safety lock reads only top-level `safety_screen_required`.
+2. `GET /api/v1/today` now carries the server-driven `safety_screen_required` and `missing_safety_item`; `sessionStorage` is only a stopgap until `/today` answers.
+3. "Calibrating" comes from `today.baselines[].n < 28`. There is no z-score anywhere in the UI.
+4. All core motion is CSS + SVG (DESIGN.md 7.1 revised). Lenis/Vanta are optional polish in Task 6 only. The pet stays ON HOLD: its existing `src/companion/*` files are left untouched and unmounted.
+5. First-run setup is detected per device (`localStorage` "setup.done", try/catch) or skipped when a baseline already exists.
+
+Every task ends the same way: `cd frontend && npm test && npm run build` (both pass),
+then `bash bus/post_update.sh` if it exists, otherwise append "post_update.sh missing" to
+`bus/issues_for_claude.md`. Ambiguity → pick the simplest option and log it to
+`bus/issues_for_claude.md` (file, what was unclear, what you chose). Never invent health
+data. Never touch `backend/`, `engine/`, `waiwai1/`, `tests/` or `src/companion/`.
 
 ---
 
-## Task 1: Foundation + Today screen
+## Task 1: Foundation + safety screen (priority 1)
 
 ```text
-You are Codex, implementing a design spec. You make no design decisions.
-Read only coord/DESIGN.md and these files. Do not open any other file.
+You are Codex. Read only coord/DESIGN.md, backend/openapi.json and these files.
+Implement exactly; make no design decisions.
 
-Files you may edit:
-- frontend/src/theme/tokens.css
-- frontend/src/theme/shell.css
-- frontend/src/components/AppShell.tsx
-- frontend/src/pages/Overview.tsx
-- frontend/src/components/VitalsTiles.tsx
-- frontend/src/components/IndexCards.tsx
-- frontend/src/components/RrTrend.tsx
-- frontend/index.html (title + favicon link only)
-- frontend/package.json, frontend/package-lock.json (only the dependency changes in DESIGN.md 7.1)
-- frontend/src/pages/Login.tsx (only to add the Vanta FOG background per DESIGN.md 7.1 and remove the spacecraft art)
-Files you may create:
-- frontend/src/vendor/react-bits/* (copied components per DESIGN.md 7.1)
-- frontend/public/favicon.svg
-- frontend/src/components/StatusChip.tsx
-- frontend/src/components/VitalCard.tsx
-- frontend/src/components/BreathingOrb.tsx
-- frontend/src/components/EcgTrace.tsx
-- frontend/src/components/SignalQualityMeter.tsx
-Read-only (you may read, never edit): frontend/src/api/types.ts, frontend/src/test/fixtures.ts.
-Never touch backend/, engine/, waiwai1/, tests/, frontend/src/safety/, or any other file.
+May edit: frontend/src/theme/tokens.css, frontend/src/theme/shell.css (foundation + .safety-),
+frontend/index.html, frontend/package.json, frontend/package-lock.json,
+frontend/scripts/gen-api.mjs, frontend/src/api/schema.d.ts, frontend/src/api/client.ts,
+frontend/src/safety/SafetyProvider.tsx, frontend/src/safety/safety.ts,
+frontend/src/safety/safety.test.tsx, frontend/src/components/AppShell.tsx, frontend/src/App.tsx
+May create: frontend/public/favicon.svg, frontend/src/safety/SafetyScreen.tsx,
+frontend/src/safety/MissingItemPrompt.tsx, frontend/src/safety/lock.ts
+Read-only: frontend/src/api/types.ts, frontend/src/components/CheckinForm.tsx,
+frontend/src/test/fixtures.ts, frontend/src/test/mockApi.ts
 
-Goal: replace the dark space theme with the light pastel theme in coord/DESIGN.md
-and rebuild the Today screen with it.
+1. tokens.css = DESIGN.md sections 2 (including the companion palette aliases), 3, 4, 7 and
+   the 10 z-index tokens, exactly. Delete every dark-theme token. shell.css: remove all
+   dark/neon/grid/glow/gradient/monospace-HUD styles; set the page to var(--bg); cards,
+   tabs and base type per DESIGN.md. npm uninstall @fontsource-variable/inter and remove
+   its import. Title "Astronaut Vitals"; favicon per DESIGN.md 6.8.
+2. Regenerate src/api/schema.d.ts from backend/openapi.json (point gen-api.mjs at that file).
+3. Safety lock (DESIGN.md 11), the core of this task:
+   - client.ts: after every response, if the JSON body has safety_screen_required === true,
+     call lock.engage({safety, missing_safety_item}). For POST /api/v1/responses, a network
+     error, non-JSON body, or missing boolean field also engages the lock (fail closed).
+     NEVER read safety.show, crisis or local answer values to decide.
+   - lock.ts: the server is the source of truth. On app load and after every check-in,
+     GET /api/v1/today; its top-level safety_screen_required / missing_safety_item set or
+     clear the lock. sessionStorage key "safety.lock" (try/catch, in-memory fallback)
+     only bridges the moment before /today answers or while it is unreachable; it never
+     clears a lock the server reports. API: engage(), syncFromToday(today), current().
+   - SafetyProvider/App/AppShell: when locked, render <SafetyScreen> INSTEAD of any route,
+     the tabs and the shell, on every load, including deep links and the back button.
+   - SafetyScreen: role="alertdialog" aria-modal="true", focus to the heading "You're not
+     alone", focus trapped. safety.reason VERBATIM, then safety.resources VERBATIM as 56px
+     rows (tel: links when a number is present). No close or skip. An "I've read this"
+     button reveals the next step only; it does not unlock. No animation, no pastel
+     decoration. Use the fallback text in safety.ts when reason is empty.
+   - MissingItemPrompt: if missing_safety_item is set, after acknowledgement show that one
+     question (GET /api/v1/instruments/{id}), then POST /api/v1/responses with the
+     previously entered answers (kept in memory by CheckinForm's submit via the lock
+     payload) plus this item. The response decides: false clears the lock; true keeps it.
+     Without a missing item, after acknowledgement show "Return when you're ready. This
+     screen stays until your support team or a new check-in clears it."
+   - AppShell: add the empty <div id="companion-slot" aria-hidden="true"> (DESIGN.md 10).
+4. safety.test.tsx: add tests. The lock engages on safety_screen_required true; it is NOT
+   engaged by safety.show:true with safety_screen_required:false; it survives a re-render;
+   it fails closed on a network error for POST /responses; the missing-item prompt appears;
+   it clears only on a false response.
 
-Steps:
-1. tokens.css: replace all tokens with DESIGN.md sections 2, 3, 4 and 7 exactly.
-   Delete every dark-theme token. Add the reduced-motion block from section 7.
-2. shell.css: remove starfield/glow/grid/gradient/neon/monospace-HUD styles. Restyle
-   the page background, the cards and the tab bar per sections 4 and 6.8. Use only
-   tokens; no raw hex.
-3. Build StatusChip (6.1), VitalCard (6.2), BreathingOrb (6.3), EcgTrace (6.4, UI label
-   "Pulse trace", never "ECG") and SignalQualityMeter (6.6) as small presentational
-   components. They take data via props and never compute status.
-4. Overview.tsx (Today): the hero is the BreathingOrb with the latest respiration rate.
-   Below it, a grid of VitalCards: Breathing (mint), Sleep (sky), Mind/check-in
-   (lavender), Heart (peach, with the "Experimental estimate" chip) plus the Pulse trace
-   inside the Heart card. Status and advisory text come only from the API fields the page
-   already reads (today.context_engine and /live/vitals). Keep the existing API calls,
-   the 401 handling and the labelled TODO(api) mock fallback; restyle the mock banner per
-   6.8.
-5. AppShell.tsx: tab bar per 6.8 with inline-SVG line icons (no emoji). Keep routes and
-   swipe navigation, but transitions must be at most --dur-base and must respect
-   reduced motion.
-6. index.html + favicon.svg: title "Astronaut Vitals"; favicon per 6.8.
-7. Show the signal-quality meter only if an existing API field supplies quality or
-   coverage. If none exists, do not show it, and log that.
-8. Libraries per DESIGN.md 7.1: in frontend/, run npm install --save-exact gsap@3.15.0
-   lenis@1.3.27 vanta@0.5.24 three@0.134.0 and npm uninstall @fontsource-variable/inter.
-   GSAP drives the orb, trace and card-enter motion via gsap.matchMedia. Create one Lenis
-   instance in AppShell (skipped under reduced motion, stopped while the safety screen is
-   open). Add the Vanta FOG background on Login only, lazy-loaded. Copy only the listed
-   react-bits components into frontend/src/vendor/react-bits/ with their MIT header.
-9. Companion slot per DESIGN.md 10: add the z-index tokens, the empty #companion-slot in
-   AppShell, and the bottom padding on scrolling pages. Keep every control out of that
-   corner.
-
-If DESIGN.md is ambiguous, pick the simplest option and append to
-bus/issues_for_claude.md: file, what was unclear, what you chose.
-If an API field you need does not exist, do not invent data: show the "none" state and
-log file, missing field, and the exact command to reproduce to bus/issues_for_claude.md.
-
-Verify: cd frontend && npm test && npm run build. Both must pass.
-Final step: run `bash bus/post_update.sh` if it exists. If it does not, append
-"post_update.sh missing" to bus/issues_for_claude.md. Then stop.
-
-Browser checklist (http://localhost:5173/, signed in):
-[ ] Page background is pale mint-white; no dark/navy area, gradient, starfield or glow remains
-[ ] Breathing orb shows rate + "br/min" and gently scales; it is static with DevTools > Rendering > prefers-reduced-motion: reduce
-[ ] Each vital card shows label, number, unit, sparkline, status chip with word + icon
-[ ] Watch and alert fixtures show the inset bar + chip word; nothing blinks or pulses
-[ ] Heart card says "Experimental estimate", and the trace is labelled "Pulse trace", not ECG
-[ ] Missing data shows "No reading" with a reason, never 0
-[ ] Tab title "Astronaut Vitals" and the new favicon are visible
-[ ] At 390px wide: one column, no horizontal scroll; at 1280px: two-column grid
-[ ] Tab through the page: every control has a visible teal focus ring, in visual order
-[ ] No emoji anywhere; all text is readable (spot-check muted text is not on a pastel card)
-[ ] Sign-in shows the soft pastel fog; with reduced motion on, it's a flat background
-[ ] Network tab: three.js loads only on the sign-in page, not on Today
-[ ] Smooth scroll is off with reduced motion; nothing sits in the bottom-right companion corner at 390px or 1280px
+Browser checklist (http://localhost:5173, signed in; use DevTools or mockApi to return the bodies):
+[ ] Whole app is light pastel: no dark areas, gradients, glows or Inter font remain
+[ ] Tab title "Astronaut Vitals" + new favicon
+[ ] A POST /responses body with safety_screen_required:true → full-screen safety view immediately, before any score
+[ ] A body with safety.show:true but safety_screen_required:false → NO safety view
+[ ] Reload the page → the safety view still shows first (driven by GET /today); typing /settings in the URL still shows it
+[ ] Clear sessionStorage and reload while /today says true → the safety view still shows
+[ ] No close or skip; Esc does nothing; Tab cycles inside the dialog; screen reader announces the heading
+[ ] Reason and resources text match the API body character for character
+[ ] missing_safety_item:"phq9_9" → after "I've read this", exactly that one question appears
+[ ] Answering it with a response that returns false → the lock clears and the dashboard shows
+[ ] Offline (DevTools) while submitting a PHQ-9 → the safety view shows (fail closed)
+[ ] prefers-reduced-motion and normal look identical on this screen (no motion at all)
 ```
 
 ---
 
-## Task 2: Sleep screen
+## Task 2: Nightly dashboard `/`
 
 ```text
-You are Codex, implementing a design spec. You make no design decisions.
-Read only coord/DESIGN.md and these files. Do not open any other file.
+You are Codex. Read only coord/DESIGN.md, backend/openapi.json and these files.
+Implement exactly; make no design decisions.
 
-Files you may edit:
-- frontend/src/pages/Sleep.tsx
-- frontend/src/theme/shell.css (only rules whose selectors start with .sleep-)
-Files you may create:
-- frontend/src/components/SleepArc.tsx
-Read-only: frontend/src/components/StatusChip.tsx, frontend/src/components/VitalCard.tsx,
-frontend/src/theme/tokens.css, frontend/src/api/types.ts, frontend/src/test/fixtures.ts.
-Never touch backend/, engine/, waiwai1/, tests/, frontend/src/safety/, or any other file.
+May edit: frontend/src/pages/Overview.tsx, frontend/src/components/VitalsTiles.tsx,
+frontend/src/components/TodayCard.tsx, frontend/src/routes/tabs.ts, frontend/src/App.tsx (routes only),
+frontend/src/theme/shell.css (.dash-, .orb-, .card-, .chip-, .trace-, .arc- only)
+May create: frontend/src/components/StatusChip.tsx, VitalCard.tsx, BreathingOrb.tsx,
+EcgTrace.tsx, SleepArc.tsx, CalibratingChip.tsx (all in frontend/src/components/)
+Read-only: frontend/src/api/client.ts, frontend/src/api/schema.d.ts, frontend/src/live/useVitals.ts,
+frontend/src/components/LoadState.tsx, frontend/src/test/fixtures.ts
 
-Goal: restyle Sleep in the pastel theme using the sky role color.
+Build per DESIGN.md 6.1–6.6 and 12 (dashboard row):
+- Tabs: Tonight (/) · Weekly (/weekly) · Settings (/settings); bottom bar on phones, top bar at ≥768px.
+- Hero: BreathingOrb from today.latest_night.rr_med (pure CSS @keyframes, period = 60/rr
+  clamped 2–10s, static under reduced motion) + StatusChip, or CalibratingChip
+  "Calibrating · {n} of 28 nights" when the baseline n < 28 or is missing.
+- Advisory: today.context_engine.user_facing_advisory.headline and
+  personality_tailored_message shown VERBATIM; hidden when absent.
+- Cards: Breathing (mint), Sleep (sky, SleepArc from onset/midsleep/wake/presence_hours),
+  Mind (lavender, pending_checkins → "Weekly check-in ready" link), Heart (peach,
+  "Experimental estimate" chip + EcgTrace from /live/vitals samples only, labelled
+  "Pulse trace", with "Experimental estimate, not a medical ECG"). Each card links to
+  /night/{date} or /weekly.
+- EcgTrace and SleepArc: SVG + CSS only (stroke-dashoffset draw 400ms; new samples slide
+  250ms); both static under reduced motion. No numbers that count up.
+- States: skeletons at final size; empty "Your first night will appear here tomorrow
+  morning."; error card + Try again; 401 → /login.
 
-Steps:
-1. Build SleepArc per DESIGN.md 6.5 (presence hours, onset, midsleep, wake; no sleep
-   stages; dashed segment for partial coverage).
-2. Sleep.tsx top: SleepArc for the latest night plus its StatusChip and one-line
-   explanation from the API.
-3. Below: the 28-night presence bars as flat --sky bars (no gradient), with the latest
-   night in --teal plus a "Last night" text label. The personal breathing median ± MAD is
-   a --line band with a text label. Each bar gets an aria-label (date, hours, status), and
-   there is a visually hidden table of the same data.
-4. Nightly detail rows: VitalCard-style rows; the expand/collapse control is a button with
-   aria-expanded.
-5. Keep the existing /nights call, the 401 behavior and the labelled TODO(api) empty
-   fallback; restyle the notice as the butter banner (6.8).
-6. Empty state per DESIGN.md 9.
-
-Ambiguity → simplest option, logged to bus/issues_for_claude.md (file, what was unclear,
-what you chose). Missing API field → "none" state, logged with file, field and repro
-command. Never invent values.
-
-Verify: cd frontend && npm test && npm run build. Both must pass.
-Final step: run `bash bus/post_update.sh` if it exists. If it does not, append
-"post_update.sh missing" to bus/issues_for_claude.md. Then stop.
-
-Browser checklist (http://localhost:5173/sleep, signed in):
-[ ] Arc runs onset → wake with a midsleep dot; partial coverage is dashed and labelled
-[ ] No sleep stages appear anywhere
-[ ] 28 bars are flat sky blue; last night is teal AND says "Last night"
-[ ] Baseline band has a text label, not just a shaded area
-[ ] Status chip shows word + icon; watch/alert never recolor the arc
-[ ] Arc draw animation is skipped with prefers-reduced-motion: reduce
-[ ] Empty range shows the empty state, not a blank chart
-[ ] 390px: no horizontal scroll, bars still tappable (≥44px hit area per row/column group)
-[ ] Expand/collapse works with Enter/Space and announces expanded state
+Browser checklist (http://localhost:5173/):
+[ ] Orb pulses gently at the rate shown; static with prefers-reduced-motion: reduce
+[ ] With baseline n < 28 every status reads "Calibrating · n of 28 nights" (word + icon, butter chip)
+[ ] Advisory headline and message match the API text exactly
+[ ] Four cards: Breathing, Sleep (arc onset → wake), Mind, Heart (says Experimental and "Pulse trace", never "ECG" alone)
+[ ] Status chips always show word + icon (Normal / Watch / Alert / No reading)
+[ ] No data → the empty sentence; API down → error card with Try again; no fake numbers
+[ ] 390px: one column, bottom tabs, nothing in the bottom-right corner; 1280px: orb left, 2×2 grid right
+[ ] Tab key reaches every card link with a visible teal ring
 ```
 
 ---
 
-## Task 3: Check-in screen (+ safety screen visuals)
+## Task 3: Night detail `/night/:date`
 
 ```text
-You are Codex, implementing a design spec. You make no design decisions.
-Read only coord/DESIGN.md and these files. Do not open any other file.
+You are Codex. Read only coord/DESIGN.md, backend/openapi.json and these files.
+Implement exactly; make no design decisions.
 
-Files you may edit:
-- frontend/src/pages/Psyche.tsx
-- frontend/src/components/CheckinForm.tsx
-- frontend/src/components/CheckinCalendar.tsx
-- frontend/src/components/QuestionnaireList.tsx
-- frontend/src/theme/shell.css (only rules whose selectors start with .checkin-, .calendar-, .questionnaire- or .safety-)
-Read-only: frontend/src/safety/SafetyProvider.tsx, frontend/src/components/StatusChip.tsx,
-frontend/src/theme/tokens.css, frontend/src/api/types.ts, frontend/src/test/fixtures.ts.
-Never edit frontend/src/safety/ or any file not listed. Never touch backend/, engine/,
-waiwai1/, tests/.
+May edit: frontend/src/App.tsx (route only), frontend/src/components/FlagWhy.tsx,
+frontend/src/components/NightsTable.tsx (rows link to /night/:date),
+frontend/src/theme/shell.css (.night- only)
+May create: frontend/src/pages/NightDetail.tsx
+Read-only: frontend/src/components/SleepArc.tsx, StatusChip.tsx, VitalCard.tsx,
+CalibratingChip.tsx, frontend/src/api/client.ts, frontend/src/api/schema.d.ts, frontend/src/test/fixtures.ts
 
-SAFETY RULE (hard): do not change when the safety screen opens, what it says, its
-acknowledgement gate, its focus handling, or the fail-closed handling of missing
-crisis/safety fields in CheckinForm. You may change only class names' CSS for the safety
-screen (DESIGN.md 6.7). If a visual change seems to need a logic change, stop and log it
-instead.
+Per DESIGN.md 12 (night detail row): a back link "← Tonight"; title = a friendly date
+("Tuesday 10 Nov"); SleepArc; a "Breathing vs your usual" card with rr_med and the
+baseline median ± MAD as a labelled band (or Calibrating); "valid" and "quality" as
+chips with words; flags for that date from GET /api/v1/flags, each with FlagWhy
+("Why am I seeing this?") using message text verbatim. Data: GET /api/v1/nights/{day}
+(array; use the first valid row). Empty: "No reading for this night" + reason from
+quality/valid. Error card + retry.
 
-Goal: restyle Check-in in the pastel theme using the lavender role color.
-
-Steps:
-1. Question view: one question per card on --surface, the question in --fs-h2, and
-   answer choices as full-width 56px-high option buttons (radius 16, --line border;
-   selected = --lavender fill + 2px --teal border + check icon). Progress is "Question 3
-   of 9" text plus a thin --teal bar.
-2. Questionnaire list: VitalCard-style rows with a lavender icon disc, the name, and
-   "Due today" / "Done" chips (word + icon).
-3. Calendar: day cells with pastel pills like the Happify reference, keyed by entry type
-   only (no mood is inferred). Each entry type also has a distinct marker shape (dot,
-   ring, square) and a legend. Today has a --teal outline.
-4. Remove the orbit illustration and any dark/space art.
-5. Safety screen visuals per DESIGN.md 6.7 via .safety- CSS only: white, calm, no
-   decoration, no animation.
-
-Ambiguity → simplest option, logged to bus/issues_for_claude.md. Never invent data.
-
-Verify: cd frontend && npm test && npm run build. Both must pass.
-Final step: run `bash bus/post_update.sh` if it exists. If it does not, append
-"post_update.sh missing" to bus/issues_for_claude.md. Then stop.
-
-Browser checklist (http://localhost:5173/checkin, signed in):
-[ ] One question per card; answers are large buttons, and the selected one shows fill + border + check
-[ ] Progress reads as text, not just a bar
-[ ] Calendar legend explains each marker; markers differ by shape, not only color
-[ ] No mood words are inferred on the calendar
-[ ] Answer the PHQ-9 item 9 with any non-zero option: the safety screen opens immediately, full-screen
-[ ] Safety screen: white, plain, no animation, contacts readable, focus lands on the heading, cannot dismiss without acknowledgement
-[ ] Same behavior with prefers-reduced-motion on and off
-[ ] Keyboard only: can answer every question and reach Submit
-[ ] 390px: no horizontal scroll, option buttons ≥44px tall
+Browser checklist (open a night from the dashboard or /night/2026-11-10):
+[ ] Back link returns to Tonight; the browser back button works
+[ ] Arc + breathing card + chips render; the baseline band is labelled in words
+[ ] Under 28 nights: Calibrating chip instead of a status
+[ ] An invalid night explains why, with no numbers invented
+[ ] Flag "why" text matches the API; it expands with Enter/Space
+[ ] 390px no horizontal scroll; 1280px arc left, metrics right
 ```
 
 ---
 
-## Task 4: Body screen
+## Task 4: Weekly check-in + trends `/weekly`
 
 ```text
-You are Codex, implementing a design spec. You make no design decisions.
-Read only coord/DESIGN.md and these files. Do not open any other file.
+You are Codex. Read only coord/DESIGN.md, backend/openapi.json and these files.
+Implement exactly; make no design decisions.
 
-Files you may edit:
-- frontend/src/pages/Body.tsx
-- frontend/src/theme/shell.css (only rules whose selectors start with .body-)
-Read-only: frontend/src/components/StatusChip.tsx, frontend/src/components/VitalCard.tsx,
-frontend/src/components/SignalQualityMeter.tsx, frontend/src/theme/tokens.css,
-frontend/src/api/types.ts, frontend/src/test/fixtures.ts.
-Never touch backend/, engine/, waiwai1/, tests/, frontend/src/safety/, or any other file.
+May edit: frontend/src/App.tsx (route only), frontend/src/components/RrTrend.tsx,
+frontend/src/components/IndexCards.tsx, frontend/src/components/IndexCards.css,
+frontend/src/components/CheckinCalendar.tsx, frontend/src/components/QuestionnaireList.tsx,
+frontend/src/components/CheckinForm.tsx (presentation only; submit must keep going through
+api/client.ts so the safety lock sees every response), frontend/src/theme/shell.css (.weekly- only)
+May create: frontend/src/pages/Weekly.tsx
+Read-only: frontend/src/safety/lock.ts, frontend/src/api/client.ts, frontend/src/api/schema.d.ts,
+frontend/src/components/CalibratingChip.tsx, frontend/src/test/fixtures.ts
 
-Goal: turn the dark holographic body scan into a light, friendly body map.
+Order on the page: pending weekly check-in card (opens CheckinForm: one question per card,
+56px option buttons, "Question 3 of 9" progress text) → 28-night breathing trend
+(RrTrend, flat lines, labelled baseline band or Calibrating) → presence-hours bars
+(--sky, last night --teal + "Last night" label) → weekly indices (IndexCards: band word
++ direction arrow + word; no raw numbers) → check-in calendar (pastel pills by entry
+type + marker shapes + legend; no mood inferred). Data: GET /nights?from&to, /indices,
+/checkins, /instruments. Empty: "Trends appear after 3 nights." Error card per section.
 
-Steps:
-1. Keep the five nodes and their data: Mind (lavender), Rest (sky), Respiration (mint),
-   Autonomic (peach), Cabin (butter). Keep the existing node positions and the selection
-   behavior.
-2. Figure: a simple rounded silhouette with a --surface fill, 2px --line stroke, no
-   glow, no grid, no dashed HUD rings, and no monospace or ALL-CAPS labels.
-3. Nodes: 20px discs in the role pastel with a 2px --text outline; the selected node gets
-   a 3px --teal ring. Each node is a <button> with an aria-label (system, status word).
-   Leader lines are 1px --line to sentence-case labels; each label carries a small
-   StatusChip.
-4. Selecting a node opens a detail card beside the figure (below it under 768px), styled
-   as a VitalCard with that system's values, the SignalQualityMeter if data exists, and
-   the "Personal baseline · 28 nights" caption.
-5. Systems with no data show "No reading" and a reason, never a fabricated value.
-6. Selection change: the detail card crossfades over --dur-base; instant under reduced
-   motion.
+Browser checklist (http://localhost:5173/weekly):
+[ ] Check-in shows one question at a time with large answers and text progress
+[ ] Submitting a PHQ-9 whose response has safety_screen_required:true → the safety screen takes over at once
+[ ] Trend + bars render; "Last night" is labelled, not only colored
+[ ] Index cards show words and arrows, never raw scores
+[ ] Calendar legend explains each marker shape; no mood words
+[ ] Each section shows its own empty/error state independently
+[ ] 390px no horizontal scroll; keyboard can complete the whole check-in
+```
 
-Ambiguity → simplest option, logged to bus/issues_for_claude.md. Never invent data.
+---
 
-Verify: cd frontend && npm test && npm run build. Both must pass.
-Final step: run `bash bus/post_update.sh` if it exists. If it does not, append
-"post_update.sh missing" to bus/issues_for_claude.md. Then stop.
+## Task 5: Settings `/settings`
 
-Browser checklist (http://localhost:5173/body, signed in):
-[ ] No dark background, grid, glow or HUD styling remains
-[ ] Five nodes in their role pastels, each labelled in sentence case with a status chip (word + icon)
-[ ] Tab to each node; Enter/Space selects it, and the detail card updates
-[ ] Selected node shows a teal ring, not only a color change
-[ ] Systems without data say "No reading" with a reason
-[ ] Detail card sits below the figure at 390px with no horizontal scroll; beside it at 1280px
-[ ] Crossfade is off with prefers-reduced-motion: reduce
-[ ] The figure stays in proportion when the window is resized
+```text
+You are Codex. Read only coord/DESIGN.md, backend/openapi.json and these files.
+Implement exactly; make no design decisions.
+
+May edit: frontend/src/pages/Settings.tsx, frontend/src/components/Consents.tsx,
+frontend/src/components/DataControls.tsx, frontend/src/theme/shell.css (.settings- only)
+Read-only: frontend/src/api/client.ts, frontend/src/api/schema.d.ts, frontend/src/auth/AuthProvider.tsx,
+frontend/src/test/fixtures.ts
+
+Sections as cards: Profile (GET/PATCH /me: display name, timezone) · Consents
+(GET/PUT /me/consents; each a labelled switch with a one-line plain explanation) · Data
+(export via GET /me/export as a download; delete via DELETE /me behind a confirm dialog
+that requires typing DELETE) · Accessibility (a "Reduce motion" switch that adds
+data-reduce-motion on <html>; CSS treats it like prefers-reduced-motion; stored in
+localStorage with try/catch) · Companion (disabled row "Coming soon") · Sign out.
+Inline error per section; skeleton rows while loading.
+
+Browser checklist (http://localhost:5173/settings):
+[ ] Each section saves independently and shows "Saved" text, not only a color
+[ ] Consent switches have visible labels and explanations; the keyboard toggles them
+[ ] Export downloads a file; delete needs typed confirmation
+[ ] The Reduce motion switch stops the orb, arc and trace app-wide and survives a reload
+[ ] Companion row is visibly disabled and says "Coming soon"
+[ ] 390px no horizontal scroll; 1280px two-column sections
+```
+
+---
+
+## Task 6: Login, register, baseline setup
+
+```text
+You are Codex. Read only coord/DESIGN.md, backend/openapi.json and these files.
+Implement exactly; make no design decisions.
+
+May edit: frontend/src/pages/Login.tsx, frontend/src/auth/AuthProvider.tsx,
+frontend/src/App.tsx (routes only), frontend/src/theme/shell.css (.auth-, .setup- only),
+frontend/package.json + package-lock.json (only if adding vanta@0.5.24 + three@0.134.0, exact)
+May create: frontend/src/pages/Register.tsx, frontend/src/pages/Setup.tsx
+Read-only: frontend/src/components/Consents.tsx, frontend/src/components/CheckinForm.tsx,
+frontend/src/api/client.ts, frontend/src/api/schema.d.ts
+
+Login/Register per DESIGN.md 12: a single centered card on mobile; on desktop the card on
+the left and a calm pastel panel on the right (CSS soft blobs in mint/sky/lavender; an
+optional lazy-loaded VANTA.FOG only on ≥768px, not under reduced motion, destroyed on
+unmount). Remove all spacecraft art. Errors use the API message text.
+Setup /setup (first run: localStorage "setup.done" absent and no baseline): 3 step cards
+with "Step n of 3": consents → name + timezone → "Sleep near the sensor for 28 nights to
+build your baseline" + optional first weekly check-in. Finish sets setup.done and goes to /.
+
+Browser checklist:
+[ ] /login and /register: light, one card, readable errors from the API
+[ ] Desktop shows the pastel panel; reduced motion shows the static CSS version; three.js loads only here
+[ ] A first sign-in goes to /setup; steps say "Step n of 3"; Finish lands on Tonight
+[ ] A returning user skips setup
+[ ] A safety lock still takes over even during setup (submit a PHQ-9 with the flag)
+[ ] 390px no horizontal scroll; every control ≥44px and keyboard reachable
 ```

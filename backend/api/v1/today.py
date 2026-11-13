@@ -48,6 +48,7 @@ class TodayOut(BaseModel):
     pending_checkins: list[PendingCheckin]
     checkins_consent: bool
     baselines: list[BaselineOut]
+    context_engine: dict[str, Any] | None = None
     sync_status: SyncStatus
 
 

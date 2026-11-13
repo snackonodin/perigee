@@ -15,6 +15,7 @@ from backend.models.mental import (
 from backend.models.ops import PipelineRun
 from backend.models.physiology import (
     Baseline,
+    ContextEngineNight,
     Flag,
     HeartEstimateRow,
     NightFeaturesRow,
@@ -29,6 +30,7 @@ __all__ = [
     "CaptureSession",
     "CheckinDaily",
     "Consent",
+    "ContextEngineNight",
     "Flag",
     "GuidanceCard",
     "GuidanceShown",

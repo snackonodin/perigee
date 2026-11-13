@@ -97,6 +97,20 @@ class NightFeaturesRow(UserOwned, Base):
     run_id: Mapped[str | None] = _run_fk()
 
 
+class ContextEngineNight(UserOwned, Base):
+    """Complete Context Engine result and carried state for one user-night."""
+
+    __tablename__ = "context_engine_nights"
+    __table_args__ = (UniqueConstraint("user_id", "date"),)
+
+    id: Mapped[str] = uuid_pk()
+    date: Mapped[date] = mapped_column(Date, nullable=False)
+    output_json: Mapped[dict[str, Any]] = mapped_column(JSONText, nullable=False, default=dict)
+    state_json: Mapped[dict[str, Any]] = mapped_column(JSONText, nullable=False, default=dict)
+    engine_revision: Mapped[str] = mapped_column(String(64), nullable=False)
+    run_id: Mapped[str | None] = _run_fk()
+
+
 class Baseline(UserOwned, Base):
     __tablename__ = "baselines"
     __table_args__ = (

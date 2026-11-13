@@ -13,7 +13,14 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from backend.models import Baseline, CheckinDaily, Flag, NightFeaturesRow, scoped
+from backend.models import (
+    Baseline,
+    CheckinDaily,
+    ContextEngineNight,
+    Flag,
+    NightFeaturesRow,
+    scoped,
+)
 from backend.services import guidance, surveys
 
 DEFAULT_RANGE_DAYS = 14
@@ -210,6 +217,17 @@ def today(db: Session, user_id: str, on: date | None = None) -> dict[str, Any]:
         scoped(select(Baseline).order_by(Baseline.feature), Baseline, user_id)
     ).all()
 
+    engine_night = db.scalar(
+        scoped(
+            select(ContextEngineNight)
+            .where(ContextEngineNight.date <= on)
+            .order_by(ContextEngineNight.date.desc())
+            .limit(1),
+            ContextEngineNight,
+            user_id,
+        )
+    )
+
     return {
         "date": on,
         "latest_night": night_dict(latest) if latest else None,
@@ -217,5 +235,6 @@ def today(db: Session, user_id: str, on: date | None = None) -> dict[str, Any]:
         "pending_checkins": pending,
         "checkins_consent": consent,  # without it, answered check-ins are not stored
         "baselines": [baseline_dict(b) for b in baselines],
+        "context_engine": engine_night.output_json if engine_night else None,
         "sync_status": {"state": "offline"},
     }

@@ -6,6 +6,7 @@ from datetime import date, datetime
 from typing import Any
 
 from sqlalchemy import (
+    Boolean,
     Date,
     Float,
     ForeignKey,
@@ -66,6 +67,11 @@ class SurveyResponseRow(UserOwned, Base):
     answers_hmac: Mapped[str | None] = mapped_column(String(64))
     total: Mapped[float | None] = mapped_column(Float)
     scores: Mapped[dict[str, Any] | None] = mapped_column(JSONText)
+    # True when the safety screen was required for this submission (safety item
+    # positive, unparseable or missing). The item value itself is never copied here.
+    safety_flag: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default="0", nullable=False
+    )
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow, nullable=False)
 
     def __repr__(self) -> str:

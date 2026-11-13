@@ -86,11 +86,8 @@ def safety_check(instrument: dict, answers: dict[str, int]) -> SafetyResult:
     """
     for item in instrument.get("items", []):
         trigger = item.get("safety_trigger")
-        if not trigger:
-            continue
-        if item["key"] not in answers:
-            reason, resources = _safety_resources()
-            return SafetyResult(show=True, reason=reason, resources=list(resources))
+        if not trigger or item["key"] not in answers:
+            continue  # a missing safety item is reported by missing_safety_items()
         value = answers[item["key"]]
         try:
             fired = value >= trigger["min_value"]
@@ -100,6 +97,31 @@ def safety_check(instrument: dict, answers: dict[str, int]) -> SafetyResult:
             reason, resources = _safety_resources()
             return SafetyResult(show=True, reason=reason, resources=list(resources))
     return SafetyResult(show=False)
+
+
+def missing_safety_items(instrument: dict | None, answers: Any) -> list[str]:
+    """Keys of safety-trigger items absent from the answers. Pure.
+
+    A missing safety item fails closed: the caller sets safety_screen_required and
+    tells the client which item to ask for after the safety screen.
+    """
+    if not instrument or not isinstance(answers, dict):
+        return []
+    return [
+        it["key"]
+        for it in instrument.get("items", [])
+        if it.get("safety_trigger") and it["key"] not in answers
+    ]
+
+
+def safety_fields(safety: SafetyResult, missing: list[str]) -> dict:
+    """Top-level safety decision for every /responses body."""
+    required = bool(safety.show or missing)
+    return {
+        "safety_screen_required": required,
+        "crisis": required,
+        "missing_safety_item": missing[0] if missing else None,
+    }
 
 
 # --------------------------------------------------------------------------- scoring (pure)
@@ -248,11 +270,19 @@ class SubmissionError(Exception):
     """Raised by submit_response. Always carries the safety result, so the caller
     can show the safety screen even when the submission itself fails."""
 
-    def __init__(self, kind: str, safety: SafetyResult, errors: list[str] | None = None) -> None:
+    def __init__(
+        self,
+        kind: str,
+        safety: SafetyResult,
+        errors: list[str] | None = None,
+        missing: list[str] | None = None,
+    ) -> None:
         super().__init__(f"submission failed: {kind}")
-        self.kind = kind  # "invalid" | "unknown_instrument" | "forbidden" | "storage"
+        # "invalid" | "unknown_instrument" | "forbidden" | "storage" | "internal"
+        self.kind = kind
         self.safety = safety
         self.errors = errors or []
+        self.missing = missing or []
 
 
 def load_catalog(db: Any) -> None:
@@ -324,32 +354,48 @@ def _record_safety_event(db: Any, user_id: str, instrument_id: str) -> None:
 def submit_response(db: Any, user_id: str, data: SurveyResponse) -> dict:
     """Safety first, then validate, score and store.
 
-    Returns {"id", "total", "scores", "safety"}. On failure raises SubmissionError,
-    which still carries the safety result.
+    The safety decision (positive, unparseable or missing safety item) is made before
+    any DB write or scoring. Storage still happens as usual, with safety_flag set on the
+    stored row. On failure raises SubmissionError, which still carries the safety
+    result and the missing safety items, so the safety screen is never suppressed.
     """
-    # 1. Safety, before any validation. Synchronous, never queued.
+    # 1. Safety, before any validation, scoring or storage. Synchronous, never queued.
     safety_inst = _instrument_for_safety(db, data.instrument_id)
     safety = safety_check(safety_inst, data.answers) if safety_inst else SafetyResult(show=False)
+    missing = missing_safety_items(safety_inst, data.answers)
     if safety.show:
         _record_safety_event(db, user_id, data.instrument_id)
+    if safety.show or missing:
+        # Only the fact that a flag fired; never answers or item values.
+        log.info("safety flag fired (instrument=%s)", data.instrument_id)
+    flagged = bool(safety.show or missing)
 
     # 2. Ownership, instrument + version, answers.
     if data.user_id != user_id:
-        raise SubmissionError("forbidden", safety)
+        raise SubmissionError("forbidden", safety, missing=missing)
     try:
         current = get_instrument(db, data.instrument_id)
     except UnknownInstrument:
-        raise SubmissionError("unknown_instrument", safety) from None
+        raise SubmissionError("unknown_instrument", safety, missing=missing) from None
+    except Exception:
+        raise SubmissionError("internal", safety, missing=missing) from None
     try:
         # No version given (""): use the catalog's current one.
         version = data.instrument_version or current["version"]
         instrument = get_instrument(db, data.instrument_id, version)
     except UnknownInstrument:
-        raise SubmissionError("invalid", safety, ["instrument_version not in catalog"]) from None
+        raise SubmissionError(
+            "invalid", safety, ["instrument_version not in catalog"], missing=missing
+        ) from None
+    except Exception:
+        raise SubmissionError("internal", safety, missing=missing) from None
     try:
-        scored = score_answers(instrument, data.answers)
+        scored = _score_allowing_missing_safety(instrument, data.answers, missing)
     except InvalidAnswers as e:
-        raise SubmissionError("invalid", safety, e.errors) from None
+        raise SubmissionError("invalid", safety, e.errors, missing=missing) from None
+    except Exception:
+        log.error("response could not be scored (instrument=%s)", instrument["id"])
+        raise SubmissionError("internal", safety, missing=missing) from None
 
     # 3. Store, gated on consent. Answers are never logged.
     try:
@@ -357,11 +403,11 @@ def submit_response(db: Any, user_id: str, data: SurveyResponse) -> dict:
             row_id = _store_checkin(db, user_id, instrument, data)
             retained = row_id is not None  # check-in answers are the stored row itself
         else:
-            row_id, retained = _store_survey(db, user_id, instrument, data, scored)
+            row_id, retained = _store_survey(db, user_id, instrument, data, scored, flagged)
     except Exception:
         db.rollback()
         log.error("response could not be stored (instrument=%s)", instrument["id"])
-        raise SubmissionError("storage", safety) from None
+        raise SubmissionError("storage", safety, missing=missing) from None
     log.info(
         "response handled id=%s instrument=%s stored=%s",
         row_id,
@@ -375,11 +421,37 @@ def submit_response(db: Any, user_id: str, data: SurveyResponse) -> dict:
         "total": scored["total"],
         "scores": {k: v for k, v in scored.items() if k != "total"},
         "safety": safety.model_dump(),
+        **safety_fields(safety, missing),
+    }
+
+
+def _score_allowing_missing_safety(instrument: dict, answers: dict, missing: list[str]) -> dict:
+    """Score as usual. If the only gap is a missing safety item, keep the submission
+    (it is stored with safety_flag) but do not invent a total or band for an
+    incomplete instrument: total and band are None and the gap is named."""
+    if not missing:
+        return score_answers(instrument, answers)
+    kept = [it for it in instrument["items"] if it["key"] not in missing]
+    partial = {**instrument, "items": kept}
+    validate_answers(partial, answers)  # everything else must still be valid
+    return {
+        "total": None,
+        "score": None,
+        "band": None,
+        "band_alert": False,
+        "method": instrument["scoring"]["method"],
+        "incomplete": True,
+        "missing_items": list(missing),
     }
 
 
 def _store_survey(
-    db: Any, user_id: str, instrument: dict, data: SurveyResponse, scored: dict
+    db: Any,
+    user_id: str,
+    instrument: dict,
+    data: SurveyResponse,
+    scored: dict,
+    safety_flag: bool = False,
 ) -> tuple[str, bool]:
     """survey_responses. With survey_answers consent: encrypted answers + scores.
     Without: answers NULL; total, score/band in scores and a keyed HMAC in answers_hmac.
@@ -402,6 +474,7 @@ def _store_survey(
         answers_hmac=answers_hmac,
         total=scored["total"],
         scores=scores,
+        safety_flag=safety_flag,
     )
     db.add(row)
     db.commit()
@@ -590,25 +663,32 @@ def submit_payload(
         # The payload fails the contract before submit_response can run: do the
         # safety step here so it is never skipped.
         inst = _instrument_for_safety(db, instrument_id)
-        safety = (
-            safety_check(inst, _coerce_for_safety(answers)) if inst else SafetyResult(show=False)
-        )
+        coerced = _coerce_for_safety(answers) if isinstance(answers, dict) else {}
+        safety = safety_check(inst, coerced) if inst else SafetyResult(show=False)
+        missing = missing_safety_items(inst, coerced)
         if safety.show:
             _record_safety_event(db, user_id, instrument_id)
+        if safety.show or missing:
+            log.info("safety flag fired (instrument=%s)", instrument_id)
         fields = sorted({".".join(str(p) for p in err["loc"]) for err in e.errors()})
-        return _result(safety, error="invalid", errors=[f"invalid field: {f}" for f in fields])
+        return _result(
+            safety, error="invalid", errors=[f"invalid field: {f}" for f in fields], missing=missing
+        )
     try:
         out = submit_response(db, user_id, data)
     except SubmissionError as e:
-        if e.kind == "storage":
+        if e.kind in ("storage", "internal"):
             raise
-        return _result(e.safety, error=e.kind, errors=e.errors)
+        return _result(e.safety, error=e.kind, errors=e.errors, missing=e.missing)
     return {"ok": True, "error": None, "errors": [], **out}
 
 
-def _result(safety: SafetyResult, *, error: str, errors: list[str]) -> dict:
+def _result(
+    safety: SafetyResult, *, error: str, errors: list[str], missing: list[str] | None = None
+) -> dict:
     return {
         "ok": False,
+        **safety_fields(safety, missing or []),
         "id": None,
         "stored": False,
         "answers_retained": False,

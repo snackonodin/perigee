@@ -18,6 +18,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Mapping
 from datetime import date, datetime, timedelta
+from types import SimpleNamespace
 from typing import Any
 
 from sqlalchemy import delete, select
@@ -30,10 +31,12 @@ from backend.models import (
     IndexValue,
     NightFeaturesRow,
     PipelineRun,
+    User,
     WindowEstimateRow,
     scoped,
 )
 from backend.schemas.contracts import BaselineState, NightFeatures, SourceKind, WindowEstimate
+from backend.services.context_engine import run_night as run_context_engine
 from backend.services.pipeline import night_bounds_utc, user_tz
 from csi_core import night as night_mod
 from csi_core.config import CoreConfig, get_config
@@ -286,7 +289,21 @@ def run_nightly(
     cfg = cfg or get_config()
     windows = _night_windows(db, user_id, day)
     if not windows:
-        return {"night": day.isoformat(), "windows": 0, "flags": 0}
+        # Some operator/test runs intentionally target an unknown user to verify
+        # the date alias. They have no owned data and therefore no engine row.
+        if db.get(User, user_id) is None:
+            return {"night": day.isoformat(), "windows": 0, "flags": 0}
+        no_estimate = SimpleNamespace(
+            user_id=user_id, date=day, rr_med=None, rr_var=None, restless_frac=0.0,
+            quality=0.0, presence_hours=0.0,
+        )
+        engine_output = run_context_engine(db, user_id, day, no_estimate, run_id)
+        if engine_output.get("safety_status", {}).get("crisis_override_triggered"):
+            return {"crisis": True}
+        return {
+            "night": day.isoformat(), "windows": 0, "valid": False,
+            "flags": 0, "engine_output": engine_output,
+        }
 
     nf = night_mod.aggregate(user_id, day, windows, cfg)
     nf = nf.model_copy(
@@ -295,6 +312,13 @@ def run_nightly(
             "run_id": run_id,
         }
     )
+    # Crisis handling must happen before any routine night, baseline, index or flag
+    # write. The adapter is the only backend caller of engine.api.run().
+    engine_output = run_context_engine(db, user_id, day, nf, run_id)
+    if engine_output.get("safety_status", {}).get("crisis_override_triggered"):
+        return {
+            "crisis": True,
+        }
     _upsert_night(db, nf, run_id)
     db.flush()
 
@@ -332,6 +356,7 @@ def run_nightly(
         "valid": nf.valid,
         "flags": n_flags,
         "states": [d.state for d in drafts],
+        "engine_output": engine_output,
     }
 
 
@@ -343,7 +368,7 @@ def run_nightly_handler(db: Session, run: PipelineRun) -> str:
     out = run_nightly(db, p["user_id"], date.fromisoformat(day), run_id=run.id)
     return (
         f"run_nightly night={out['night']} windows={out['windows']} "
-        f"valid={out.get('valid')} flags={out['flags']}"
+        f"valid={out.get('valid')} flags={out['flags']} crisis={out.get('crisis', False)}"
     )
 
 

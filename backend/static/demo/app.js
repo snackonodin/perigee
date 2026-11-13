@@ -301,6 +301,7 @@ async function openToday() {
       nights.some((n) => n.source_kind === "synthetic");
     $("synthetic-badge").hidden = !synthetic;
     renderNight(today.latest_night);
+    renderContextEngine(today.context_engine);
     renderPending(today.pending_checkins, today.checkins_consent);
     renderQuestionnaires(instruments);
     renderFlags(today.flags);
@@ -310,6 +311,25 @@ async function openToday() {
     if (e instanceof ApiError && e.status === 401) return logout();
     $("today-error").textContent = describeError(e);
   }
+}
+
+function renderContextEngine(result) {
+  const box = $("context-engine");
+  if (!result) {
+    box.replaceChildren(el("p", { class: "muted", text: "No Context Engine result yet." }));
+    return;
+  }
+  const metrics = result.scores_and_metrics || {};
+  const ratings = result.fatigue_and_health_ratings || {};
+  const advisory = result.user_facing_advisory || {};
+  const rows = [
+    advisory.headline,
+    advisory.personality_tailored_message,
+    `Respiration deviation: ${fmt(metrics.phys_z_raw, 2)} z · ${metrics.night_quality_status || "unknown"}`,
+    `Mental load: ${fmt((metrics.mental_indices || {}).stress_load, 1)} / 100`,
+    `Resilience: ${fmt(ratings.overall_health_resilience_index, 1)} / 100`,
+  ].filter(Boolean);
+  box.replaceChildren(...rows.map((text) => el("p", { text })));
 }
 
 function renderNight(n) {

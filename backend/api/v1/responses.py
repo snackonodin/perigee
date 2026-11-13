@@ -43,6 +43,20 @@ class ResponseIn(BaseModel):
 
 class ResponseOut(BaseModel):
     ok: bool
+    safety_screen_required: bool = Field(
+        default=False,
+        description=(
+            "Show the safety screen now, before anything else. True when the safety item "
+            "is positive, unparseable or missing. Decided before any storage or scoring, and "
+            "still true when storage fails."
+        ),
+    )
+    crisis: bool = Field(default=False, description="Deprecated alias of safety_screen_required.")
+    missing_safety_item: str | None = Field(
+        default=None,
+        description="Key of a safety item that was not answered; ask for it after the "
+        "safety screen.",
+    )
     safety: SafetyResult
     id: str | None = None
     stored: bool = False
@@ -75,6 +89,12 @@ def post_response(body: ResponseIn, db: DbSession, user_id: CurrentUser) -> Any:
             body.administered_at,
             body.answers,
         )
-    except surveys.SubmissionError as e:  # storage failure: still return safety
-        out = ResponseOut(ok=False, safety=e.safety, error=e.kind, errors=e.errors)
+    except surveys.SubmissionError as e:  # storage/internal failure: still return safety
+        out = ResponseOut(
+            ok=False,
+            safety=e.safety,
+            error=e.kind,
+            errors=e.errors,
+            **surveys.safety_fields(e.safety, e.missing),
+        )
         return JSONResponse(out.model_dump(mode="json"), status_code=500)

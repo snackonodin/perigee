@@ -118,6 +118,17 @@ def create_app(*, with_lifespan: bool = True) -> FastAPI:
         from fastapi.staticfiles import StaticFiles
 
         app.mount("/demo", StaticFiles(directory=demo_dir, html=True), name="demo")
+    frontend_dir = ROOT / "backend" / "static" / "app"
+    if frontend_dir.is_dir():
+        from fastapi.staticfiles import StaticFiles
+
+        app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="frontend")
+    else:
+        from fastapi.responses import RedirectResponse
+
+        @app.get("/", include_in_schema=False)
+        def root() -> RedirectResponse:
+            return RedirectResponse(url="/demo/")
     return app
 
 

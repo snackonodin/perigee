@@ -65,6 +65,76 @@ Reran the full requested selection with pytest capture enabled (no -p no:capture
 
 No failure was classified (c), so no backend code fix or follow-up test run was needed. The engine was not changed.
 
+## Loop run — 2026-11-13 (full suite, capture enabled)
+
+Command: `PYTHONPATH=waiwai1 /tmp/astro-app-verify312/bin/python -m pytest --timeout=60 -q` from the repo root. No `-p no:capture`, no selection/exclusions. Wall time `real 580.89s`. No test was weakened, skipped or deleted.
+
+Result: **586 collected, 541 passed, 34 failed, 10 errors, 1 skipped**.
+Caveat: pytest did not print its own final count line (file ends after the short-summary list), so passed/skipped are derived from `--collect-only -q` (586) minus the 44 FAILED/ERROR entries and the one progress `s`. The skipped test is `tests/e2e/test_curl_flow.py` (E2E=1 guard).
+
+### One repeated setup failure (10 errors)
+
+All 10 errors are the same module-scoped fixture timeout in `tests/pipeline/test_personas.py::seeded` (line 63: `personas.seed(...)`), each `Failed: Timeout (>60.0s)`, not a per-test assertion. This looks like the known slow synthetic-seed setup, not a code regression; no open-handle/lock evidence was collected this run. DB file involved:
+`/private/var/folders/g2/mfvndm3s1yscv308bqj7wv8h0000gn/T/pytest-of-seemachauhan/pytest-12/astro-data0/db/astro.db`
+Errored: test_p1_steady_no_flag_and_calibrated, test_p2_drift_phys_only, test_p3_mental_only_from_catalog_bands, test_three_synthetic_users_with_14_valid_nights, test_reseed_is_idempotent, test_reset_demo_removes_everything, test_demo_password_env_is_used_and_not_echoed, test_final_phq9_option_shows_safety_path, test_generated_passwords_returned_once_never_logged, test_history_flag_counts.
+
+### Failures by group
+
+**A. Worktree executable-bit regression — 10 failures (`tests/unit/test_ops_scripts.py`).** Source scripts are mode `664` in the worktree but `100755` in the git index, so ruff reports `EXE001` and shell invocation returns `Permission denied`; tests expect rc 0.
+
+| Test | Line | Expected | Actual |
+|---|---|---|---|
+| test_check_merge_ok_parses_summary_with_warnings | 94 | returncode 0 | 1 (EXE001/ruff fail on merged tree) |
+| test_merge_ready_green_moves_board_and_broadcasts | 129 | returncode 0 | 1 (`REFUSE: check_merge failed`) |
+| test_merge_ready_red_after_merge_auto_reverts_and_records_lesson | 159 | stdout has `REVERTED` + `test_flaky` | `REFUSE: check_merge failed` |
+| test_merge_ready_ignores_untracked_files_in_main | 200 | returncode 0 | 1 (`REFUSE`) |
+| test_check_merge_warns_on_reformat_outside_ownership | 207 | returncode 0 | 1 (EXE001/ruff fail) |
+| test_check_merge_skips_frontend_when_untouched | 290 | returncode 0 | 1 (EXE001/ruff fail) |
+| test_check_merge_runs_frontend_with_cache_outside_repo | 300 | returncode 0 | 1 (EXE001 on tools/ops/board.py, lessons.py) |
+| test_merge_ready_frontend_red_reverts_and_records_lesson | 351 | `RED: tests=pass` + `frontend=FAIL(vitest)` | `REFUSE: check_merge failed` (check_merge.sh Permission denied) |
+| test_merge_ready_green_with_frontend | 364 | returncode 0 | 1 (`REFUSE`) |
+| test_metrics_reports_lessons | 226 | stdout has `reverts=1` | `reverts=0` |
+
+**B. Survey submission contract drift — 18 failures (`tests/unit/test_surveys_{fuzz,api,db}.py`).** Current `/responses` returns `crisis:true`/`ok:false` for payloads these tests treat as routine, and service-level invalid/storage paths no longer raise `SubmissionError`.
+
+| Test | Line | Expected | Actual |
+|---|---|---|---|
+| test_storage_follows_consent_exactly | 319 | `j["ok"] is True` | `ok False`, `crisis True` |
+| test_no_list_route_returns_another_users_rows | 257 (decorator) | no foreign rows | Hypothesis `FlakyFailure`; 60s timeout in `surveys.weekly_indices` (backend/services/surveys.py:514) |
+| test_every_response_carries_safety_and_one_event | 178 | `safety["show"] is False` | `True` for `answers={}` |
+| test_storage_failure_is_500_with_safety | 186 | status 500 | 200 |
+| test_item9_positive_returns_safety | 142 | `ok True` and `safety.show True` | `ok False`, safety true |
+| test_invalid_input_still_returns_safety_200[answers0-4] (×5) | 162 | `error == "invalid"` | `error == "safety"` |
+| test_missing_version_uses_catalog_current | 276 | `stored is True` | `False` |
+| test_missing_version_invalid_answers_still_safety | 287 | `error == "invalid"` | `error == "safety"` |
+| test_survey_without_answers_consent_keeps_no_answers[None] | 244 | `stored True` + `safety.show True` | `stored False` |
+| test_survey_without_answers_consent_keeps_no_answers[False] | 244 | `stored True` + `safety.show True` | `stored False` |
+| test_safety_checked_before_validation_with_bad_option | 219 | raises `SubmissionError` | DID NOT RAISE |
+| test_safety_survives_invalid_answers | 128 | raises `SubmissionError` | DID NOT RAISE |
+| test_safety_survives_storage_failure | 145 | raises `SubmissionError` | DID NOT RAISE |
+| test_logs_contain_no_answer_values | 203 | raises `SubmissionError` | DID NOT RAISE |
+
+**C. Engine read-only expectations — 4 failures.** Same four documented in the prior classification (engine is not edited).
+
+| Test | Line | Expected | Actual |
+|---|---|---|---|
+| test_missing_crisis_item_fails_closed | 30 | `crisis_override_triggered is True` | `False` |
+| test_crisis_item9_fails_closed_before_routine_output[invalid] | 21 | `True` | `False` |
+| test_crisis_item9_fails_closed_before_routine_output[None] | 21 | `True` | `False` |
+| test_state_has_schema_version | 32 | `state["schema_version"]` non-null | `None` |
+
+**D. Schema expectation drift — 1 failure.**
+
+| Test | Line | Expected | Actual |
+|---|---|---|---|
+| test_all_interface_tables_exist | 62 | table set == `EXPECTED_TABLES` | extra table `context_engine_nights` |
+
+**E. Live SSE tail timing — 1 failure.**
+
+| Test | Line | Expected | Actual |
+|---|---|---|---|
+| test_live_default_starts_now_and_tails_new_rows | 154 | events `["window","heart"]` | `[]` (no new rows observed in window) |
+
 ## Rerun — 2026-11-13 19:14 IST (capture on, no `-p no:capture`)
 
 - Command: `PYTHONPATH=/tmp/astro-pytest-capture-compat:waiwai1 /tmp/astro-app-verify312/bin/python -m pytest --timeout=60 --timeout-method=signal --basetemp=/tmp/astro-pytest-session-20261113-191445 -q -rfE tests/safety tests/backend tests/db/test_migrations.py tests/pipeline` → **60 passed, 4 failed, 10 errors**, wall 151.9s.

@@ -97,3 +97,16 @@ html[data-reduce-motion="true"] *,html[data-reduce-motion="true"] *::before,html
   .header-link-label { position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap; }
 }
 @media (max-width:767px) { .tab { font-size:11px;line-height:1.2;white-space:nowrap;padding:4px 0; }.tab-icon svg { width:20px;height:20px; } }
+/* Consent switch rows (B6): label + one-line help on the left, switch on the right, in Setup and Settings. */
+.consents { border:0;padding:0;margin:0;min-width:0; }
+.consents legend { padding:0;margin-bottom:4px;font-weight:650; }
+.setup-step label.consent-switch-row,.consent-switch-row { display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:16px;min-height:56px;padding:12px 0;border-bottom:1px solid var(--line);cursor:pointer; }
+.consent-switch-row .settings-consent-copy { display:grid;gap:2px;min-width:0; }
+.consent-switch-row .consent-label { font-weight:600;text-transform:none; }
+.consent-switch-row .settings-consent-copy .muted { font-size:var(--fs-small); }
+.consent-switch-row .settings-saved:empty,.consent-switch-row .error:empty { display:none; }
+.consent-switch-row input[role=switch] { appearance:none;-webkit-appearance:none;position:relative;width:48px;min-width:48px;height:28px;margin:0;border-radius:var(--radius-pill);background:var(--line);border:1px solid var(--glass-edge);cursor:pointer;transition:background var(--dur-fast) var(--ease); }
+.consent-switch-row input[role=switch]::after { content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--surface);box-shadow:var(--shadow-1);transition:transform var(--dur-fast) var(--ease); }
+.consent-switch-row input[role=switch]:checked { background:var(--teal); }
+.consent-switch-row input[role=switch]:checked::after { transform:translateX(20px); }
+.consent-switch-row input[role=switch]:disabled { opacity:.6;cursor:progress; }

@@ -115,7 +115,7 @@ describe("Psyche", () => {
 describe("Settings", () => {
   it("toggles a consent with the policy version", async () => {
     render(<App initialPath="/settings" />);
-    const box = await screen.findByRole("switch", { name: /raw csi/i });
+    const box = await screen.findByRole("switch", { name: /raw sensor recordings/i });
     expect((box as HTMLInputElement).checked).toBe(false);
     fireEvent.click(box);
     await waitFor(() => expect((box as HTMLInputElement).checked).toBe(true));

@@ -14,6 +14,14 @@ export const CONSENT_TEXT: Record<ConsentScope, string> = {
   share_summaries: "Allow summaries of my results to be shared with my support team.",
 };
 
+/** Human labels for the consent scopes (B6). The scope key stays the API contract. */
+export const CONSENT_LABEL: Record<ConsentScope, string> = {
+  checkins: "Daily check-ins",
+  survey_answers: "Questionnaire answers",
+  raw_csi: "Raw sensor recordings",
+  share_summaries: "Share summaries with my support team",
+};
+
 export function Consents() {
   const loaded = useLoad(() => api.GET("/api/v1/me/consents"));
   const [state, setState] = useState<Record<string, ConsentOut> | null>(null);
@@ -44,16 +52,16 @@ export function Consents() {
     <fieldset className="consents settings-consents">
       <legend>What may be stored</legend>
       {CONSENT_SCOPES.map((scope) => (
-        <label key={scope} className="option settings-consent-row">
+        <label key={scope} className="option settings-consent-row consent-switch-row">
+          <span className="settings-consent-copy"><span className="consent-label">{CONSENT_LABEL[scope]}</span><span className="muted">{CONSENT_TEXT[scope]}</span><span className="settings-saved" role="status">{saved[scope] ? "Saved" : ""}</span><span className="error" role="alert">{errors[scope]}</span></span>
           <input
             type="checkbox"
             role="switch"
-            aria-label={scope.replaceAll("_", " ")}
+            aria-label={CONSENT_LABEL[scope]}
             checked={state[scope]?.granted ?? false}
             disabled={busy !== null}
             onChange={(e) => toggle(scope, e.target.checked)}
           />
-          <span className="settings-consent-copy"><span>{scope.replaceAll("_", " ")}</span><span className="muted">{CONSENT_TEXT[scope]}</span><span className="settings-saved" role="status">{saved[scope] ? "Saved" : ""}</span><span className="error" role="alert">{errors[scope]}</span></span>
         </label>
       ))}
       <p className="muted">Consent wording version {CONSENT_POLICY_VERSION}. You can change these at any time.</p>

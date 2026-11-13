@@ -20,6 +20,7 @@ beforeEach(() => {
     "GET /api/v1/me": { body: me },
     "GET /api/v1/today": { body: today },
     "GET /api/v1/nights": { body: NIGHTS },
+    "GET /api/v1/checkins": { body: [] },
     "GET /api/v1/instruments": { body: instruments },
     "GET /api/v1/instruments/phq9": { body: phq9 },
     "POST /api/v1/responses": { body: responseOut({ total: 1 }) },
@@ -34,41 +35,38 @@ beforeEach(() => {
 });
 
 describe("Overview", () => {
-  it("shows last night, check-ins due and baseline maturity", async () => {
+  it("shows the latest personal breathing signal and due check-in", async () => {
     render(<App initialPath="/" />);
-    const card = await screen.findByRole("region", { name: "Last night" });
-    expect(within(card).getByText("17.9 breaths/min")).toBeTruthy();
-    expect(within(card).getByRole("link", { name: "Start" }).getAttribute("href")).toBe("/psyche?instrument=daily_am");
-    expect(within(card).getByText("mature")).toBeTruthy();
+    const hero = await screen.findByRole("region", { name: "Your breathing, in context" });
+    expect(within(hero).getByRole("img", { name: "Breathing rate 14.2 breaths per minute" })).toBeTruthy();
+    expect(within(hero).getByRole("link", { name: /Check in/ }).getAttribute("href")).toBe("/checkin?instrument=daily_am");
+    const breathing = screen.getByRole("heading", { name: /^Breathing$/ }).closest("article")!;
+    expect(within(breathing).getByText("17.9")).toBeTruthy();
+    expect(within(breathing).getByText("Your usual range")).toBeTruthy();
   });
 
-  it("FlagWhy lists each signal with median ± MAD and z, highlighting |z| >= alert", async () => {
+  it("shows a personal check-in signal without exposing raw z-scores", async () => {
     render(<App initialPath="/" />);
-    const table = await screen.findByRole("table");
-    const rows = within(table).getAllByRole("row").map((r) => Array.from(r.children).map((c) => c.textContent));
-    expect(rows).toContainEqual(["Body", "rr_med", "17.90", "14.00 ± 0.80", "+3.3"]);
-    expect(rows).toContainEqual(["Mood", "phq2", "1.00", "–", "baseline warming up"]);
-    expect(within(table).getByText("+3.3").className).toBe("z-high");
+    const mindHeading = await screen.findByRole("heading", { name: "Mind and check-ins" });
+    const mind = mindHeading.closest("article")!;
+    expect(within(mind).getByText("24 / 100")).toBeTruthy();
+    expect(mind.textContent).toMatch(/From your recent personal inputs/);
+    expect(document.body.textContent).not.toMatch(/[+-]\d+\.\d+\s*z\b/);
   });
 
-  it("GuidanceCard shows the source and 'not yet clinically reviewed' when reviewed_by is null", async () => {
-    const { baseElement } = render(<App initialPath="/" />);
-    await screen.findByText("Try a wind-down routine");
-    const cards = Array.from(baseElement.querySelectorAll<HTMLElement>("article.guidance"));
-    expect(cards).toHaveLength(2);
-    const unreviewed = cards.find((c) => c.textContent?.includes("Try a wind-down routine"))!;
-    expect(unreviewed.textContent).toMatch(/Source: General sleep hygiene guidance/);
-    expect(within(unreviewed).getByText("not yet clinically reviewed")).toBeTruthy();
-    const reviewed = cards.find((c) => c.textContent?.includes("Reviewed card"))!;
-    expect(reviewed.textContent).toMatch(/reviewed by Dr\. Example/);
-    expect(reviewed.textContent).not.toMatch(/not yet clinically reviewed/);
+  it("shows the server advisory instead of rendering stale guidance cards", async () => {
+    render(<App initialPath="/" />);
+    expect(await screen.findByText("A small shift, in your context")).toBeTruthy();
+    expect(screen.getByText("Your signals can vary from night to night. We are comparing them with your own recent pattern.")).toBeTruthy();
+    expect(screen.queryByText("Try a wind-down routine")).toBeNull();
   });
 });
 
 describe("Sleep", () => {
   it("lists nights with validity, quality and onset/midsleep/wake, and asks for the last 28 days", async () => {
     render(<App initialPath="/sleep" />);
-    const table = await screen.findByRole("table");
+    fireEvent.click(await screen.findByRole("button", { name: "Night-by-night details" }));
+    const table = (await screen.findAllByRole("table")).find((candidate) => candidate.classList.contains("nights"))!;
     const rows = within(table).getAllByRole("row");
     expect(rows).toHaveLength(4);
     expect(Array.from(rows[1].children).map((c) => c.textContent)).toEqual(
@@ -85,9 +83,9 @@ describe("Sleep", () => {
     const { container } = render(<RrTrend nights={NIGHTS} baseline={rrBaseline} now={now} />);
     expect(screen.getByTestId("band")).toBeTruthy();
     const pts = container.querySelectorAll("circle");
-    expect(pts).toHaveLength(2); // the invalid night is not drawn
-    const outside = Array.from(pts).filter((p) => p.getAttribute("class") === "pt out");
-    expect(outside.map((p) => p.textContent)).toEqual(["2026-11-10: 17.9 breaths/min"]);
+    expect(pts).toHaveLength(1); // the current chart marks only its latest valid night
+    expect(pts[0].getAttribute("class")).toBe("pt out");
+    expect(pts[0].querySelector("title")?.textContent).toBe("Latest night 2026-11-10: 17.9 breaths/min");
   });
 
   it("RrTrend without a baseline has no band and says it is warming up", () => {
@@ -98,15 +96,18 @@ describe("Sleep", () => {
 });
 
 describe("Psyche", () => {
-  it("lists questionnaires (not the daily check-ins) and renders the form from instrument JSON", async () => {
-    render(<App initialPath="/psyche" />);
-    const list = await screen.findByRole("region", { name: "Questionnaires" });
-    expect(within(list).queryByText(/Morning check-in/)).toBeNull();
-    fireEvent.click(await within(list).findByRole("button", { name: "Start Patient Health Questionnaire-9 (PHQ-9)" }));
+  it("separates daily check-ins from other reflections and renders the selected form", async () => {
+    render(<App initialPath="/checkin" />);
+    expect(await screen.findByRole("heading", { name: "A quick check-in" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "More reflections" })).toBeTruthy();
+    fireEvent.click(await screen.findByRole("button", { name: "Start Patient Health Questionnaire-9 (PHQ-9)" }));
     const form = await screen.findByRole("form", { name: phq9.name });
-    expect(within(form).getAllByRole("group")).toHaveLength(2);
-    for (const g of within(form).getAllByRole("group")) fireEvent.click(within(g).getAllByRole("radio")[0]);
-    fireEvent.click(within(form).getByRole("button", { name: "Submit" }));
+    expect(within(form).getAllByRole("group")).toHaveLength(1);
+    fireEvent.click(within(form).getAllByRole("radio")[0]);
+    fireEvent.click(within(form).getByRole("button", { name: "Next" }));
+    expect(within(form).getByRole("group", { name: /better off dead/ })).toBeTruthy();
+    fireEvent.click(within(form).getAllByRole("radio")[0]);
+    fireEvent.click(within(form).getByRole("button", { name: "Send check-in" }));
     expect(await screen.findByText("Saved. Thank you.")).toBeTruthy();
   });
 });
@@ -114,7 +115,7 @@ describe("Psyche", () => {
 describe("Settings", () => {
   it("toggles a consent with the policy version", async () => {
     render(<App initialPath="/settings" />);
-    const box = await screen.findByRole("checkbox", { name: /raw Wi-Fi sensing/ });
+    const box = await screen.findByRole("switch", { name: /raw csi/i });
     expect((box as HTMLInputElement).checked).toBe(false);
     fireEvent.click(box);
     await waitFor(() => expect((box as HTMLInputElement).checked).toBe(true));
@@ -138,10 +139,10 @@ describe("Settings", () => {
     fireEvent.change(screen.getByLabelText("Confirmation"), { target: { value: "delete" } });
     expect(confirm.disabled).toBe(true);
     expect(api.called("DELETE /api/v1/me")).toHaveLength(0);
-    fireEvent.change(screen.getByLabelText("Confirmation"), { target: { value: "Delete my account" } });
+    fireEvent.change(screen.getByLabelText("Confirmation"), { target: { value: "DELETE" } });
     expect(confirm.disabled).toBe(false);
     fireEvent.click(confirm);
-    expect(await screen.findByRole("heading", { name: "Sign in" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "Welcome back" })).toBeTruthy();
     expect(api.called("DELETE /api/v1/me")).toHaveLength(1);
   });
 

@@ -55,4 +55,5 @@ export function mockApi(routes: Record<string, Handler>) {
 export function signIn(access = "at-1", refresh = "rt-1"): void {
   sessionStorage.setItem("ahm.access", access);
   sessionStorage.setItem("ahm.refresh", refresh);
+  localStorage.setItem("setup.done", "true");
 }

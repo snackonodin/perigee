@@ -20,9 +20,9 @@ describe("AuthProvider", () => {
       "GET /api/v1/today": { body: today },
     });
     render(<App initialPath="/" />);
-    expect(await screen.findByRole("heading", { name: "Sign in" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "Welcome back" })).toBeTruthy();
     fillLogin("ada@example.invalid", "long enough password");
-    expect(await screen.findByRole("heading", { name: "What stands out" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "Today" })).toBeTruthy();
     expect(api.called("POST /api/v1/auth/login")[0].body).toEqual({ email: "ada@example.invalid", password: "long enough password" });
     expect(sessionStorage.getItem("ahm.access")).toBe("at-9");
   });
@@ -48,7 +48,7 @@ describe("AuthProvider", () => {
       "GET /api/v1/today": (c) => (c.auth === "Bearer at-2" ? { body: today } : { status: 401, body: { error: "unauthorized", message: "x" } }),
     });
     render(<App initialPath="/" />);
-    expect(await screen.findByRole("heading", { name: "What stands out" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "Today" })).toBeTruthy();
     expect(api.called("POST /api/v1/auth/refresh")).toHaveLength(1); // one rotation shared
     expect(api.called("POST /api/v1/auth/refresh")[0].body).toEqual({ refresh_token: "rt-1" });
     expect(sessionStorage.getItem("ahm.refresh")).toBe("rt-2");
@@ -61,7 +61,7 @@ describe("AuthProvider", () => {
       "GET /api/v1/me": { status: 401, body: { error: "unauthorized", message: "x" } },
     });
     render(<App initialPath="/sleep" />);
-    expect(await screen.findByRole("heading", { name: "Sign in" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "Welcome back" })).toBeTruthy();
     expect(sessionStorage.getItem("ahm.access")).toBeNull();
     expect(sessionStorage.getItem("ahm.refresh")).toBeNull();
   });
@@ -75,7 +75,7 @@ describe("AuthProvider", () => {
     });
     render(<App initialPath="/" />);
     fireEvent.click(await screen.findByRole("button", { name: "Log out" }));
-    expect(await screen.findByRole("heading", { name: "Sign in" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "Welcome back" })).toBeTruthy();
     await waitFor(() => expect(api.called("POST /api/v1/auth/logout")).toHaveLength(1));
     expect(api.called("POST /api/v1/auth/logout")[0].body).toEqual({ refresh_token: "rt-1" });
     expect(sessionStorage.getItem("ahm.refresh")).toBeNull();

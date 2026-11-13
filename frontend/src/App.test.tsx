@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
 import { App } from "./App";
+import { Heart } from "./pages/Live";
 import { TABS } from "./routes/tabs";
 import { instruments, me, today } from "./test/fixtures";
 import { mockApi, signIn } from "./test/mockApi";
@@ -17,11 +18,11 @@ beforeEach(() => {
 });
 
 describe("app shell", () => {
-  it("shows all six tabs and the synthetic badge for a synthetic account", async () => {
+  it("shows the current app sections and the synthetic badge for a synthetic account", async () => {
     render(<App initialPath="/" />);
-    const nav = await screen.findByRole("navigation", { name: "Sections" });
+    const nav = await screen.findByRole("navigation", { name: /^Sections/ });
     expect(Array.from(nav.querySelectorAll("a")).map((a) => a.textContent)).toEqual(
-      ["Overview", "Breathing", "Heart", "Sleep", "Psyche", "Settings"],
+      TABS.map((tab) => tab.label),
     );
     expect(screen.getByText("Simulated data")).toBeTruthy();
   });
@@ -33,7 +34,7 @@ describe("app shell", () => {
   });
 
   it("labels Heart as experimental", async () => {
-    render(<App initialPath="/heart" />);
+    render(<Heart />);
     expect((await screen.findByRole("note")).textContent).toMatch(/experimental/i);
   });
 });

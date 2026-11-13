@@ -42,6 +42,7 @@ beforeEach(() => {
   signIn();
   api = mockApi({
     "GET /api/v1/me": { body: me },
+    "GET /api/v1/checkins": { body: [] },
     "GET /api/v1/indices": indices,
     "GET /api/v1/instruments": { body: NAMES },
     "GET /api/v1/instruments/phq2": {
@@ -100,18 +101,14 @@ describe("IndexCards", () => {
     expect(within(stress).getByText("higher is worse")).toBeTruthy();
   });
 
-  it("draws one trend point per week with data, with a gap for missing weeks", async () => {
+  it("shows the latest week and connects only consecutive weeks with data", async () => {
     render(<IndexCards instruments={NAMES} now={NOW} />);
     const who5 = await screen.findByRole("article", { name: /WHO-5/ });
     const svg = within(who5).getByRole("img", { name: /last 8 weeks/ });
-    expect(svg.querySelectorAll("circle")).toHaveLength(3);
-    // 2026-10-19 stands alone (2026-10-26 is missing): only the Nov 2 → Nov 9 run is a line.
+    expect(svg.querySelectorAll("circle")).toHaveLength(1);
+    expect(svg.querySelector("circle title")?.textContent).toBe("Latest week of 2026-11-09: 60.0");
+    // 2026-10-19 stands alone (2026-10-26 is missing); only Nov 2 → Nov 9 is connected.
     expect(svg.querySelectorAll("polyline")).toHaveLength(1);
-    expect(Array.from(svg.querySelectorAll("circle title")).map((t) => t.textContent)).toEqual([
-      "Week of 2026-10-19: 72.0",
-      "Week of 2026-11-02: 64.0",
-      "Week of 2026-11-09: 60.0",
-    ]);
   });
 
   it("an index with no value this week says so and shows no badge", async () => {
@@ -147,11 +144,11 @@ describe("IndexCards", () => {
 });
 
 describe("Psyche page", () => {
-  it("shows the Weekly indices section above the questionnaires", async () => {
-    render(<App initialPath="/psyche" />);
-    const section = await screen.findByRole("region", { name: "Weekly indices" });
-    expect(await within(section).findByRole("article", { name: /PHQ-2/ })).toBeTruthy();
-    const regions = screen.getAllByRole("region").map((r) => r.getAttribute("aria-labelledby"));
-    expect(regions.indexOf("idx-title")).toBeLessThan(regions.indexOf("q-title"));
+  it("keeps weekly patterns available from the Check-in page", async () => {
+    render(<App initialPath="/checkin" />);
+    expect(await screen.findByRole("heading", { name: "Check-in" })).toBeTruthy();
+    fireEvent.click(screen.getByText("Weekly patterns"));
+    expect(await screen.findByRole("article", { name: /PHQ-2/ })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "More reflections" })).toBeTruthy();
   });
 });

@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { App } from "./App";
 import { SAFETY_ACK_DELAY_MS, SAFETY_FALLBACK } from "./safety/safety";
@@ -7,7 +7,7 @@ import { instruments, me, today } from "./test/fixtures";
 import { mockApi, type Reply, signIn } from "./test/mockApi";
 import tokensCss from "./theme/tokens.css?raw";
 
-// ---------------------------------------------------------------- contrast (WCAG 2.x)
+// ---------------------------------------------------------------- contrast (WCAG AA for the current pastel palette)
 
 function token(name: string): string {
   const m = tokensCss.match(new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{6})`));
@@ -26,14 +26,16 @@ function ratio(fg: string, bg: string): number {
   return (hi + 0.05) / (lo + 0.05);
 }
 
-describe("contrast on the dark theme (WCAG AA, 4.5:1 for text)", () => {
-  const SURFACES = ["space-0", "space-1", "space-2"];
-  const TEXT = ["ink", "ink-muted", "ink-faint", "accent", "alert", "sun", "pulse", "aurora"];
-  it.each(TEXT.flatMap((fg) => SURFACES.map((bg) => [fg, bg] as const)))("%s on %s", (fg, bg) => {
+describe("contrast on the pastel theme (WCAG AA, 4.5:1 for text)", () => {
+  const INK_ON_NEUTRAL = ["text", "muted", "ok-ink", "warn-ink", "alert-ink", "teal-ink"];
+  const PAIRS = [
+    ...INK_ON_NEUTRAL.flatMap((fg) => ["surface", "bg"].map((bg) => [fg, bg] as const)),
+    ...["mint", "sky", "peach", "lavender", "butter", "alert-soft"].map((bg) => ["text", bg] as const),
+    ["ok-ink", "mint"], ["warn-ink", "butter"], ["alert-ink", "alert-soft"],
+    ["teal-ink", "mint"], ["teal-ink", "sky"], ["surface", "teal"], ["bg", "teal"],
+  ] as const;
+  it.each(PAIRS)("%s on %s", (fg, bg) => {
     expect(ratio(fg, bg)).toBeGreaterThanOrEqual(4.5);
-  });
-  it("button text on the accent fill", () => {
-    expect(ratio("accent-ink", "accent")).toBeGreaterThanOrEqual(4.5);
   });
 });
 
@@ -57,13 +59,14 @@ describe("safety overlay keyboard and focus", () => {
     raise.focus();
     fireEvent.click(raise);
     const dialog = screen.getByRole("alertdialog");
-    const title = screen.getByRole("heading", { name: "Please reach out for support now" });
+    const title = screen.getByRole("heading", { name: "You deserve support right now" });
     expect(document.activeElement).toBe(title);
     expect(root.hasAttribute("inert")).toBe(true);
 
-    // locked: Tab and Shift+Tab stay on the title; Escape does nothing
+    // Escape does nothing; keyboard focus cycles among the live safety controls.
     fireEvent.keyDown(dialog, { key: "Tab" });
-    expect(document.activeElement).toBe(title);
+    const contact = screen.getByRole("button", { name: "Contact crew surgeon" });
+    expect(document.activeElement).toBe(contact);
     fireEvent.keyDown(dialog, { key: "Escape" });
     expect(screen.getByRole("alertdialog")).toBeTruthy();
 
@@ -113,12 +116,12 @@ function flaky(ok: Reply) {
 }
 
 describe.each([
-  ["/", "GET /api/v1/today", { body: today }, "today", "What stands out"],
-  ["/sleep", "GET /api/v1/nights", { body: [] }, "nights", "No valid nights in the last 28 days."],
-  ["/psyche", "GET /api/v1/instruments", { body: instruments }, "questionnaires", "Patient Health Questionnaire-9 (PHQ-9)"],
-  ["/settings", "GET /api/v1/me/consents", { body: {} }, "your consents", "What may be stored"],
-] as const)("page %s", (path, route, ok, label, ready) => {
-  it("shows a busy state, then a readable error with Retry, then recovers", async () => {
+  ["/", "GET /api/v1/today", { body: today }, "today's personal snapshot", "Your picture is taking shape", "fallback"],
+  ["/sleep", "GET /api/v1/nights", { body: [] }, "nightly timeline", "No valid nights in this window yet.", "fallback"],
+  ["/checkin", "GET /api/v1/checkins", { body: [] }, "your check-in calendar", "Check-in calendar", "retry"],
+  ["/settings", "GET /api/v1/me/consents", { body: {} }, "your consents", "What may be stored", "retry"],
+] as const)("page %s", (path, route, ok, label, ready, behavior) => {
+  it("shows the loading state and the endpoint's designed recovery", async () => {
     signIn();
     let release!: () => void;
     const gate = new Promise<void>((r) => (release = r));
@@ -128,6 +131,7 @@ describe.each([
       "GET /api/v1/today": { body: today },
       "GET /api/v1/nights": { body: [] },
       "GET /api/v1/instruments": { body: instruments },
+      "GET /api/v1/checkins": { body: [] },
       "GET /api/v1/indices": { body: { week_start: "2026-11-09", indices: {}, run_id: null } },
       "GET /api/v1/me/consents": { body: {} },
       [route]: async () => {
@@ -139,9 +143,15 @@ describe.each([
     const busy = await screen.findByText(`Loading ${label}…`);
     expect(busy.getAttribute("aria-busy")).toBe("true");
     release();
+    if (behavior === "fallback") {
+      expect(await screen.findByText(ready)).toBeTruthy();
+      expect(screen.getByText(/API unavailable|Showing sample data/)).toBeTruthy();
+      expect(screen.queryByRole("button", { name: "Retry" })).toBeNull();
+      return;
+    }
     const alert = await screen.findByText(`Could not load ${label}: database busy`);
     expect(alert.closest("[role=alert]")).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+    fireEvent.click(within(alert.closest("[role=alert]")!).getByRole("button", { name: "Retry" }));
     expect(await screen.findByText(ready)).toBeTruthy();
     expect(screen.queryByText(/Could not load/)).toBeNull();
   });

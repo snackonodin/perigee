@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { App } from "../App";
+import { Breathing, Heart } from "./Live";
 import { me, today } from "../test/fixtures";
 import { mockApi, signIn } from "../test/mockApi";
 
@@ -41,7 +41,7 @@ describe("Heart (live)", () => {
   it("always shows the EXPERIMENTAL banner, before any data, and never raises alerts", async () => {
     signIn();
     mockApi(routes(HELLO + [1, 2, 3].map((i) => ev("heart", heart(i), `0-${i}`)).join("")));
-    render(<App initialPath="/heart" />);
+    render(<Heart />);
     const note = await screen.findByRole("note");
     expect(note.textContent).toMatch(/^EXPERIMENTAL/);
     expect(note.textContent).toMatch(/no\s+thresholds or alerts/);
@@ -55,7 +55,7 @@ describe("Breathing (live)", () => {
   it("draws rr_a and a faint rr_b, shows PNR, quality, presence and the motion strip", async () => {
     signIn();
     mockApi(routes(HELLO + [1, 2, 3, 4].map((i) => ev("window", window_(i), `${i}-0`)).join("")));
-    const { container } = render(<App initialPath="/breathing" />);
+    const { container } = render(<Breathing />);
     const chart = await screen.findByRole("img", { name: /Breathing rate per window, latest 14\.4/ });
     expect(container.querySelector(".stats .big")?.textContent).toMatch(/^14\.4/); // latest rr_a
     expect(screen.getByText("6.5 dB")).toBeTruthy();
@@ -70,7 +70,7 @@ describe("Breathing (live)", () => {
   it("shows no breathing value while nobody is in bed", async () => {
     signIn();
     mockApi(routes(HELLO + ev("window", window_(1, { presence: false, rr_a: null, rr_b: null }), "1-0")));
-    render(<App initialPath="/breathing" />);
+    render(<Breathing />);
     expect(await screen.findByText("Not detected")).toBeTruthy();
   });
 
@@ -78,7 +78,7 @@ describe("Breathing (live)", () => {
     signIn();
     const queries: URLSearchParams[] = [];
     mockApi(routes(HELLO, (q) => queries.push(q)));
-    render(<App initialPath="/breathing" />);
+    render(<Breathing />);
     const group = await screen.findByRole("group", { name: "Replay demo night" });
     const night = await within(group).findByLabelText("Night");
     fireEvent.change(night, { target: { value: "sess-1" } });

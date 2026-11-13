@@ -65,7 +65,14 @@ describe("SafetyOverlay", () => {
 });
 
 function answer(item: string, label: string) {
-  const group = screen.getByRole("group", { name: new RegExp(item) });
+  const target = new RegExp(item, "i");
+  let group = screen.getAllByRole("group")[0];
+  while (!target.test(group.textContent ?? "")) {
+    const current = Array.from(group.querySelectorAll<HTMLInputElement>('input[type="radio"]'));
+    if (!current.some((radio) => radio.checked)) fireEvent.click(current[0]);
+    fireEvent.click(screen.getByRole("button", { name: "Next" }));
+    group = screen.getAllByRole("group")[0];
+  }
   fireEvent.click(Array.from(group.querySelectorAll("label")).find((l) => l.textContent === label)!.querySelector("input")!);
 }
 
@@ -76,7 +83,7 @@ function renderForm() {
 }
 
 describe("CheckinForm safety order", () => {
-  it("shows the safety screen BEFORE the request completes, then the server's text, then the score", async () => {
+  it("shows safety before the request completes and keeps scores hidden when the server requires safety", async () => {
     let release!: () => void;
     const pending = new Promise<void>((r) => (release = r));
     const api = mockApi({
@@ -86,15 +93,15 @@ describe("CheckinForm safety order", () => {
       },
     });
     renderForm();
-    fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+    fireEvent.click(screen.getByRole("button", { name: "Send check-in" }));
     // local pre-check: on screen while the request is still in flight, with the seed text
     expect(screen.getByRole("alertdialog")).toBeTruthy();
     expect(screen.getByText(SAFETY_FALLBACK.reason)).toBeTruthy();
     expect(screen.queryByText(/Total score/)).toBeNull();
     release();
     expect(await screen.findByText("Server reason text.")).toBeTruthy(); // server text replaces it
-    expect(await screen.findByText(/Total score: 1/)).toBeTruthy();
-    expect(screen.getByRole("alertdialog")).toBeTruthy(); // still up above the score
+    expect(screen.getByRole("alertdialog")).toBeTruthy();
+    expect(screen.queryByText(/Total score/)).toBeNull();
     expect(api.called("POST /api/v1/responses")[0].body).toEqual({
       instrument_id: "phq9",
       instrument_version: "1.0",
@@ -110,15 +117,17 @@ describe("CheckinForm safety order", () => {
       },
     });
     renderForm();
-    fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+    fireEvent.click(screen.getByRole("button", { name: "Send check-in" }));
     expect(await screen.findByText("Server reason text.")).toBeTruthy();
-    expect(await screen.findByText(/Not saved \(storage\)/)).toBeTruthy();
+    expect(screen.getByRole("alertdialog")).toBeTruthy();
+    expect(screen.queryByText(/Total score/)).toBeNull();
+    expect(screen.queryByText(/Scored only:/)).toBeNull();
   });
 
   it("keeps the local safety screen when the server cannot be reached", async () => {
     vi.stubGlobal("fetch", vi.fn(() => Promise.reject(new TypeError("offline"))));
     renderForm();
-    fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+    fireEvent.click(screen.getByRole("button", { name: "Send check-in" }));
     expect(screen.getByRole("alertdialog")).toBeTruthy();
     expect(await screen.findByText(/Cannot reach the server/)).toBeTruthy();
     expect(screen.getByText(SAFETY_FALLBACK.resources[0])).toBeTruthy();
@@ -129,7 +138,7 @@ describe("CheckinForm safety order", () => {
     render(<SafetyProvider><CheckinForm instrument={phq9} /></SafetyProvider>);
     answer("Little interest", "Several days");
     answer("better off dead", "Not at all");
-    fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+    fireEvent.click(screen.getByRole("button", { name: "Send check-in" }));
     expect(await screen.findByText("Saved. Thank you.")).toBeTruthy();
     expect(screen.queryByRole("alertdialog")).toBeNull();
   });
@@ -141,8 +150,8 @@ describe("result wording", () => {
     render(<SafetyProvider><CheckinForm instrument={phq9} /></SafetyProvider>);
     answer("Little interest", "Several days");
     answer("better off dead", "Not at all");
-    fireEvent.click(screen.getByRole("button", { name: "Submit" }));
-    const status = await screen.findByRole("status");
+    fireEvent.click(screen.getByRole("button", { name: "Send check-in" }));
+    const status = await screen.findByText("Scored only: nothing was stored (check-ins are off in Settings).");
     expect(status.textContent).toMatch(/nothing was stored/);
     expect(status.textContent).not.toMatch(/answers were not kept/);
   });

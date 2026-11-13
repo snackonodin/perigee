@@ -2,7 +2,7 @@ import { useState } from "react";
 import { api, errorText } from "../api/client";
 import { useAuth } from "../auth/AuthProvider";
 
-export const DELETE_PHRASE = "delete my account";
+export const DELETE_PHRASE = "DELETE";
 
 export function ExportData() {
   const [msg, setMsg] = useState<string | null>(null);
@@ -62,7 +62,7 @@ export function DeleteAccount() {
         <input value={typed} onChange={(e) => setTyped(e.target.value)} autoComplete="off" />
       </label>
       <div className="row">
-        <button type="button" className="danger" disabled={typed.trim().toLowerCase() !== DELETE_PHRASE || busy} onClick={confirm}>
+        <button type="button" className="danger" disabled={typed.trim() !== DELETE_PHRASE || busy} onClick={confirm}>
           Permanently delete
         </button>
         <button type="button" className="ghost" onClick={() => { setOpen(false); setTyped(""); }}>Cancel</button>

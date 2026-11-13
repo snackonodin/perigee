@@ -17,7 +17,8 @@ export const CONSENT_TEXT: Record<ConsentScope, string> = {
 export function Consents() {
   const loaded = useLoad(() => api.GET("/api/v1/me/consents"));
   const [state, setState] = useState<Record<string, ConsentOut> | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<Partial<Record<ConsentScope, string>>>({});
+  const [saved, setSaved] = useState<Partial<Record<ConsentScope, boolean>>>({});
   const [busy, setBusy] = useState<ConsentScope | null>(null);
 
   useEffect(() => {
@@ -26,32 +27,36 @@ export function Consents() {
 
   async function toggle(scope: ConsentScope, granted: boolean) {
     setBusy(scope);
-    setError(null);
+    setErrors((current) => ({ ...current, [scope]: undefined }));
+    setSaved((current) => ({ ...current, [scope]: false }));
     const { data, error: e, response } = await api.PUT("/api/v1/me/consents", {
       body: { scopes: { [scope]: granted }, policy_version: CONSENT_POLICY_VERSION },
     });
     setBusy(null);
-    if (data) setState(data);
-    else setError(errorText(e, response.status));
+    if (data) {
+      setState(data);
+      setSaved((current) => ({ ...current, [scope]: true }));
+    } else setErrors((current) => ({ ...current, [scope]: errorText(e, response.status) }));
   }
 
-  if (!state) return <LoadState state={loaded} label="your consents">{() => null}</LoadState>;
+  if (!state) return <LoadState state={loaded} label="your consents">{() => <div className="settings-skeleton" aria-label="Loading consent settings"><span /><span /><span /><span /></div>}</LoadState>;
   return (
-    <fieldset className="consents">
+    <fieldset className="consents settings-consents">
       <legend>What may be stored</legend>
       {CONSENT_SCOPES.map((scope) => (
-        <label key={scope} className="option">
+        <label key={scope} className="option settings-consent-row">
           <input
             type="checkbox"
+            role="switch"
+            aria-label={scope.replaceAll("_", " ")}
             checked={state[scope]?.granted ?? false}
             disabled={busy !== null}
             onChange={(e) => toggle(scope, e.target.checked)}
           />
-          <span>{CONSENT_TEXT[scope]}</span>
+          <span className="settings-consent-copy"><span>{scope.replaceAll("_", " ")}</span><span className="muted">{CONSENT_TEXT[scope]}</span><span className="settings-saved" role="status">{saved[scope] ? "Saved" : ""}</span><span className="error" role="alert">{errors[scope]}</span></span>
         </label>
       ))}
       <p className="muted">Consent wording version {CONSENT_POLICY_VERSION}. You can change these at any time.</p>
-      <p className="error" role="alert">{error}</p>
     </fieldset>
   );
 }

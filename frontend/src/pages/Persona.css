@@ -59,3 +59,12 @@
   .persona-head { flex-direction:column; }
 }
 @media (prefers-reduced-motion:reduce) { .trait-dial,.trait-dial .dial-fill { transition:none; } }
+/* Orbit Pop (P2): satellite marks the end of each trait ring; ultraviolet marks the selected trait. */
+.trait-dial .dial-sat { fill:var(--surface);stroke:var(--uv);stroke-width:2; }
+.trait-dial.selected { border-color:var(--uv);box-shadow:0 0 0 1px var(--uv); }
+.trait-dial svg { overflow:visible; }
+.persona-arc-panel,.persona-radar-panel { position:relative;overflow:hidden;isolation:isolate; }
+.persona-radar-panel::before { content:"";position:absolute;right:-80px;top:-80px;width:260px;height:260px;z-index:-1;border:1px dashed var(--orbit-line);border-radius:50%; }
+.persona-radar-panel::after { content:"";position:absolute;right:-30px;top:-30px;width:160px;height:160px;z-index:-1;border:1px solid var(--orbit-line);border-radius:50%; }
+.persona-scale { font-family:var(--font-mono);font-size:var(--fs-micro);letter-spacing:.08em;text-transform:uppercase; }
+.persona-page .persona-head { margin-bottom:0; }

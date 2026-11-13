@@ -30,7 +30,7 @@ export function Overview() {
     return <div className="screen-page today-page">
       <header className="page-heading"><div><p className="eyebrow">Your personal snapshot</p><h1>Today</h1><p>{night?`Last signal · ${night.date}`:"Your next quiet check-in"}</p></div></header>
       {load.apiMock&&<p className="api-mock-note" role="status">Showing sample data: live service unavailable</p>}
-      <section className="today-hero-card" aria-labelledby="today-hero-title">
+      <section className="today-hero-card glass" aria-labelledby="today-hero-title">
         <BreathingOrb rate={respiration} state={status(physiology)}/>
         <div className="today-hero-copy"><p className="eyebrow">Breathing · your recent pattern</p><h2 id="today-hero-title">{respiration==null?"Your picture is taking shape":"Your breathing, in context"}</h2>
           <p>{respiration==null?"Readings appear after a full night near the sensor.":"Compared with your own recent nights."}</p>
@@ -48,7 +48,7 @@ export function Overview() {
           <p className="vital-caption">{night?.valid?"Sensed presence last night.":"Readings appear after a full night near the sensor."}</p>
         </VitalCard>
       </section>
-      <aside className="today-note-card"><span aria-hidden="true">✧</span><div><p className="eyebrow">A quiet note</p><strong>{advisory?.headline??"Notice your own rhythm"}</strong><p>{advisory?.personality_tailored_message??"Your patterns are compared with your own recent baseline."}</p></div></aside>
+      <aside className="today-note-card glass-strong"><span aria-hidden="true">✧</span><div><p className="eyebrow">A quiet note</p><strong>{advisory?.headline??"Notice your own rhythm"}</strong><p>{advisory?.personality_tailored_message??"Your patterns are compared with your own recent baseline."}</p></div></aside>
     </div>;
   }}</LoadState>;
 }

@@ -133,7 +133,7 @@ export function IndexCards({
                 const now_: IndexOut | undefined = current[key];
                 const title = label(key, names);
                 return (
-                  <article className="index" key={key} aria-labelledby={`idx-${key}`}>
+                  <article className="index glass" key={key} aria-labelledby={`idx-${key}`}>
                     <h3 id={`idx-${key}`}>{title}</h3>
                     <p className="index-value">{value(key, now_?.value)}</p>
                     <dl className="kv">

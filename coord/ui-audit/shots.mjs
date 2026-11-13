@@ -30,7 +30,11 @@ for (const route of routes) {
   await send("Page.navigate", { url: BASE + route }); await sleep(2500);
   const full = await send("Runtime.evaluate", { expression: "Math.max(document.documentElement.scrollHeight, document.body.scrollHeight)", returnByValue: true });
   const height = Math.min(4000, full.result.result.value || +h);
-  const shot = await send("Page.captureScreenshot", { format: "png", captureBeyondViewport: true, clip: { x: 0, y: 0, width: +w, height, scale: 1 } });
+  // Resize the viewport to the full page so fixed layers (backdrop, tab bar) are not cut at the fold.
+  await send("Emulation.setDeviceMetricsOverride", { width: +w, height, deviceScaleFactor: 1, mobile: +w < 600 });
+  await sleep(400);
+  const shot = await send("Page.captureScreenshot", { format: "png", clip: { x: 0, y: 0, width: +w, height, scale: 1 } });
+  await send("Emulation.setDeviceMetricsOverride", { width: +w, height: +h, deviceScaleFactor: 1, mobile: +w < 600 });
   const name = `${w}${route.replace(/\//g, "_") || "_root"}.png`;
   writeFileSync(`${out}/${name}`, Buffer.from(shot.result.data, "base64"));
   console.log(name, height);

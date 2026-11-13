@@ -80,20 +80,20 @@ export function CheckinForm({ instrument, onDone }: { instrument: Instrument; on
   return (
     <form onSubmit={submit} aria-label={instrument.name}>
       {instrument.timeframe && <p className="muted">{instrument.timeframe}</p>}
-      <div className="checkin-progress" role="status">Card {step + 1} of {instrument.items.length}
+      <div className="checkin-progress" role="status">Question {step + 1} of {instrument.items.length}
         <div className="progress-track" aria-hidden="true"><span style={{width:`${((step+1)/instrument.items.length)*100}%`}}/></div>
       </div>
-      <fieldset className="question-card" key={item.key}>
+      <fieldset className="checkin-question-card" key={item.key}>
         <legend>{item.text}</legend>
-        <div className="question-options">{item.options.map((o) => (
-          <label key={o.value} className={answers[item.key] === o.value ? "question-option selected" : "question-option"}>
+        <div className="checkin-question-options">{item.options.map((o) => (
+          <label key={o.value} className={answers[item.key] === o.value ? "checkin-question-option selected" : "checkin-question-option"}>
             <input type="radio" name={item.key} value={o.value} checked={answers[item.key] === o.value}
               onChange={() => {
                 setAnswers((a) => ({ ...a, [item.key]: o.value }));
                 setError(null);
                 if (item.safety_trigger && o.value >= item.safety_trigger.min_value) showSafety(SAFETY_FALLBACK);
               }}/>
-            <span>{o.label}</span>
+            <span>{o.label}</span>{answers[item.key]===o.value&&<svg className="checkin-selected-mark" aria-hidden="true" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg>}
           </label>
         ))}</div>
       </fieldset>

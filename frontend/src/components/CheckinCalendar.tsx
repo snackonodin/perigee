@@ -20,7 +20,7 @@ export function CheckinCalendar({ checkins, now = new Date() }: { checkins:Check
   checkins.forEach(c=>byDate.set(c.date,[...(byDate.get(c.date)??[]),c]));
   const monthName=new Intl.DateTimeFormat("en",{month:"long",timeZone:"UTC"}).format(first);
   return <section className="card checkin-calendar" aria-labelledby="checkin-calendar-title">
-    <div className="row"><div><p className="eyebrow">Your month</p><h2 id="checkin-calendar-title">Mood & check-in calendar</h2></div><span className="pill">{monthName} {year}</span></div>
+    <div className="row"><div><p className="eyebrow">Your month</p><h2 id="checkin-calendar-title">Check-in calendar</h2></div><span className="pill">{monthName} {year}</span></div>
     <p className="muted">Dots mark check-ins you chose to record. They do not grade or infer your mood.</p>
     <div className="calendar-grid" role="grid" aria-label={`${monthName} ${year} check-in calendar`}>
       <div className="calendar-weekdays" role="row">{DAY_LABELS.map((label,i)=><span className="calendar-weekday" role="columnheader" key={`${label}${i}`}>{label}</span>)}</div>
@@ -30,13 +30,14 @@ export function CheckinCalendar({ checkins, now = new Date() }: { checkins:Check
         const key=inMonth?dateKey(year,month,day):"";
         const entries=key?(byDate.get(key)??[]):[];
         const kind=dayKind(entries);
+        const isToday=inMonth&&key===dateKey(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate());
         const dateLabel=inMonth?`${monthName} ${day}, ${year}`:"Outside this month";
         const entryLabel=entries.length?`${entries.length} check-in${entries.length===1?"":"s"}`:"no check-in recorded";
-        return <div key={i} className={inMonth?"calendar-day":"calendar-day outside"} role="gridcell" aria-label={inMonth?`${dateLabel}, ${entryLabel}`:undefined}>
+        return <div key={i} className={`${inMonth?"calendar-day":"calendar-day outside"}${isToday?" today":""}`} role="gridcell" aria-label={inMonth?`${dateLabel}, ${entryLabel}`:undefined}>
           {inMonth&&<><span>{day}</span>{kind&&<span className={`calendar-dot ${kind}`} aria-hidden="true"/>}</>}
         </div>;
       })}</div>)}</div>
     </div>
-    <ul className="calendar-legend" aria-label="Calendar legend"><li><i className="calendar-dot daily"/>Daily check-in</li><li><i className="calendar-dot questionnaire"/>Questionnaire</li><li><i className="calendar-dot both"/>Both</li></ul>
+    <ul className="calendar-legend" aria-label="Calendar legend"><li><i className="calendar-dot daily"/>Daily check-in · dot</li><li><i className="calendar-dot questionnaire"/>Questionnaire · ring</li><li><i className="calendar-dot both"/>Both · square</li></ul>
   </section>;
 }

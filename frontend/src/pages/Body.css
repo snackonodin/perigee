@@ -1,0 +1,24 @@
+/* Body, Orbit Pop (P2). Map tile 2 cols, detail tile 1 col; selected system pulses on the figure. */
+.body-page .body-layout { grid-template-columns:minmax(0,2fr) minmax(300px,1fr);gap:var(--gutter);align-items:stretch; }
+.body-map-card { position:relative;overflow:hidden;isolation:isolate; }
+/* Faint orbit rings behind the figure. */
+.body-orbit { position:absolute;left:50%;top:55%;width:min(78%,460px);aspect-ratio:1;transform:translate(-50%,-50%);z-index:-1;border:1px solid var(--orbit-line);border-radius:50%;pointer-events:none; }
+.body-orbit::before { content:"";position:absolute;inset:-14%;border:1px dashed var(--orbit-line);border-radius:50%; }
+.body-orbit::after { content:"";position:absolute;inset:18%;border-radius:50%;background:radial-gradient(closest-side,color-mix(in srgb,var(--lavender) 45%,transparent),transparent); }
+.body-map .body-node::before { border-width:1.5px; }
+.body-map .body-node.selected { box-shadow:none; }
+.body-node.selected::before { box-shadow:0 0 0 3px var(--surface),0 0 0 5px var(--uv); }
+/* Pulse ring ties the detail panel to the figure. */
+.body-node.selected::after { content:"";position:absolute;inset:6px;border:2px solid var(--uv);border-radius:50%;animation:node-pulse 2s var(--ease) infinite;pointer-events:none; }
+@keyframes node-pulse { from { transform:scale(.6);opacity:.8; } to { transform:scale(1.5);opacity:0; } }
+.body-detail { display:grid;align-content:start;gap:16px; }
+.body-detail .vital-card { height:auto; }
+/* Segmented system switcher: a second, larger tap target for each system. */
+.system-switch { display:flex;flex-wrap:wrap;gap:8px; }
+.system-pill { display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:6px 14px;border:1px solid var(--line);border-radius:var(--radius-pill);background:var(--surface);color:var(--text);font-size:var(--fs-small);font-weight:600; }
+.system-pill i { width:10px;height:10px;border-radius:50%;border:1.5px solid var(--text); }
+.system-pill-mint i { background:var(--mint); } .system-pill-peach i { background:var(--peach); } .system-pill-sky i { background:var(--sky); } .system-pill-lavender i { background:var(--lavender); } .system-pill-butter i { background:var(--butter); }
+.system-pill[aria-pressed="true"] { border-color:var(--uv);box-shadow:0 0 0 1px var(--uv); }
+@media (max-width:899px) { .body-page .body-layout { grid-template-columns:minmax(0,1fr); } }
+@media (prefers-reduced-motion:reduce) { .body-node.selected::after { animation:none;opacity:0; } }
+html[data-reduce-motion="true"] .body-node.selected::after { animation:none;opacity:0; }

@@ -6,6 +6,8 @@ import { fmt } from "../components/format";
 import { LoadState } from "../components/LoadState";
 import { VitalCard } from "../components/VitalCard";
 import type { Status } from "../components/StatusChip";
+import { Reveal, TitleReveal } from "../components/motion";
+import "./Body.css";
 
 type ScanToday=TodayOut&{context_engine?:{
   dashboard_visualization_data?:{dual_axis_timeline_point?:{respiration_bpm?:number|null}};
@@ -55,18 +57,19 @@ export function Body() {
     };
     const current=details[selected];
     return <div className="screen-page body-page">
-      <header className="page-heading"><div><p className="eyebrow">Personal systems · your recent signals</p><h1>Body</h1><p>Choose a system to see the available reading.</p></div></header>
+      <header className="page-heading"><div><p className="eyebrow">Personal systems · your recent signals</p><TitleReveal text="Body"/><p>Choose a system to see the available reading.</p></div></header>
       {load.apiMock&&<p className="api-mock-note" role="status">Showing sample data: live service unavailable</p>}
-      <div className="body-layout">
-        <section className="body-map-card glass" aria-label="Body systems map"><p className="eyebrow">Five connected systems</p><BodyMap selected={selected} details={details} onSelect={setSelected}/></section>
+      <Reveal className="body-layout">
+        <section className="body-map-card glass" aria-label="Body systems map"><p className="eyebrow">Five connected systems</p><span className="body-orbit" aria-hidden="true"/><BodyMap selected={selected} details={details} onSelect={setSelected}/></section>
         <section className="body-detail" aria-live="polite" aria-labelledby="body-detail-title" key={selected}>
           {current.value==="No reading"?<VitalCard label={selected} icon={selected} headingId="body-detail-title" empty={current.copy}/>:
           <VitalCard label={selected} value={current.value} icon={selected} state={current.state} headingId="body-detail-title">
             <p>{current.copy}</p>
             {selected==="Respiration"&&baseline?.median!=null&&baseline.mad!=null&&<p className="body-baseline">Personal baseline · 28 nights<br/>{fmt(baseline.median-baseline.mad)}–{fmt(baseline.median+baseline.mad)} br/min (median ± MAD)</p>}
           </VitalCard>}
+          <div className="system-switch" role="group" aria-label="Choose a system">{SYSTEMS.map(name=><button key={name} type="button" className={`system-pill system-pill-${COLORS[name]}`} aria-pressed={selected===name} onClick={()=>setSelected(name)}><i aria-hidden="true"/>{name}</button>)}</div>
         </section>
-      </div>
+      </Reveal>
     </div>;
   }}</LoadState>;
 }

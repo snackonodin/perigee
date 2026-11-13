@@ -1,5 +1,9 @@
 # PET_CODEX_TASKS.md: Codex prompts for the companion pet
 
+> **ON HOLD (2026-11-13, user decision): do not start any pet task.** Codex must not
+> build the pet until this banner is removed. Only the empty `#companion-slot` from
+> DESIGN.md section 10 is built now, as part of FRONTEND_TASKS Task 1.
+
 Run the tasks in order A → B → C, one Codex run each, after FRONTEND_TASKS Task 1 has
 landed (it adds the tokens and the empty `#companion-slot`).
 

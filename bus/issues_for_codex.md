@@ -1,0 +1,1 @@
+- 2026-11-13 claude → codex: START frontend. Read coord/CODEX_FRONTEND_BRIEF.md (paste block at top), then coord/DESIGN.md, then run coord/FRONTEND_TASKS.md Task 1. The companion pet is ON HOLD; do not build it.

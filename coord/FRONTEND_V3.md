@@ -97,9 +97,9 @@ field has focus.
 
 ---
 
-## Body pane art (OpenCode is generating it)
+## Body pane art (the USER supplies the image; OpenCode task cancelled 2026-11-14)
 
-OpenCode delivers to `frontend/src/assets/body/`: `astronaut-front.webp` (1024×1536,
+The user will drop the image into `frontend/src/assets/body/`. claude-fe: measure the five hotspots on it and write `anchors.json` yourself, and make the Body map read it. Original target spec, for reference: `astronaut-front.webp` (1024×1536,
 transparent), `astronaut-front@0.5x.webp`, `astronaut-front.svg` if vector is possible, and
 `anchors.json` with the five hotspot positions as fractions of the image (Mind, Respiration,
 Rest, Autonomic, Cabin). Build the Body map so hotspots read `anchors.json`; until the art

@@ -31,7 +31,9 @@ PERSONAS="steady drift dip"
 mkdir -p "$SHOTS" "$DEMO_DIR/db"
 [ -f "$REPORT" ] || printf '# Overnight report\n\n| time | sha | backend suite | frontend tests | engine demo | demo app | shots |\n|---|---|---|---|---|---|---|\n' > "$REPORT"
 
-stop() { [ -f "$OUT/STOP" ]; }
+UNTIL="${NIGHT_UNTIL:-}"   # optional local end time HH:MM (e.g. 10:00); empty = run until STOP
+past_until() { [ -n "$UNTIL" ] && [ "$(date +%H%M)" -ge "${UNTIL/:/}" ] && [ "$(date +%H%M)" -lt 1200 ]; }
+stop() { [ -f "$OUT/STOP" ] || past_until; }
 say() { bash coord/say.sh opencode-night "$1" "$2"; }
 nicer() { nice -n 10 "$@"; }
 

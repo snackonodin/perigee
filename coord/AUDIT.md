@@ -64,3 +64,27 @@ Reran the full requested selection with pytest capture enabled (no -p no:capture
 4. tests/safety/test_engine_state.py::test_state_has_schema_version, assertion line 32: expected result state schema_version to be non-null; actual None. **Verdict (b)**: context-v2.md §9 “INPUT / OUTPUT SPECIFICATION” shows no schema_version requirement in the engine state/API shape. The backend integration adds the version envelope when it persists and returns state.
 
 No failure was classified (c), so no backend code fix or follow-up test run was needed. The engine was not changed.
+
+## Rerun — 2026-11-13 19:14 IST (capture on, no `-p no:capture`)
+
+- Command: `PYTHONPATH=/tmp/astro-pytest-capture-compat:waiwai1 /tmp/astro-app-verify312/bin/python -m pytest --timeout=60 --timeout-method=signal --basetemp=/tmp/astro-pytest-session-20261113-191445 -q -rfE tests/safety tests/backend tests/db/test_migrations.py tests/pipeline` → **60 passed, 4 failed, 10 errors**, wall 151.9s.
+- SQLite: `personas.seed()` writes to `$DATABASE_URL` set by `tests/pipeline/test_personas.py::seeded` (lines 49–54) = `<basetemp>/astro-data0/db/astro.db`, which is already a private temp DB per pytest session (`tmp_path_factory`). `lsof` before the run showed no process with any `astro*.db` open and nothing on :8765. No contention.
+- 10 errors = one fixture setup timeout. The stack ends in `csi_core/synth.py:136 synth_night → pandas to_csv → gzip.write`: CPU-bound synthetic-capture writing, not a lock. Local override (timeout only, no test edits): `--timeout=900 tests/pipeline/test_personas.py` → **10 passed**, setup 95.8s, wall 112.4s. With that override the selection is 70 passed, 4 failed.
+- Verdicts:
+  - 4 direct-engine failures, unchanged: `test_engine_safety.py:21` [None], `:21` [invalid], `:30` (missing Item 9), `test_engine_state.py:32` (schema_version). Verdict **(b)**: the tests demand more than context-v2.md §9 Module 5 (override only for Item 9 > 0) and the §9 I/O spec (no schema_version). The engine is read-only and the BLOCKER stays in DECISIONS.md; the tests were not changed.
+  - 10 persona setup errors: not a code defect. The fixture needs about 96s against the 60s per-test budget. Not (c); REQUEST filed with the tests owner.
+- No verdict (c) items, so no backend change was made.
+
+## Full suite — 2026-11-13 19:24 IST (integrator, capture on)
+
+Command: `PYTHONPATH=/tmp/astro-pytest-capture-compat:waiwai1 /tmp/astro-app-verify312/bin/python -m pytest --timeout=900 --timeout-method=signal --basetemp=/tmp/astro-pytest-full-<hhmmss> -q -rfE -p no:cacheprovider` → **552 passed, 33 failed, 1 skipped, 0 errors**, wall 649.8s. The 900s timeout is the local override for the persona fixture (REQUEST in pane-integrator.md / bus/issues_for_opencode.md).
+
+| Group | Tests | Assertion | Expected vs actual | Verdict |
+|---|---|---|---|---|
+| Engine | `tests/safety/test_engine_safety.py:21` ([None], [invalid]), `:30`; `tests/safety/test_engine_state.py:32` | crisis_override / state.schema_version | True / non-null vs False / None | **(b)** stronger than context-v2.md §9 Module 5 + §9 I/O. Engine read-only; BLOCKER stays |
+| Survey crisis contract (17) | `tests/unit/test_surveys_api.py` (item9_positive 142, invalid_input ×5 162, missing_version_uses_catalog_current 276, missing_version_invalid_answers 287, storage_failure_is_500 186); `tests/unit/test_surveys_db.py` (without_answers_consent ×2 244, safety_checked_before_validation 219, safety_survives_invalid_answers 128, safety_survives_storage_failure 145, logs_contain_no_answer_values 203); `tests/unit/test_surveys_fuzz.py` (every_response_carries_safety 178, storage_follows_consent 319) | Item 9 positive → `ok:true, stored:true` + safety, or SubmissionError raised; empty PHQ-9 answers → `safety.show` false | Now `ok:false, crisis:true, stored:false`, no raise; empty/missing Item 9 now fails closed | **(b) against the integration contract / DECISION NEEDED.** All 17 come from one change: `backend/services/surveys.py:335` and `:600` return early on safety, and `safety_check` fails closed on missing Item 9 (coord/API_CONTRACT.md). The tests encode the pre-integration feat/surveys contract (store consented answers + show safety). Not weakened. The user must pick one contract |
+| Schema | `tests/db/test_models.py:62` test_all_interface_tables_exist | table set == EXPECTED_TABLES | extra `context_engine_nights` (migration 0005) | **(b)** intended new table; the tests owner should add it to EXPECTED_TABLES |
+| Ops scripts (10) | `tests/unit/test_ops_scripts.py` (94, 129, 159, 200, 207, 226, 290, 300, 351, 364) | returncode 0 / GREEN / reverts=1 | EXE001 exec-bit + ruff failures, REFUSE on dirty main, reverts=0 | **Not backend.** Dirty multi-pane worktree and `tools/ops` changes owned by ops. Not (c) |
+| Live SSE | `tests/db/test_live.py:154` | events [window, heart] | [] | **(b) timing flake.** Passes in isolation 2/2 (13 passed, ~15s). Fails only under full-suite load |
+
+No verdict (c) items, so no backend change was made. Open decision: the survey crisis contract above.

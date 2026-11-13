@@ -3,6 +3,7 @@ import { api, errorText } from "../api/client";
 import { useAuth } from "../auth/AuthProvider";
 import { Consents } from "../components/Consents";
 import { DeleteAccount, ExportData } from "../components/DataControls";
+import { Reveal, TitleReveal } from "../components/motion";
 
 const REDUCE_MOTION_KEY = "settings.reduce-motion";
 
@@ -65,7 +66,9 @@ export function Settings() {
   }
 
   return (
-    <div className="settings-grid">
+    <div className="settings-page">
+    <header className="page-heading"><div><p className="eyebrow">Your account · this device</p><TitleReveal text="Settings"/><p>Profile, what is stored, and how the app moves.</p></div></header>
+    <Reveal className="settings-grid">
       <section className="card glass settings-section" aria-labelledby="settings-profile-title">
         <h2 id="settings-profile-title">Profile</h2>
         <p className="muted">Signed in as {me?.email ?? ""}</p>
@@ -93,14 +96,12 @@ export function Settings() {
 
       <section className="card glass settings-section" aria-labelledby="settings-accessibility-title">
         <h2 id="settings-accessibility-title">Accessibility</h2>
-        <label className="settings-switch-row"><span>Reduce motion</span><input type="checkbox" role="switch" checked={reduceMotion} onChange={(event) => changeReducedMotion(event.target.checked)} /></label>
-        <span className="settings-saved" role="status">{motionSaved ? "Saved" : ""}</span>
-        <p className="muted">Stop animated effects throughout the app.</p>
+        <label className="settings-switch-row consent-switch-row"><span className="settings-consent-copy"><span className="consent-label">Reduce motion</span><span className="muted">Stop animated effects and see-through surfaces throughout the app.</span><span className="settings-saved" role="status">{motionSaved ? "Saved" : ""}</span></span><input type="checkbox" role="switch" aria-label="Reduce motion" checked={reduceMotion} onChange={(event) => changeReducedMotion(event.target.checked)} /></label>
       </section>
 
       <section className="card glass settings-section" aria-labelledby="settings-companion-title">
         <h2 id="settings-companion-title">Companion</h2>
-        <button type="button" className="ghost" disabled>Coming soon</button>
+        <p className="settings-soon"><span className="tag-mono">Coming soon</span> A small crew companion that keeps you company.</p>
       </section>
 
       <section className="card glass settings-section" aria-labelledby="settings-signout-title">
@@ -108,6 +109,7 @@ export function Settings() {
         <p className="muted">Sign out of this device.</p>
         <button type="button" className="ghost" onClick={() => void logout()}>Sign out</button>
       </section>
+    </Reveal>
     </div>
   );
 }

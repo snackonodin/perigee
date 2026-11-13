@@ -154,3 +154,12 @@ h1,h2,h3 { font-family:var(--font-display);letter-spacing:-.01em; }
 /* Sliding tab pill: position and width are measured from the active tab (AppShell). */
 .tabs .tab-indicator { left:0;width:var(--pill-w,0px);transform:translateX(var(--pill-x,0px));transition:transform var(--dur-base) var(--ease),width var(--dur-base) var(--ease); }
 @media (prefers-reduced-motion:reduce) { .tabs .tab-indicator { transition:none; } }
+/* Consent / setting labels: plain sentence case (beats the older capitalize rule). */
+.consent-switch-row .settings-consent-copy>.consent-label { text-transform:none; }
+/* Settings: one primary per view; destructive action is an outlined alert button. */
+.settings-page .settings-grid { align-items:start; }
+.settings-section button.danger { background:var(--surface);color:var(--alert-ink);border-color:color-mix(in srgb,var(--alert-ink) 45%,var(--line)); }
+.settings-section button.danger:hover { background:var(--alert-soft); }
+.settings-soon { display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0;color:var(--muted); }
+.settings-section .settings-switch-row.consent-switch-row { border-bottom:0;padding-top:0; }
+.settings-section .row button.danger { background:var(--alert-ink);color:#fff;border-color:var(--alert-ink); }

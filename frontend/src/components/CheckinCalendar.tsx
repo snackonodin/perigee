@@ -19,7 +19,7 @@ export function CheckinCalendar({ checkins, now = new Date() }: { checkins:Check
   const byDate=new Map<string,CheckinOut[]>();
   checkins.forEach(c=>byDate.set(c.date,[...(byDate.get(c.date)??[]),c]));
   const monthName=new Intl.DateTimeFormat("en",{month:"long",timeZone:"UTC"}).format(first);
-  return <section className="card checkin-calendar" aria-labelledby="checkin-calendar-title">
+  return <section className="card glass checkin-calendar" aria-labelledby="checkin-calendar-title">
     <div className="row"><div><p className="eyebrow">Your month</p><h2 id="checkin-calendar-title">Check-in calendar</h2></div><span className="pill">{monthName} {year}</span></div>
     <p className="muted">Dots mark check-ins you chose to record. They do not grade or infer your mood.</p>
     <div className="calendar-grid" role="grid" aria-label={`${monthName} ${year} check-in calendar`}>
@@ -33,7 +33,7 @@ export function CheckinCalendar({ checkins, now = new Date() }: { checkins:Check
         const isToday=inMonth&&key===dateKey(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate());
         const dateLabel=inMonth?`${monthName} ${day}, ${year}`:"Outside this month";
         const entryLabel=entries.length?`${entries.length} check-in${entries.length===1?"":"s"}`:"no check-in recorded";
-        return <div key={i} className={`${inMonth?"calendar-day":"calendar-day outside"}${isToday?" today":""}`} role="gridcell" aria-label={inMonth?`${dateLabel}, ${entryLabel}`:undefined}>
+        return <div key={i} className={`${inMonth?"calendar-day":"calendar-day outside"}${kind?" has-entry":""}${isToday?" today":""}`} role="gridcell" aria-label={inMonth?`${dateLabel}, ${entryLabel}`:undefined}>
           {inMonth&&<><span>{day}</span>{kind&&<span className={`calendar-dot ${kind}`} aria-hidden="true"/>}</>}
         </div>;
       })}</div>)}</div>

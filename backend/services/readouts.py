@@ -237,4 +237,5 @@ def today(db: Session, user_id: str, on: date | None = None) -> dict[str, Any]:
         "baselines": [baseline_dict(b) for b in baselines],
         "context_engine": engine_night.output_json if engine_night else None,
         "sync_status": {"state": "offline"},
+        **surveys.safety_state(db, user_id),
     }

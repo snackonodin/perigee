@@ -124,6 +124,55 @@ def safety_fields(safety: SafetyResult, missing: list[str]) -> dict:
     }
 
 
+def safety_instrument_ids() -> set[str]:
+    """Seed instruments that carry a safety-trigger item (e.g. phq9)."""
+    return {
+        iid
+        for iid, doc in _seed_catalog().items()
+        if any(it.get("safety_trigger") for it in doc.get("items", []))
+    }
+
+
+def safety_state(db: Any, user_id: str) -> dict:
+    """Server-side safety lock for GET /today, scoped to one user.
+
+    Required while a safety signal (a flagged survey row, or an unacknowledged
+    survey safety event) is newer than the user's latest clean submission of a
+    safety instrument (stored with safety_flag false). Never reads answer values
+    except the stored list of missing safety items.
+    """
+    from sqlalchemy import select
+
+    m = _models()
+    ids = safety_instrument_ids()
+    rows = m.SurveyResponseRow
+    last_clean = db.scalar(
+        select(rows.created_at)
+        .where(rows.user_id == user_id, rows.instrument_id.in_(ids), rows.safety_flag.is_(False))
+        .order_by(rows.created_at.desc())
+        .limit(1)
+    )
+    flagged_q = select(rows).where(rows.user_id == user_id, rows.safety_flag.is_(True))
+    events_q = select(m.SafetyEvent.ts).where(
+        m.SafetyEvent.user_id == user_id,
+        m.SafetyEvent.source.like("survey:%"),
+        m.SafetyEvent.acknowledged_at.is_(None),
+    )
+    if last_clean is not None:
+        flagged_q = flagged_q.where(rows.created_at > last_clean)
+        events_q = events_q.where(m.SafetyEvent.ts > last_clean)
+    flagged = db.scalars(flagged_q.order_by(rows.created_at.desc()).limit(1)).first()
+    event = db.scalar(events_q.limit(1))
+    missing = None
+    if flagged is not None:
+        items = (flagged.scores or {}).get("missing_items") or []
+        missing = items[0] if items else None
+    return {
+        "safety_screen_required": flagged is not None or event is not None,
+        "missing_safety_item": missing,
+    }
+
+
 # --------------------------------------------------------------------------- scoring (pure)
 
 

@@ -6,7 +6,7 @@ from datetime import date, datetime
 from typing import Any
 
 from fastapi import APIRouter
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from backend.api.v1.guidance import GuidanceCardOut
 from backend.api.v1.nights import FlagOut, NightOut
@@ -42,6 +42,12 @@ class SyncStatus(BaseModel):
 
 
 class TodayOut(BaseModel):
+    safety_screen_required: bool = Field(
+        default=False,
+        description="Server-driven safety lock: show the safety screen before anything "
+        "else until a later clean check-in clears it.",
+    )
+    missing_safety_item: str | None = None
     date: date
     latest_night: NightOut | None = None
     flags: list[TodayFlagOut]

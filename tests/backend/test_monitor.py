@@ -235,3 +235,10 @@ def test_real_analysis_on_team_iq_fixture():
     assert set(out) == {"respiration", "heart_rate", "motion"}
     assert len(out["motion"]) > 0  # 30 s of I/Q -> Doppler windows
     assert all({"time_s", "acceleration_m_s2"} <= set(m) for m in out["motion"])
+
+
+def test_modes_report_config_timings():
+    out = {m["mode"]: m for m in mon.modes(CFG)}
+    assert set(out) == set(mon.MODES)
+    assert out["sleep_analysis"] == {"mode": "sleep_analysis", "calibration_s": 3.0,
+                                     "duration_s": 4.0, "total_s": 7.0}

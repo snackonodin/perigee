@@ -39,6 +39,20 @@ class MonitorSessionOut(BaseModel):
     summary: dict[str, Any] | None = None
 
 
+class MonitorModeOut(BaseModel):
+    """How long a session of this mode takes (config.yaml monitor, placeholders)."""
+
+    mode: Literal["sleep_analysis", "heart_rate", "breathing_rate"]
+    calibration_s: float
+    duration_s: float
+    total_s: float
+
+
+@router.get("/modes", response_model=list[MonitorModeOut])
+def list_modes(user_id: CurrentUser) -> list[dict[str, Any]]:
+    return svc.modes()
+
+
 def _not_found() -> ApiError:
     return ApiError(404, "not_found", "no such monitor session")
 

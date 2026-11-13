@@ -749,6 +749,40 @@
         "title": "MeOut",
         "type": "object"
       },
+      "MonitorModeOut": {
+        "description": "How long a session of this mode takes (config.yaml monitor, placeholders).",
+        "properties": {
+          "calibration_s": {
+            "title": "Calibration S",
+            "type": "number"
+          },
+          "duration_s": {
+            "title": "Duration S",
+            "type": "number"
+          },
+          "mode": {
+            "enum": [
+              "sleep_analysis",
+              "heart_rate",
+              "breathing_rate"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "total_s": {
+            "title": "Total S",
+            "type": "number"
+          }
+        },
+        "required": [
+          "mode",
+          "calibration_s",
+          "duration_s",
+          "total_s"
+        ],
+        "title": "MonitorModeOut",
+        "type": "object"
+      },
       "MonitorSessionOut": {
         "description": "State of one Monitor session. ``summary`` is the experimental session result once\n``state`` is ``complete``; it is never a clinical or validated sleep measure.",
         "properties": {
@@ -4035,6 +4069,106 @@
         "summary": "Export Me",
         "tags": [
           "me"
+        ]
+      }
+    },
+    "/api/v1/monitor/modes": {
+      "get": {
+        "operationId": "list_modes_api_v1_monitor_modes_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MonitorModeOut"
+                  },
+                  "title": "Response List Modes Api V1 Monitor Modes Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Modes",
+        "tags": [
+          "monitor"
         ]
       }
     },

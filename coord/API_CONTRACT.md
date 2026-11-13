@@ -60,3 +60,6 @@ Values are shown only with `show_rates=true`, or for the measure chosen in a Mea
 `timezone` remains in the schema for old clients but is not used. Frontend: compute the offset
 from the station clock time the person types (HH:MM) minus current UTC, rounded to the nearest
 15 minutes and wrapped into -720..840; leave the field blank to send nothing (UTC).
+
+`GET /api/v1/monitor/modes` (authenticated) → `[{mode, calibration_s, duration_s, total_s}]` from
+config.yaml `monitor` (placeholders). Use it for tile durations; never copy the numbers into the UI.

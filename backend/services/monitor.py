@@ -383,6 +383,19 @@ def start(
     return run
 
 
+def modes(cfg: MonitorCfg | None = None) -> list[dict[str, Any]]:
+    """Per-mode timing for the UI (room check + session), straight from config."""
+    cfg = cfg or get_config().monitor
+    if cfg is None:
+        return []
+    out = []
+    for mode in MODES:
+        duration = float(getattr(cfg.duration_s, mode))
+        out.append({"mode": mode, "calibration_s": float(cfg.calibration_s),
+                    "duration_s": duration, "total_s": float(cfg.calibration_s) + duration})
+    return out
+
+
 def _read_summary(user_id: str, run_id: str) -> dict[str, Any] | None:
     if not _ID.match(run_id):
         return None

@@ -119,6 +119,7 @@ ISOLATION_CASES: list[IsolationCase] = [
     # monitor (on-demand ESP sessions): B's list is B's own; A's session ids look missing.
     # Starting a session never touches A; with no receiver configured in tests it is 503.
     IsolationCase("get", "/api/v1/monitor/sessions", 200),
+    IsolationCase("get", "/api/v1/monitor/modes", 200),  # config timings, no user data
     IsolationCase("post", "/api/v1/monitor/sessions", 503, json={"mode": "heart_rate"}),
     IsolationCase("get", "/api/v1/monitor/sessions/{session_id}", 404,
                   params={"show_rates": "true"}),

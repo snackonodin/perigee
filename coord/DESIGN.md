@@ -464,3 +464,12 @@ Decided by the user (INTEGRATION_PLAN.md §7). One viewport, no page scroll, gla
 - **Session score:** "Experimental session score" with its parts and the limitations line; never
   called a sleep-quality or clinical score. No score while `score_status` is `insufficient_inputs`.
 - The safety screen (`--z-safety`) covers this screen like any other.
+
+## 15. Orbit Pop (v3 look), added 2026-11-14
+
+The user asked for a funkier, more modern, less generic UI using the shared references. The
+full brief, bug list and motion catalog live in `coord/FRONTEND_V3.md`. Summary: bento grid,
+orbit-ring motif, mono "mission telemetry" microcopy, one saturated accent `--uv: #5B4BDB`
+(text only on white/bg/glass), bundled Space Grotesk + JetBrains Mono, meaningful motion only
+(breathing orb at the person's own rate, progress rings, dynamic-island status, sliding tab
+pill, spotlight tiles). §8, §11 and §13 rules are unchanged and win any conflict.

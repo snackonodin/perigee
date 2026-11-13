@@ -5,3 +5,10 @@
 .auth-scene-copy p { font-family:var(--font-display);letter-spacing:-.02em; }
 .login-card h1,.auth-card h1 { font-family:var(--font-display); }
 .login-card button[type=submit],.auth-card button[type=submit] { background:var(--uv);border-color:var(--uv); }
+.auth-brand { display:flex;align-items:center;gap:8px;margin:0 0 20px;font-family:var(--font-display);font-size:var(--fs-h3);font-weight:700; }
+.auth-scene-copy .auth-orbit { margin-left:22px;margin-top:22px; }
+@media (min-width:768px) {
+  .login-layout.auth-layout { grid-template-columns:minmax(360px,460px) minmax(0,560px);justify-content:center;column-gap:clamp(48px,7vw,120px);padding:48px; }
+  .auth-scene { padding:48px 0; }
+  .auth-scene-copy { margin:auto 0; }
+}

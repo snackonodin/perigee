@@ -163,3 +163,10 @@ h1,h2,h3 { font-family:var(--font-display);letter-spacing:-.01em; }
 .settings-soon { display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0;color:var(--muted); }
 .settings-section .settings-switch-row.consent-switch-row { border-bottom:0;padding-top:0; }
 .settings-section .row button.danger { background:var(--alert-ink);color:#fff;border-color:var(--alert-ink); }
+/* Settings review: two independent columns; consent legend kept for screen readers only (headings already say it). */
+.settings-page .settings-grid { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--gutter);align-items:start; }
+.settings-col { display:grid;gap:var(--gutter);align-content:start;min-width:0; }
+.settings-col>* { margin:0; }
+.consents legend { position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap; }
+.settings-station { margin:-4px 0 0; }
+@media (max-width:767px) { .settings-page .settings-grid { grid-template-columns:minmax(0,1fr); } }

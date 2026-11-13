@@ -13,3 +13,7 @@
 .checkin-bento-cal { grid-row:auto; }
 .checkin-stack { display:grid;gap:var(--gutter);align-content:start;min-width:0; }
 .checkin-stack>* { margin:0; }
+/* Today: thin ultraviolet orbit ring with a small satellite at 12 o'clock (replaces the teal box). */
+.checkin-bento .calendar-day.today { position:relative;border-color:transparent;font-weight:700; }
+.checkin-bento .calendar-day.today::before { content:"";position:absolute;left:50%;top:50%;width:36px;height:36px;transform:translate(-50%,-50%);border:1.5px solid var(--uv);border-radius:50%;pointer-events:none; }
+.checkin-bento .calendar-day.today::after { content:"";position:absolute;left:50%;top:50%;width:6px;height:6px;transform:translate(-50%,-21px);border-radius:50%;background:var(--uv);box-shadow:0 0 0 2px var(--surface);pointer-events:none; }

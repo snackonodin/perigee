@@ -26,7 +26,7 @@ function SleepTimeline({ nights, days = DAYS }: { nights: NightOut[]; days?: num
   const end=Date.now(), start=end-(days-1)*86_400_000;
   const dates=Array.from({length:days},(_,i)=>new Date(start+i*86_400_000).toISOString().slice(0,10));
   const values=nights.filter(n=>n.valid).map(n=>n.presence_hours);
-  if (!values.length) return <div className="sleep-empty-inline"><div className="ghost-ticks" aria-hidden="true">{dates.map(d=><i key={d}/>)}</div><p className="vital-empty"><Icon name="sleep" size={24}/><span>No valid nights in this window yet.</span></p></div>;
+  if (!values.length) return <div className="sleep-empty-inline"><div className="ghost-ticks" aria-hidden="true">{dates.map(d=><i key={d}/>)}</div><span className="telemetry ghost-tonight" aria-hidden="true">Tonight</span><p className="vital-empty"><Icon name="sleep" size={24}/><span>No valid nights in this window yet.</span></p></div>;
   const maxHours=Math.max(8,Math.ceil(Math.max(...values)/4)*4);
   const x=(index:number)=>L+(index/Math.max(days-1,1))*(W-L-R);
   const y=(hours:number)=>T+(1-Math.min(hours,maxHours)/maxHours)*(H-T-B);
@@ -95,6 +95,6 @@ export function Sleep() {
       {(validCount??0)>0&&<section className="card glass wide sleep-trend-card" aria-labelledby="rr-trend-title"><p className="eyebrow">Personal signal</p><h2 id="rr-trend-title">Breathing-rate trend</h2><LoadState state={nights} label="breathing trend">{data=><RrTrend nights={data} baseline={baseline} days={DAYS}/>}</LoadState>
         {today.error&&<p className="muted">Personal baseline could not be loaded. Showing night data without its band.</p>}
       </section>}
-      <section className="card glass wide sleep-details"><button className="sleep-details-toggle ghost" type="button" aria-expanded={detailsOpen} aria-controls="sleep-night-details" onClick={()=>setDetailsOpen(v=>!v)}>Night-by-night details</button>{detailsOpen&&<div id="sleep-night-details" className="sleep-night-table">{nights.data&&<NightsTable nights={nights.data}/>}</div>}</section>
+      <section className="card glass wide sleep-details"><button className="sleep-details-toggle" type="button" aria-expanded={detailsOpen} aria-controls="sleep-night-details" onClick={()=>setDetailsOpen(v=>!v)}><span>Night-by-night details</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>{detailsOpen&&<div id="sleep-night-details" className="sleep-night-table">{nights.data&&<NightsTable nights={nights.data}/>}</div>}</section>
     </Reveal></div>;
 }

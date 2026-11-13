@@ -49,10 +49,10 @@ export function Overview() {
             <BreathingOrb rate={respiration} pace={pace} state={status(physiology)}/>
             <span className="satellite" style={{"--sat-a":`${-90+nights/BASELINE_NIGHTS*360}deg`} as CSSProperties} aria-hidden="true"/>
           </div>
-          <div className="today-hero-copy"><p className="eyebrow">Breathing · your recent pattern</p><h2 id="today-hero-title">{respiration==null?"Your picture is taking shape":"Your breathing, in context"}</h2>
+          <div className="today-hero-copy"><p className="eyebrow">Breathing · pattern</p><h2 id="today-hero-title">{respiration==null?"Your picture is taking shape":"Your breathing, in context"}</h2>
             <p>{respiration==null?"Readings appear after a full night near the sensor.":"Compared with your own recent nights."}</p>
-            <div className="today-hero-actions"><span className="hero-resilience">{resilience==null?"Personal picture building":<><strong>{Math.round(resilience)}</strong> resilience index</>}</span>
-              {pending&&<Link className="hero-action" to={`/checkin?instrument=${encodeURIComponent(pending.instrument_id)}`}>Check in <span aria-hidden="true">→</span></Link>}
+            <div className="today-hero-actions">{pending&&<Link className="hero-action" to={`/checkin?instrument=${encodeURIComponent(pending.instrument_id)}`}>Check in <span aria-hidden="true">→</span></Link>}
+              <span className="hero-resilience">{resilience==null?"Personal picture building":<><strong>{Math.round(resilience)}</strong> resilience index</>}</span>
             </div>
           </div>
           <dl className="tonight-panel" aria-label="Tonight">

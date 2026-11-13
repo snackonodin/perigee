@@ -8,7 +8,7 @@
 .sleep-arc-heading .eyebrow { margin-bottom:4px; }
 .sleep-arc-stage { position:relative;display:grid;place-items:center;max-width:360px;width:100%;margin:8px auto 0; }
 .sleep-arc-stage .sleep-arc { width:100%; }
-.sleep-arc-track.ghost { stroke-dasharray:3 6; }
+.sleep-arc-track.ghost { stroke-dasharray:none;stroke-linecap:round;stroke:var(--line); }
 .sleep-arc-wait { position:absolute;bottom:12%;color:var(--teal-ink); }
 /* The arc draws onset -> wake once: reads as the night passing. */
 .sleep-arc-value.draw-once { stroke-dasharray:258;stroke-dashoffset:0;animation:arc-draw 1.4s var(--ease) both; }
@@ -38,3 +38,12 @@ html[data-reduce-motion="true"] .sleep-arc-value.draw-once { animation:none; }
 .sleep-bento .sleep-hero .sleep-empty-inline { align-self:stretch;min-height:0; }
 .sleep-bento .sleep-hero .ghost-ticks { width:100%; }
 .sleep-bento .sleep-hero .sleep-empty-inline { grid-template-columns:minmax(0,1fr);justify-content:stretch; }
+.ghost-tonight { justify-self:end;margin-top:-4px;color:var(--uv); }
+/* One disclosure row: the whole card is the control. */
+.sleep-bento .sleep-details { padding:0;overflow:hidden; }
+.sleep-bento .sleep-details-toggle { display:flex;align-items:center;justify-content:space-between;width:100%;min-height:56px;padding:16px var(--card-pad);border:0;border-radius:0;background:transparent;box-shadow:none;color:var(--text);font:600 var(--fs-body)/1.3 var(--font);text-align:left; }
+.sleep-bento .sleep-details-toggle:hover { background:color-mix(in srgb,var(--surface) 60%,transparent); }
+.sleep-details-toggle svg { width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;transition:transform var(--dur-fast) var(--ease); }
+.sleep-details-toggle[aria-expanded="true"] svg { transform:rotate(180deg); }
+.sleep-bento .sleep-night-table { padding:0 var(--card-pad) var(--card-pad); }
+.sleep-bento .sleep-details-toggle { backdrop-filter:none;-webkit-backdrop-filter:none; }

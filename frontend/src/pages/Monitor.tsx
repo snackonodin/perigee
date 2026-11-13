@@ -33,6 +33,7 @@ export function Monitor() {
   const [showRates, setShowRates] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mode, setMode] = useState<Mode>("sleep_analysis");
+  const [noSensor, setNoSensor] = useState(false);
   const modes = useLoad(() => api.GET("/api/v1/monitor/modes"));
   const timing = new Map((modes.data ?? []).map((m) => [m.mode, m]));
   const phaseTotal = useRef<{ state?: SessionState; total: number }>({ total: 0 });
@@ -71,11 +72,12 @@ export function Monitor() {
   async function start(mode: Mode) {
     setStarting(true);
     setError(null);
+    setNoSensor(false);
     setSession(null);
     const result = await api.POST("/api/v1/monitor/sessions", { body: { mode } });
     setStarting(false);
     if (result.data) setSession(result.data as MonitorSession);
-    else if (result.response.status === 503) setError("No sensor is set up on this device.");
+    else if (result.response.status === 503) setNoSensor(true);
     else if (result.response.status === 409) setError("A monitor session is already active. Stop it before starting another.");
     else setError(errorText(result.error, result.response.status));
   }
@@ -98,7 +100,7 @@ export function Monitor() {
     <section className="monitor-page" aria-labelledby="monitor-title">
       <header className="monitor-header">
         <div><p className="eyebrow">On-demand sensor session</p><h1 id="monitor-title">Monitor</h1></div>
-        <StatusIsland state={session?.state} />
+        <StatusIsland state={session?.state} noSensor={noSensor && !session} />
       </header>
 
       {!active && <section className="card glass monitor-start" aria-labelledby="monitor-start-title">
@@ -112,6 +114,7 @@ export function Monitor() {
           </label>)}
         </div>
         <div className="monitor-start-row"><button type="button" className="btn-uv monitor-go" disabled={starting} onClick={() => void start(mode)}>{starting ? "Connecting…" : `Start ${MODE_LABELS[mode].toLowerCase()}`}</button></div>
+        {noSensor && <p className="monitor-nosensor" role="status"><Icon name="monitor" size={20} /><span>No sensor is set up on this device. Connect the receiver, then start again.</span></p>}
       </section>}
 
       {active && session && <section className="card glass monitor-session" aria-live="polite">
@@ -147,9 +150,9 @@ export function Monitor() {
 }
 
 /** Dynamic-island status pill: one pill that morphs Connecting -> Calibrating -> Running -> Done. */
-function StatusIsland({ state }: { state?: SessionState }) {
-  const label = state ? stateLabel(state) : "Sensor idle";
-  return <span className={`status-island island-${state ?? "idle"}`} role="status" aria-label={`Session status: ${label}`}>
+function StatusIsland({ state, noSensor = false }: { state?: SessionState; noSensor?: boolean }) {
+  const label = state ? stateLabel(state) : noSensor ? "No sensor" : "Sensor idle";
+  return <span className={`status-island island-${state ?? (noSensor ? "nosensor" : "idle")}`} role="status" aria-label={`Session status: ${label}`}>
     <i className="island-dot" aria-hidden="true" /><span key={label} className="island-label">{label}</span>
   </span>;
 }

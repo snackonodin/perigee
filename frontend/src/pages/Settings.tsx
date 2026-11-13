@@ -8,7 +8,7 @@ import { Reveal, TitleReveal } from "../components/motion";
 const REDUCE_MOTION_KEY = "settings.reduce-motion";
 
 export function Settings() {
-  const { me, reloadMe, logout } = useAuth();
+  const { me, reloadMe } = useAuth();
   const [displayName, setDisplayName] = useState(me?.display_name ?? "");
   const [stationTime, setStationTime] = useState("");
   const [profileBusy, setProfileBusy] = useState(false);
@@ -69,46 +69,45 @@ export function Settings() {
     <div className="settings-page">
     <header className="page-heading"><div><p className="eyebrow">Your account · this device</p><TitleReveal text="Settings"/><p>Profile, what is stored, and how the app moves.</p></div></header>
     <Reveal className="settings-grid">
+      <div className="settings-col">
       <section className="card glass settings-section" aria-labelledby="settings-profile-title">
         <h2 id="settings-profile-title">Profile</h2>
         <p className="muted">Signed in as {me?.email ?? ""}</p>
         <form className="settings-form" onSubmit={saveProfile}>
           <label>Display name<input value={displayName} onChange={(event) => setDisplayName(event.target.value)} autoComplete="name" /></label>
           <label>Station time (optional)<input type="time" value={stationTime} onChange={(event) => setStationTime(event.target.value)} /></label>
+          <p className="settings-station" role="status"><span className="tag-mono">Saved · Station time = {formatStationOffset(me?.station_time_offset_min ?? 0)}</span></p>
           <p className="muted">The time on your station clock now. Leave blank to use UTC, the atomic-time standard the ISS uses.</p>
-          <p className="muted" role="status">Station time = {formatStationOffset(me?.station_time_offset_min ?? 0)}</p>
           <div className="settings-actions"><button type="submit" disabled={profileBusy}>{profileBusy ? "Saving…" : "Save profile"}</button><span className="settings-saved" role="status">{profileSaved ? "Saved" : ""}</span></div>
           <p className="error" role="alert">{profileError}</p>
         </form>
       </section>
-
-      <section className="card glass settings-section" aria-labelledby="settings-consents-title">
-        <h2 id="settings-consents-title">Consents</h2>
-        <Consents />
-      </section>
-
       <section className="card glass settings-section" aria-labelledby="settings-data-title">
         <h2 id="settings-data-title">Data</h2>
         <ExportData />
         <hr />
         <DeleteAccount />
       </section>
-
-      <section className="card glass settings-section" aria-labelledby="settings-accessibility-title">
-        <h2 id="settings-accessibility-title">Accessibility</h2>
-        <label className="settings-switch-row consent-switch-row"><span className="settings-consent-copy"><span className="consent-label">Reduce motion</span><span className="muted">Stop animated effects and see-through surfaces throughout the app.</span><span className="settings-saved" role="status">{motionSaved ? "Saved" : ""}</span></span><input type="checkbox" role="switch" aria-label="Reduce motion" checked={reduceMotion} onChange={(event) => changeReducedMotion(event.target.checked)} /></label>
-      </section>
-
       <section className="card glass settings-section" aria-labelledby="settings-companion-title">
         <h2 id="settings-companion-title">Companion</h2>
         <p className="settings-soon"><span className="tag-mono">Coming soon</span> A small crew companion that keeps you company.</p>
       </section>
-
-      <section className="card glass settings-section" aria-labelledby="settings-signout-title">
-        <h2 id="settings-signout-title">Sign out</h2>
-        <p className="muted">Sign out of this device.</p>
-        <button type="button" className="ghost" onClick={() => void logout()}>Sign out</button>
+      </div>
+      <div className="settings-col">
+      <section className="card glass settings-section" aria-labelledby="settings-consents-title">
+        <h2 id="settings-consents-title">Consents</h2>
+        <Consents />
       </section>
+      <section className="card glass settings-section" aria-labelledby="settings-accessibility-title">
+        <h2 id="settings-accessibility-title">Accessibility</h2>
+        <label className="settings-switch-row consent-switch-row"><span className="settings-consent-copy"><span className="consent-label">Reduce motion</span><span className="muted">Stop animated effects and see-through surfaces throughout the app.</span><span className="settings-saved" role="status">{motionSaved ? "Saved" : ""}</span></span><input type="checkbox" role="switch" aria-label="Reduce motion" checked={reduceMotion} onChange={(event) => changeReducedMotion(event.target.checked)} /></label>
+      </section>
+      </div>
+
+
+
+
+
     </Reveal>
     </div>
   );

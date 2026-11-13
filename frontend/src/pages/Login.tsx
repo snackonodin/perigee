@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router";
 import { api } from "../api/client";
 import { useAuth } from "../auth/AuthProvider";
 import { BRAND } from "../brand";
+import { Icon } from "../components/icons";
 import "./Login.css";
 
 export function Login({ signup = false }: { signup?: boolean }) {
@@ -76,6 +77,7 @@ export function Login({ signup = false }: { signup?: boolean }) {
       <div className="auth-scene" aria-hidden="true"><div ref={fogRef} className="login-fog auth-fog" /><div className="auth-scene-copy"><span className="auth-orbit"><i className="auth-planet"/><span className="satellite spin" style={{"--sat-r":"64px","--sat-period":"18s"} as React.CSSProperties}/></span><p>Your nights, understood.</p><span>Gentle insights for your wellbeing.</span></div></div>
       <main className="login-main auth-main">
         <section className="panel login-card glass auth-card" aria-labelledby="login-title">
+          <p className="auth-brand"><span className="brand-mark" aria-hidden="true"><Icon name="brand" size={22}/></span>{BRAND}</p>
           <p className="eyebrow">Private health companion</p>
           <h1 id="login-title">{signup ? "Create your account" : "Welcome back"}</h1>
           <p className="login-subtitle">{signup ? "Start your private wellbeing log." : "Sign in to continue to your personal log."}</p>

@@ -33,7 +33,7 @@ export function CheckinCalendar({ checkins, now = new Date() }: { checkins:Check
         const isToday=inMonth&&key===dateKey(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate());
         const dateLabel=inMonth?`${monthName} ${day}, ${year}`:"Outside this month";
         const entryLabel=entries.length?`${entries.length} check-in${entries.length===1?"":"s"}`:"no check-in recorded";
-        return <div key={i} className={`${inMonth?"calendar-day":"calendar-day outside"}${kind?" has-entry":""}${isToday?" today":""}`} role="gridcell" aria-label={inMonth?`${dateLabel}, ${entryLabel}`:undefined}>
+        return <div key={i} className={`${inMonth?"calendar-day":"calendar-day outside"}${kind?" has-entry":""}${isToday?" today":""}`} role="gridcell" aria-label={inMonth?`${dateLabel}${isToday?", today":""}, ${entryLabel}`:undefined}>
           {inMonth&&<><span>{day}</span>{kind&&<span className={`calendar-dot ${kind}`} aria-hidden="true"/>}</>}
         </div>;
       })}</div>)}</div>

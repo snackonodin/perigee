@@ -62,3 +62,11 @@
 @media (prefers-reduced-motion:reduce) { .hero-action,.hero-action:hover,.hero-action:active { transition:none;transform:none; } }
 .hero-orb-stage .satellite { --sat-r:118px; }
 @media (max-width:599px) { .hero-orb-stage .satellite { --sat-r:98px; } }
+/* Review: small tiles >= 280 px. Four across only from 1200 px; titles and the Experimental tag never wrap. */
+@media (min-width:1024px) and (max-width:1199px) { .today-bento { grid-template-columns:repeat(2,minmax(0,1fr)); } .today-bento .bento-hero { grid-column:1 / -1;grid-row:auto; } }
+.today-bento .vital-title-text { flex-wrap:nowrap;min-width:0; }
+.today-bento .vital-title-text h2 { white-space:nowrap; }
+.tag-mono { white-space:nowrap;flex:none; }
+.today-bento .today-hero-actions { justify-content:flex-start; }
+@media (max-width:599px) { .today-bento .today-hero-actions { justify-content:center; } }
+.today-bento .vital-title-text { flex-wrap:wrap;row-gap:4px; }

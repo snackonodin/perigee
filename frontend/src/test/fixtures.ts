@@ -60,6 +60,8 @@ export const unreviewedCard: GuidanceCardOut = {
 
 export const today: TodayOut & { context_engine: Record<string, unknown> | null } = {
   date: "2026-11-11",
+  safety_screen_required: false,
+  missing_safety_item: null,
   latest_night: night("2026-11-10", 17.9),
   flags: [
     {
@@ -133,5 +135,5 @@ export const phq9: Instrument = {
 export const SERVER_SAFETY = { reason: "Server reason text.", resources: ["Server resource A", "Server resource B"] };
 
 export function responseOut(over: Partial<ResponseOut> = {}): ResponseOut {
-  return { ok: true, crisis: false, safety: { show: false, resources: [] }, id: "r-1", stored: true, total: 1, scores: {}, errors: [], ...over };
+  return { ok: true, crisis: false, answers_retained: true, safety_screen_required: false, safety: { show: false, resources: [] }, id: "r-1", stored: true, total: 1, scores: {}, errors: [], ...over };
 }

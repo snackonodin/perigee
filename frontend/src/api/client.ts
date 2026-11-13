@@ -18,6 +18,8 @@ function todayUnavailableMock(): Response {
     checkins_consent: false,
     flags: [],
     latest_night: null,
+    safety_screen_required: false,
+    missing_safety_item: null,
     pending_checkins: [],
     sync_status: { state: "api_mock" },
     context_engine: null,

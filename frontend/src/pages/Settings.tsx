@@ -9,6 +9,7 @@ const REDUCE_MOTION_KEY = "settings.reduce-motion";
 export function Settings() {
   const { me, reloadMe, logout } = useAuth();
   const [displayName, setDisplayName] = useState(me?.display_name ?? "");
+  const [stationTime, setStationTime] = useState("");
   const [profileBusy, setProfileBusy] = useState(false);
   const [profileError, setProfileError] = useState<string | null>(null);
   const [profileSaved, setProfileSaved] = useState(false);
@@ -18,6 +19,10 @@ export function Settings() {
   useEffect(() => {
     setDisplayName(me?.display_name ?? "");
   }, [me?.display_name]);
+
+  useEffect(() => {
+    setStationTime("");
+  }, [me?.station_time_offset_min]);
 
   useEffect(() => {
     let enabled = false;
@@ -35,8 +40,9 @@ export function Settings() {
     setProfileBusy(true);
     setProfileError(null);
     setProfileSaved(false);
+    const stationOffset = stationTime ? stationTimeOffset(stationTime) : null;
     const { error, response } = await api.PATCH("/api/v1/me", {
-      body: { display_name: displayName.trim() || null },
+      body: { display_name: displayName.trim() || null, station_time_offset_min: stationOffset },
     });
     setProfileBusy(false);
     if (error) {
@@ -65,6 +71,9 @@ export function Settings() {
         <p className="muted">Signed in as {me?.email ?? ""}</p>
         <form className="settings-form" onSubmit={saveProfile}>
           <label>Display name<input value={displayName} onChange={(event) => setDisplayName(event.target.value)} autoComplete="name" /></label>
+          <label>Station time (optional)<input type="time" value={stationTime} onChange={(event) => setStationTime(event.target.value)} /></label>
+          <p className="muted">The time on your station clock now. Leave blank to use UTC, the atomic-time standard the ISS uses.</p>
+          <p className="muted" role="status">Station time = {formatStationOffset(me?.station_time_offset_min ?? 0)}</p>
           <div className="settings-actions"><button type="submit" disabled={profileBusy}>{profileBusy ? "Saving…" : "Save profile"}</button><span className="settings-saved" role="status">{profileSaved ? "Saved" : ""}</span></div>
           <p className="error" role="alert">{profileError}</p>
         </form>
@@ -101,6 +110,22 @@ export function Settings() {
       </section>
     </div>
   );
+}
+
+function stationTimeOffset(value: string): number {
+  const [hours, minutes] = value.split(":").map(Number);
+  const now = new Date();
+  let offset = hours * 60 + minutes - (now.getUTCHours() * 60 + now.getUTCMinutes());
+  while (offset < -720) offset += 1440;
+  while (offset > 840) offset -= 1440;
+  return Math.round(offset / 15) * 15;
+}
+
+function formatStationOffset(offset: number): string {
+  if (offset === 0) return "UTC";
+  const sign = offset > 0 ? "+" : "-";
+  const absolute = Math.abs(offset);
+  return `UTC${sign}${String(Math.floor(absolute / 60)).padStart(2, "0")}:${String(absolute % 60).padStart(2, "0")}`;
 }
 
 function applyReducedMotion(enabled: boolean) {

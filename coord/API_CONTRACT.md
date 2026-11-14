@@ -103,3 +103,14 @@ baseline_only_framing, privacy_lock_reminder) and `advice: [{tag, text}]`. Advic
 the latest night and check-ins from the last 3 days, so a new check-in can change it at once;
 empty while a safety screen is pending. `traits` is `{}` for psyche60. Spec: docs/psyche60.md.
 Show no numbers from it. `mini_ipip` stays in the catalog but the UI should use psyche60.
+
+## Pet speech bubble, added 2026-11-15
+
+`GET /api/v1/pet/bubble` (auth) → `{id, voice, badge, playful, pet_animation, bubble, micro_try,
+ui_action, disclaimer}`. One bubble, chosen server-side from seeds/pet_dialogue_bank.json in this
+order: safety (pending safety screen → `safety_phq9_item9`, voice `unmodulated`, `playful:false`,
+`ui_action:"HALT_AND_OPEN_CRISIS_SCREEN"`), support/context cards, domain nudges, then the
+four-state bubble in the persona voice (warm/bright/quiet/calm from the quadrant). `bubble` is
+null before the first night (`id:"no_night_yet"`). `playful:false` → no playful pet animation.
+`badge` is green / amber / support / crisis / neutral; never render red for it. Never contains scores.
+Not wired (no data yet): cabin CO2 nudge, weekly reflection, exploratory pattern, severe somatic flag.

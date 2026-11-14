@@ -1160,6 +1160,83 @@
         "title": "PersonaOut",
         "type": "object"
       },
+      "PetBubbleOut": {
+        "properties": {
+          "badge": {
+            "title": "Badge",
+            "type": "string"
+          },
+          "bubble": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bubble"
+          },
+          "disclaimer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Disclaimer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "micro_try": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Micro Try"
+          },
+          "pet_animation": {
+            "title": "Pet Animation",
+            "type": "string"
+          },
+          "playful": {
+            "title": "Playful",
+            "type": "boolean"
+          },
+          "ui_action": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ui Action"
+          },
+          "voice": {
+            "title": "Voice",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "voice",
+          "badge",
+          "playful",
+          "pet_animation"
+        ],
+        "title": "PetBubbleOut",
+        "type": "object"
+      },
       "Posture": {
         "enum": [
           "supine",
@@ -5158,6 +5235,103 @@
         "summary": "Get Persona",
         "tags": [
           "persona"
+        ]
+      }
+    },
+    "/api/v1/pet/bubble": {
+      "get": {
+        "description": "The pet's single speech bubble for the caller. Safety first: while a safety screen is\npending it is the crisis card (playful=false, ui_action HALT_AND_OPEN_CRISIS_SCREEN). Voice\ncomes from the persona quadrant (traits never change thresholds). bubble=null before the\nfirst night. Never contains scores.",
+        "operationId": "get_bubble_api_v1_pet_bubble_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PetBubbleOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Bubble",
+        "tags": [
+          "pet"
         ]
       }
     },

@@ -1,0 +1,129 @@
+{
+  "version": "1.0.0",
+  "note": "Pet 'Speak' layer, supplied by the project owner 2026-11-15. Traits set voice only, never thresholds. Selection: backend/services/pet_dialogue.py. Numeric triggers are owner-supplied placeholders (TUNING.md).",
+  "voices": {
+    "Dynamic Explorer": {
+      "voice": "warm",
+      "ui_rules": {
+        "suppress_red_below_alert": true,
+        "add_reassurance": true,
+        "show_why_details": true
+      }
+    },
+    "Autonomous Pioneer": {
+      "voice": "bright",
+      "ui_rules": {
+        "structured_checklist": true,
+        "show_why_details": true
+      }
+    },
+    "Internal Deliberator": {
+      "voice": "quiet",
+      "ui_rules": {
+        "suppress_red_below_alert": true,
+        "prefer_scheduled_1on1_over_group": true,
+        "add_reassurance": true
+      }
+    },
+    "Steady Anchor": {
+      "voice": "calm",
+      "ui_rules": {
+        "structured_checklist": true,
+        "prefer_scheduled_1on1_over_group": true
+      }
+    }
+  },
+  "safety_overrides": {
+    "safety_phq9_item9": {
+      "pet_animation": "calm_present",
+      "ui_action": "HALT_AND_OPEN_CRISIS_SCREEN",
+      "bubble": "Hey, pause here with me. I'm really glad you told me. You don't have to carry this alone. Let's open someone who can help.",
+      "disclaimer": "This tool is a screening and reflection aid, not a crisis service, and does not replace professional care."
+    },
+    "safety_high_7d": {
+      "pet_animation": "cozy_support",
+      "ui_action": "PROMPT_SUPPORT_CONTACT",
+      "bubble": "It's been a heavy week. Please reach out to your support team today so you aren't doing this solo."
+    }
+  },
+  "context_cards": {
+    "absolute_clinical_floor": {
+      "pet_animation": "cozy_support",
+      "bubble": "Even if things have felt normal lately, your check-in says it's worth talking with someone on your support team."
+    },
+    "safety_valve_3d": {
+      "pet_animation": "curious_tilt",
+      "bubble": "Okay, this has stuck around for three nights now, even counting busy days. Let's take a closer look together."
+    },
+    "explained_by_day": {
+      "pet_animation": "curious_tilt",
+      "bubble": "Your breathing bumped up last night, which fits the day you had. Keeping an eye on it, just in case!",
+      "micro_try": "Try an earlier caffeine cutoff or 2 minutes of slow breathing before lights-out."
+    }
+  },
+  "four_state_bubbles": {
+    "Steady": {
+      "pet_animation": "calm_float",
+      "badge": "green",
+      "voices": {
+        "warm": "Sleep and mood both look cozy and steady for you today!",
+        "bright": "Right on your usual line. Breathing and mind both look calm.",
+        "quiet": "Nice, quiet night. Keep protecting whatever helped you rest.",
+        "calm": "All steady against your usual baseline. Same simple rhythm today."
+      }
+    },
+    "Body Signal First": {
+      "pet_animation": "curious_tilt",
+      "badge": "amber",
+      "voices": {
+        "warm": "Your mood feels okay, though your breathing ran a little higher overnight. This is common and checkable. Quick symptom check?",
+        "bright": "Your body shifted overnight before your mood noticed. Want to log symptoms or yesterday's load?",
+        "quiet": "Your body worked a bit harder while you slept. Mind tapping how you feel physically?",
+        "calm": "Overnight breathing drifted a bit while your mood stayed steady. Let's check symptoms and room air."
+      }
+    },
+    "Mind Signal First": {
+      "pet_animation": "cozy_listen",
+      "badge": "amber",
+      "voices": {
+        "warm": "Your sleep stayed calm, even though your mind is carrying extra weight today. Want to drop a private note just for you?",
+        "bright": "Sleep looks steady, but your mental load ticked up. Good time to trim one optional thing today.",
+        "quiet": "Your body is holding steady, even if your head feels tired. Maybe schedule a quiet 1-on-1 chat if this lingers.",
+        "calm": "Mental load is up while sleep stays steady. One small thing that would help tomorrow?"
+      }
+    },
+    "Converging Signals": {
+      "pet_animation": "cozy_glow",
+      "badge": "amber",
+      "voices": {
+        "warm": "Both your sleep and stress nudged out of your usual zone together. Let's peek at both side by side. Maybe check in with someone?",
+        "bright": "Body and mind both drifted together today. Worth opening both timelines and checking in with your support contact.",
+        "quiet": "Both your sleep and mood are asking for a breather today. A quiet 1-on-1 check-in might feel good.",
+        "calm": "Sleep and mental load shifted together. Let's look at the two timelines and reach out to your team."
+      }
+    }
+  },
+  "domain_nudges": {
+    "pvt_speed_illusion": {
+      "bubble": "Speed still feels okay, but focus is blinking a bit. A tiny 5-minute pause beats pushing through!"
+    },
+    "autonomic_stress_breath": {
+      "bubble": "Rough day? Let's do a 2-minute slow-breathing reset together before bed."
+    },
+    "short_sleep_mood_fuse": {
+      "bubble": "Short sleep makes everything feel a tiny bit sharper today. Be extra gentle with yourself."
+    },
+    "authority_team_friction": {
+      "bubble": "Tight quarters make outside rules feel heavier. Want a private note or a scheduled 1-on-1 chat?"
+    },
+    "circadian_anchor": {
+      "bubble": "Your sleep timing wandered a bit. Anchoring tomorrow morning's wake-up helps you settle faster."
+    }
+  },
+  "thresholds": {
+    "index_high": 65,
+    "short_sleep_h": 6.0,
+    "persist_valve_days": 3,
+    "persist_support_days": 7
+  }
+}

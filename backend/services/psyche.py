@@ -153,8 +153,8 @@ def context(db: Session, user_id: str, today: date | None = None) -> dict[str, b
     cls = (out or {}).get("classification") or {}
     metrics = (out or {}).get("scores_and_metrics") or {}
     quad = str(cls.get("quadrant", ""))
-    body = "Body" in quad or "Dual" in quad or (metrics.get("phys_level") or 0) >= 1
-    mind = "Mind" in quad or "Dual" in quad or (metrics.get("mental_level") or 0) >= 1
+    body = "Body" in quad or "Converging" in quad or (metrics.get("phys_level") or 0) >= 1
+    mind = "Mind" in quad or "Converging" in quad or (metrics.get("mental_level") or 0) >= 1
 
     since = today - timedelta(days=cfg.checkin_window_days)
     rows = db.scalars(

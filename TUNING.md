@@ -41,3 +41,7 @@ When a value is validated, record the data and date next to it.
 | psyche.checkin_window_days | 3 | Recent check-ins used as advice context | no |
 | psyche.checkin_stress_high / checkin_low | 3 / 1 | daily_pm stress high; mood / energy / sleep_quality low (0-4 scale) for advice context | no |
 | psyche.midsleep_shift_h / midsleep_window_nights | 0.75 / 7 | Circadian drift context for advice (owner-supplied) | no |
+| seeds/pet_dialogue_bank.json thresholds.index_high | 65 | Engine mental index (0-100) that triggers a pet nudge (owner-supplied) | no |
+| ... thresholds.short_sleep_h | 6.0 | Short-sleep pet nudge (owner-supplied) | no |
+| ... thresholds.persist_valve_days / persist_support_days | 3 / 7 | Safety-valve card and support-contact card persistence (owner-supplied) | no |
+

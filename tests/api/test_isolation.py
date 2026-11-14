@@ -118,6 +118,8 @@ ISOLATION_CASES: list[IsolationCase] = [
     IsolationCase("get", "/api/v1/today", 200),
     # persona: always the caller's own traits (A's quiz never reaches B; test_persona_quiz)
     IsolationCase("get", "/api/v1/persona", 200),
+    # pet bubble: built only from the caller's own night and persona (test_pet_dialogue)
+    IsolationCase("get", "/api/v1/pet/bubble", 200),
     # injection (INJ-1): estimates for A's session must look like a missing session, write
     # nothing and reveal nothing, whatever else the request carries
     # monitor (on-demand ESP sessions): B's list is B's own; A's session ids look missing.

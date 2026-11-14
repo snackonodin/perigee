@@ -23,7 +23,7 @@ shown, nothing here changes a physiological threshold, an alert or the safety pa
   signal from the user's own data. Signals available in the app today and the substitutes used:
   | Tag | Owner trigger | Implemented with |
   |---|---|---|
-  | rumination_sleep_spill | M1 + restless sleep or high worry/stress | engine body signal (Body/Dual quadrant or phys_level>=1) or daily_pm stress >= 3 |
+  | rumination_sleep_spill | M1 + restless sleep or high worry/stress | engine body signal (Body or Converging state or phys_level>=1) or daily_pm stress >= 3 |
   | reactive_friction_risk | M3 + short sleep / PVT lapses or elevated RR | engine body signal or daily_am sleep_quality <= 1 |
   | autonomy_strain | M4 + high workload / team conflict | daily_pm stress >= 3 (no workload slider yet) |
   | vigilance_saturation | M5 + PVT drop / mental fatigue | daily energy <= 1 (no mini-PVT yet) |

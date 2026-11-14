@@ -16,9 +16,6 @@
 /* Ultraviolet: focus moments only (active tab pill, primary Monitor buttons, orbit dot). White text on it is 6.0:1. */
 .btn-uv { background:var(--uv);border-color:var(--uv);color:#fff; }
 .btn-uv:hover { background:color-mix(in srgb,var(--uv) 88%,#000); }
-/* Title split-reveal keeps the heading box. */
-.title-reveal { display:block; }
-.title-reveal .split-parent { margin:0;font-size:var(--fs-h1);line-height:var(--lh-h1);font-weight:700;font-family:var(--font-display); }
 /* Hover / press for tappable tiles. */
 .tile-press { transition:transform var(--dur-fast) var(--ease),box-shadow var(--dur-fast) var(--ease); }
 .tile-press:hover { transform:translateY(-2px);box-shadow:var(--shadow-2); }

@@ -3,7 +3,6 @@ import { Link } from "react-router";
 import { useAuth } from "../auth/AuthProvider";
 import { plainHeadline, plainMessage } from "../components/advisory";
 import { Icon } from "../components/icons";
-import { Reveal, TitleReveal } from "../components/motion";
 import "./Today.css";
 import { api } from "../api/client";
 import type { TodayOut } from "../api/types";
@@ -42,9 +41,9 @@ export function Overview() {
     const nights=Math.max(0,Math.min(BASELINE_NIGHTS,baseline?.n??0));
     const pending=today.pending_checkins[0];
     return <div className="screen-page today-page">
-      <header className="page-heading"><div><TitleReveal text="Today"/><p>{night?`Last signal · ${night.date}`:"Your next quiet check-in"}</p></div></header>
+      <header className="page-heading"><div><h1>Today</h1><p>{night?`Last signal · ${night.date}`:"Your next quiet check-in"}</p></div></header>
       {load.apiMock&&<p className="api-mock-note" role="status">Showing sample data: live service unavailable</p>}
-      <Reveal className="today-bento">
+      <div className="today-bento">
         <section className="today-hero-card glass bento-hero" data-pet-perch aria-labelledby="today-hero-title">
           <div className="hero-orb-stage orbit" style={{"--orbit-inset":"-18px"} as CSSProperties}>
             <BreathingOrb rate={respiration} pace={pace} state={status(physiology)}/>
@@ -72,7 +71,7 @@ export function Overview() {
           <p className="vital-caption">Sensed presence last night.</p>
         </VitalCard>:<VitalCard label="Rest" icon="◔" to="/sleep" empty="Time at rest appears after your first full night near the sensor."/>}
         <aside className="today-note-card glass-strong bento-wide" data-pet-perch><span className="note-glyph" aria-hidden="true"><Icon name="briefing" size={20}/></span><div><strong>{plainHeadline(advisory?.headline)??"Notice your own rhythm"}</strong><p>{plainMessage(advisory?.personality_tailored_message)??"Your patterns are compared with your own recent baseline."}</p></div></aside>
-      </Reveal>
+      </div>
     </div>;
   }}</LoadState>;
 }

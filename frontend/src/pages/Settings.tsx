@@ -4,7 +4,6 @@ import { useAuth } from "../auth/AuthProvider";
 import { CompanionSettings } from "../components/CompanionSettings";
 import { Consents } from "../components/Consents";
 import { DeleteAccount, ExportData } from "../components/DataControls";
-import { Reveal, TitleReveal } from "../components/motion";
 
 const REDUCE_MOTION_KEY = "settings.reduce-motion";
 
@@ -68,8 +67,8 @@ export function Settings() {
 
   return (
     <div className="settings-page">
-    <header className="page-heading"><div><TitleReveal text="Settings"/><p>Profile, what is stored, and how the app moves.</p></div></header>
-    <Reveal className="settings-grid">
+    <header className="page-heading"><div><h1>Settings</h1><p>Profile, what is stored, and how the app moves.</p></div></header>
+    <div className="settings-grid">
       <div className="settings-col">
       <section className="card glass settings-section" aria-labelledby="settings-profile-title">
         <h2 id="settings-profile-title">Profile</h2>
@@ -109,7 +108,7 @@ export function Settings() {
 
 
 
-    </Reveal>
+    </div>
     </div>
   );
 }

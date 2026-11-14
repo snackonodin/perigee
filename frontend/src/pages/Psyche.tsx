@@ -8,7 +8,6 @@ import { IndexCards } from "../components/IndexCards";
 import { LoadState } from "../components/LoadState";
 import { QuestionnaireList } from "../components/QuestionnaireList";
 import { friendlyName, officialName } from "../components/instrumentNames";
-import { Reveal, TitleReveal } from "../components/motion";
 import "./Checkin.css";
 
 export function Psyche() {
@@ -27,8 +26,8 @@ export function Psyche() {
     <header className="page-heading app-page-heading"><button type="button" className="ghost checkin-back" onClick={close}><span aria-hidden="true">←</span> All check-ins</button><div><h1>{friendlyName(selected,(inst.data as Instrument|undefined)?.name)}</h1><p>Take this one card at a time.</p>{officialName(selected,(inst.data as Instrument|undefined)?.name)&&<p className="instrument-official">{officialName(selected,(inst.data as Instrument|undefined)?.name)}</p>}</div></header>
     <section className="checkin-question-panel glass" data-pet-avoid><LoadState state={inst} label="the check-in">{definition=><CheckinForm key={selected} instrument={definition as unknown as Instrument} onDone={close}/>}</LoadState></section>
   </div>;
-  return <div className="checkin-page"><header className="page-heading"><div><TitleReveal text="Check-in"/><p>One card at a time. Answer what feels right for today.</p></div></header>
-    <Reveal className="checkin-bento">
+  return <div className="checkin-page"><header className="page-heading"><div><h1>Check-in</h1><p>One card at a time. Answer what feels right for today.</p></div></header>
+    <div className="checkin-bento">
       <div className="checkin-bento-cal"><LoadState state={history} label="your check-in calendar">{items=><CheckinCalendar checkins={items as CheckinOut[]}/>}</LoadState></div>
       <div className="checkin-stack"><section className="card glass daily-checkin-card" aria-labelledby="daily-title"><h2 id="daily-title">A quick check-in</h2>
         <LoadState state={list} label="daily check-ins">{items=><QuestionnaireList items={items} dailyOnly completedIds={(history.data??[]).filter(c=>c.date===to).map(c=>c.instrument_id)} onStart={id=>setParams({instrument:id})}/>}</LoadState>
@@ -37,5 +36,5 @@ export function Psyche() {
       <section className="card glass wide other-checkins-card" data-pet-perch aria-labelledby="other-title"><h2 id="other-title">More reflections</h2>
         <LoadState state={list} label="questionnaires">{items=><QuestionnaireList items={items} completedIds={(history.data??[]).filter(c=>c.date===to).map(c=>c.instrument_id)} onStart={id=>setParams({instrument:id})}/>}</LoadState>
       </section>
-    </Reveal></div>;
+    </div></div>;
 }

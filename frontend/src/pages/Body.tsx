@@ -6,7 +6,6 @@ import { fmt } from "../components/format";
 import { LoadState } from "../components/LoadState";
 import { VitalCard } from "../components/VitalCard";
 import type { Status } from "../components/StatusChip";
-import { Reveal, TitleReveal } from "../components/motion";
 import "./Body.css";
 import anchors from "../assets/body/anchors.json";
 
@@ -69,9 +68,9 @@ export function Body() {
     const nightsIn=Math.min(28,baseline?.n??0);
     const footer=<><p className="system-meaning">{MEANING[selected]}</p><div className="system-usual"><span className="meta-label">Personal baseline</span><span>{selected==="Cabin"?"Not compared":nightsIn>=28?"Baseline ready":`Building · ${nightsIn} / 28 nights`}</span></div></>;
     return <div className="screen-page body-page">
-      <header className="page-heading"><div><TitleReveal text="Body"/><p>Choose a system to see the available reading.</p></div></header>
+      <header className="page-heading"><div><h1>Body</h1><p>Choose a system to see the available reading.</p></div></header>
       {load.apiMock&&<p className="api-mock-note" role="status">Showing sample data: live service unavailable</p>}
-      <Reveal className="body-layout">
+      <div className="body-layout">
         <section className="body-map-card glass" aria-label="Body systems map"><span className="body-orbit" aria-hidden="true"/><BodyMap selected={selected} details={details} onSelect={setSelected}/></section>
         <section className="body-detail" aria-live="polite" aria-labelledby="body-detail-title" key={selected}>
           <div className="system-switch" role="group" aria-label="Choose a system">{SYSTEMS.map(name=><button key={name} type="button" className={`system-pill system-pill-${COLORS[name]}`} aria-pressed={selected===name} onClick={()=>setSelected(name)}><i aria-hidden="true"/>{name}</button>)}</div>
@@ -81,7 +80,7 @@ export function Body() {
             {selected==="Respiration"&&baseline?.median!=null&&baseline.mad!=null&&<p className="body-baseline">Your usual range<br/>{fmt(baseline.median-baseline.mad)}–{fmt(baseline.median+baseline.mad)} br/min (median ± MAD)</p>}
           </VitalCard>}
         </section>
-      </Reveal>
+      </div>
     </div>;
   }}</LoadState>;
 }

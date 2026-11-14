@@ -11,7 +11,6 @@ import { RrTrend } from "../components/RrTrend";
 import { SleepArc } from "../components/SleepArc";
 import { StatusChip, type Status } from "../components/StatusChip";
 import { Icon } from "../components/icons";
-import { Reveal, TitleReveal } from "../components/motion";
 import "./Sleep.css";
 
 const DAYS = 28;
@@ -87,10 +86,10 @@ export function Sleep() {
   const explanation=plainMessage(sleepAdvisory?.personality_tailored_message)??plainHeadline(sleepAdvisory?.headline)??"The API did not include a sleep note.";
   const validCount=nights.data?.filter(n=>n.valid).length;
   const status=levelStatus(level);
-  return <div className="sleep-page"><header className="page-heading"><div><TitleReveal text="Sleep"/><p>Night by night, compared with your own recent pattern.</p></div>{status!=="none"&&<StatusChip state={status}/>}</header>
+  return <div className="sleep-page"><header className="page-heading"><div><h1>Sleep</h1><p>Night by night, compared with your own recent pattern.</p></div>{status!=="none"&&<StatusChip state={status}/>}</header>
     {sleepToday?.sync_status?.state==="api_mock"&&<p className="api-mock-note" role="status">API unavailable · empty preview only; no sleep readings are being shown.</p>}
     {nights.apiMock&&<p className="api-mock-note" role="status">API unavailable · empty preview only; no night records are being shown.</p>}
-    <Reveal className="sleep-bento">
+    <div className="sleep-bento">
       <div className="sleep-bento-arc"><SleepArc night={latestValid} status={status} explanation={explanation}/></div>
       <BreathingTile latest={latestValid} baseline={baseline}/>
       {nights.data?<Regularity nights={nights.data}/>:<section className="card glass regularity-card"><h2>Regularity</h2><p className="muted">Available when the recent nights load.</p></section>}
@@ -100,5 +99,5 @@ export function Sleep() {
         {today.error&&<p className="muted">Personal baseline could not be loaded. Showing night data without its band.</p>}
       </section>}
       <section className="card glass wide sleep-details"><button className="sleep-details-toggle" type="button" aria-expanded={detailsOpen} aria-controls="sleep-night-details" onClick={()=>setDetailsOpen(v=>!v)}><span>Night-by-night details</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>{detailsOpen&&<div id="sleep-night-details" className="sleep-night-table">{nights.data&&<NightsTable nights={nights.data}/>}</div>}</section>
-    </Reveal></div>;
+    </div></div>;
 }

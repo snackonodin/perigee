@@ -1,6 +1,5 @@
 import { useState } from "react";
 import "./Persona.css";
-import { Reveal, TitleReveal } from "../components/motion";
 import { api } from "../api/client";
 import { useLoad } from "../api/useLoad";
 import { LoadState } from "../components/LoadState";
@@ -56,7 +55,7 @@ export function Persona() {
   const load=useLoad(()=>api.GET("/api/v1/persona"));
   const [selected,setSelected]=useState("O");
   const [quizOpen,setQuizOpen]=useState(false);
-  const head=<header className="persona-head"><div><TitleReveal text="Persona"/><p>Your traits, in your own words. Private to you.</p></div><span className="persona-scale">4–20 scale</span></header>;
+  const head=<header className="persona-head"><div><h1>Persona</h1><p>Your traits, in your own words. Private to you.</p></div><span className="persona-scale">4–20 scale</span></header>;
   if (quizOpen) return <div className="persona-page">{head}<PersonaQuiz onCancel={()=>setQuizOpen(false)} onFinished={()=>{ setQuizOpen(false); load.reload(); }}/></div>;
   return <LoadState state={load} label="your persona profile">{persona=>{
     const traits=persona.available?persona.traits:{};
@@ -67,7 +66,7 @@ export function Persona() {
     const matrix=persona.available?persona.persona_matrix:null;
     const take=<button type="button" className="persona-take" onClick={()=>setQuizOpen(true)}>Take the personality questions (2 min)</button>;
     return <div className="persona-page">{head}
-      <Reveal className="persona-layout"><section className="persona-arc-panel"><div className="persona-section-title"><h2>Five traits</h2></div>
+      <div className="persona-layout"><section className="persona-arc-panel"><div className="persona-section-title"><h2>Five traits</h2></div>
         {none&&<div className="persona-none"><p>Your traits appear after the personality questions.</p>{take}</div>}
         <div className="dial-row">{TRAITS.map((t,i)=><Dial key={t.key} name={t.name} descriptor={t.descriptor} value={vals[i]} color={t.color} selected={t.key===selected} onClick={()=>setSelected(t.key)} showMissing={!none}/>)}</div>
         {!none&&<div className="trait-popover" key={active.key} style={{"--dial-color":active.color} as React.CSSProperties}><span className="popover-glyph" aria-hidden="true">{active.key}</span><div><p className="trait-popover-name">{active.descriptor} · {active.name}</p>{value!=null&&<strong>{value}<small> / 20</small></strong>}<p>{value==null?`No ${active.name.toLowerCase()} value is in your profile yet.`:active.note}</p></div>{value!=null&&<div className="trait-meter" aria-label={`${active.name}: ${value} of 20`}><i style={{width:`${((clamp(value)-4)/16)*100}%`}}/></div>}</div>}
@@ -76,7 +75,7 @@ export function Persona() {
       </section><section className="persona-radar-panel"><div className="persona-section-title"><h2>Personal pattern</h2></div>
         {complete?<Radar values={vals as number[]}/>:<div className="radar-empty"><svg viewBox="0 0 120 120" aria-hidden="true"><polygon points="60,12 106,45 88,100 32,100 14,45"/><polygon points="60,36 83,52 74,80 46,80 37,52"/></svg><p>Your pattern appears when all five traits are available.</p></div>}
         {matrix&&<div className="persona-quadrant"><span>Profile quadrant</span><strong>{matrix.quadrant_name}</strong><p>Stability {matrix.stability_score} · Agency {matrix.agency_score}</p></div>}
-      </section></Reveal>
+      </section></div>
     </div>;
   }}</LoadState>;
 }

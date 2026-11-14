@@ -5,7 +5,6 @@ import { plainHeadline, plainMessage } from "../components/advisory";
 import { fmt } from "../components/format";
 import { friendlyName } from "../components/instrumentNames";
 import { LoadState } from "../components/LoadState";
-import { Reveal, TitleReveal } from "../components/motion";
 import { StatusChip, type Status } from "../components/StatusChip";
 import "./Briefing.css";
 
@@ -27,7 +26,7 @@ export function Briefing() {
   const nights = useLoad(() => api.GET("/api/v1/nights", { params: { query: { from, to } } }), [from, to]);
   const checkins = useLoad(() => api.GET("/api/v1/checkins", { params: { query: { from, to } } }), [from, to]);
   return <div className="screen-page briefing-page">
-    <header className="page-heading"><div><TitleReveal text="Briefing"/><p className="section-meta telemetry">{from} → {to}</p><p>A read-only summary of your last seven days, compared with your own usual.</p></div>
+    <header className="page-heading"><div><h1>Briefing</h1><p className="section-meta telemetry">{from} → {to}</p><p>A read-only summary of your last seven days, compared with your own usual.</p></div>
       <button type="button" className="ghost briefing-print" onClick={() => window.print()}>Print</button></header>
     <LoadState state={today} label="your weekly briefing">{raw => {
       const t = raw as EngineToday, engine = t.context_engine;
@@ -35,7 +34,7 @@ export function Briefing() {
       const body = levelStatus(engine?.scores_and_metrics?.phys_level ?? t.flags[0]?.phys_level);
       const mind = levelStatus(engine?.scores_and_metrics?.mental_level ?? t.flags[0]?.mental_level);
       const advisory = engine?.user_facing_advisory;
-      return <Reveal className="briefing-grid">
+      return <div className="briefing-grid">
         <section className="card glass briefing-status" aria-labelledby="brief-status-title">
 <h2 id="brief-status-title">Where things stand</h2>
           <dl className="briefing-chips">
@@ -54,7 +53,7 @@ export function Briefing() {
           <LoadState state={checkins} label="this week's check-ins">{data => <WeekCheckins items={data as Checkin[]}/>}</LoadState>
         </section>
         <p className="footnote briefing-wide">Screening and awareness only. Differences are described as unusual for you, not as a medical finding.</p>
-      </Reveal>;
+      </div>;
     }}</LoadState>
   </div>;
 }

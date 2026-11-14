@@ -94,3 +94,17 @@
 .pet[data-side="left"] .pet-bubble, .pet[data-side="left"] .pet-buddy-label { right:auto;left:0; }
 .pet[data-side="left"] .pet-menu-toggle, .pet[data-side="left"] .pet-menu { right:auto;left:calc(100% + 4px); }
 .pet[data-vside="below"] .pet-bubble, .pet[data-vside="below"] .pet-buddy-label { bottom:auto;top:calc(100% + 8px); }
+
+/* Travel in hops (follow, wander and perch walks = state "walking"): a 12 px arc per hop,
+   stretch at take-off, squash on landing. Off under reduced motion (the pet does not travel). */
+@keyframes pet-travel-hop {
+  0%   { --hop:0;   --squash:.45; }
+  18%  { --hop:-3;  --squash:-.4; }
+  50%  { --hop:-12; --squash:-.1; }
+  82%  { --hop:-3;  --squash:-.2; }
+  100% { --hop:0;   --squash:.45; }
+}
+.pet[data-state="walking"] .pet-svg { animation:pet-travel-hop var(--hop-s, 350ms) var(--ease-soft, ease-in-out) infinite;
+  transform:translateY(calc(var(--hop) * 1px)) scaleY(calc(1 - .12 * var(--squash))) scaleX(calc(1 + .08 * var(--squash))); }
+.pet[data-reduced][data-state="walking"] .pet-svg { animation:none;transform:none; }
+@media (prefers-reduced-motion:reduce) { .pet[data-state="walking"] .pet-svg { animation:none;transform:none; } }

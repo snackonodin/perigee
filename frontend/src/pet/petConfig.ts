@@ -37,9 +37,9 @@ export const SIT_SETTLE_MS = 1000;
 /** the pet chases where the pointer was this long ago */
 export const FOLLOW_LAG_MS = 350;
 /** within this distance of the (lagged) pointer the pet stops: never covers what you click */
-export const FOLLOW_DEADZONE_PX = 110;
+export const FOLLOW_DEADZONE_PX = 220;
 /** it aims to stand this far short of the pointer (>= pet radius + 24 px) */
-export const FOLLOW_GAP_PX = 90;
+export const FOLLOW_GAP_PX = 180;
 export const FOLLOW_MAX_SPEED_PX_S = 260;
 /** desired speed = distance x this (per second), so it lags more the farther it is */
 export const FOLLOW_EASE = 2.2;
@@ -55,6 +55,27 @@ export const FOLLOW_DETOUR_MIN_PX = 50;
 export const FOLLOW_DETOUR_MAX_PX = 140;
 export const FOLLOW_DETOUR_MAX_MS = 1600;
 export const FOLLOW_EDGE_PX = 8;
+
+// Moods while the pointer is active: it does not always chase. Picked again when the current
+// mood runs out; after a chase it will not chase again for FOLLOW_COOLDOWN_MS.
+export const MOOD_WEIGHTS = { follow: 0.5, wander: 0.35, ignore: 0.15 } as const;
+/** a chase lasts this long before it loses interest */
+export const FOLLOW_INTEREST_MIN_MS = 4000;
+export const FOLLOW_INTEREST_MAX_MS = 8000;
+export const FOLLOW_COOLDOWN_MS = 6000;
+/** wander: hop to a free spot, sit and look around */
+export const WANDER_MIN_MS = 5000;
+export const WANDER_MAX_MS = 9000;
+export const WANDER_SPEED_PX_S = 160;
+/** a wander spot keeps at least this far from the pointer */
+export const WANDER_POINTER_CLEAR_PX = 220;
+export const WANDER_TRIES = 16;
+export const IGNORE_MIN_MS = 4000;
+export const IGNORE_MAX_MS = 8000;
+/** moods only run while the pointer moved within this window */
+export const MOOD_ACTIVE_MS = 10000;
+/** one hop of the travel animation (pet.css --hop-s) */
+export const HOP_MS = 350;
 
 /** Bedtime window, station time (the host passes timeOfDay "night" inside it). */
 export const BEDTIME_START = "22:00";

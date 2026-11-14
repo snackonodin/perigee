@@ -5,9 +5,10 @@
 import {
   FOLLOW_ACCEL, FOLLOW_DEADZONE_PX, FOLLOW_DETOUR_CHANCE_S, FOLLOW_DETOUR_MAX_MS, FOLLOW_DETOUR_MAX_PX, FOLLOW_DETOUR_MIN_DIST_PX,
   FOLLOW_DETOUR_MIN_PX, FOLLOW_EASE, FOLLOW_EDGE_PX, FOLLOW_GAP_PX, FOLLOW_LAG_MS, FOLLOW_MAX_SPEED_PX_S, FOLLOW_STOP_SPEED_PX_S,
-  FOLLOW_WOBBLE_HZ, FOLLOW_WOBBLE_PX,
+  FOLLOW_WOBBLE_HZ, FOLLOW_WOBBLE_PX, FOLLOW_COOLDOWN_MS, FOLLOW_INTEREST_MAX_MS, FOLLOW_INTEREST_MIN_MS, IGNORE_MAX_MS, IGNORE_MIN_MS,
+  MOOD_WEIGHTS, WANDER_MAX_MS, WANDER_MIN_MS, WANDER_POINTER_CLEAR_PX, WANDER_TRIES,
 } from "./petConfig";
-import type { Point } from "./walk";
+import { avoids, type Box, type Point } from "./walk";
 
 interface Sample { t: number; x: number; y: number }
 export interface FollowState {
@@ -80,4 +81,50 @@ export function stepFollow(s: FollowState, now: number, dt: number, env: FollowE
   const moving = Math.hypot(s.vel.x, s.vel.y) > FOLLOW_STOP_SPEED_PX_S;
   if (!moving && !s.detour) s.vel = { x: 0, y: 0 };
   return { moving };
+}
+
+// ---- Moods: follow for a while, wander to a free spot, or ignore the pointer -------------
+
+export type Mood = "follow" | "wander" | "ignore";
+export interface MoodState { mood: Mood; until: number; followCooldownUntil: number }
+
+const between = (rnd: () => number, lo: number, hi: number) => lo + rnd() * (hi - lo);
+export const moodDuration = (m: Mood, rnd: () => number): number =>
+  m === "follow" ? between(rnd, FOLLOW_INTEREST_MIN_MS, FOLLOW_INTEREST_MAX_MS)
+    : m === "wander" ? between(rnd, WANDER_MIN_MS, WANDER_MAX_MS) : between(rnd, IGNORE_MIN_MS, IGNORE_MAX_MS);
+
+/** Weighted pick (50 / 35 / 15). While the chase cooldown runs, follow is not an option. */
+export function pickMood(rnd: () => number, followAllowed = true): Mood {
+  const w = { ...MOOD_WEIGHTS, follow: followAllowed ? MOOD_WEIGHTS.follow : 0 };
+  let r = rnd() * (w.follow + w.wander + w.ignore);
+  for (const m of ["follow", "wander", "ignore"] as const) { if ((r -= w[m]) < 0) return m; }
+  return "ignore";
+}
+
+export const createMoods = (now: number, rnd: () => number = Math.random): MoodState =>
+  ({ mood: "follow", until: now + moodDuration("follow", rnd), followCooldownUntil: 0 });
+
+/** When the current mood has run out, pick the next one. Returns true if the mood changed. Mutates m. */
+export function advanceMood(m: MoodState, now: number, rnd: () => number = Math.random): boolean {
+  if (now < m.until) return false;
+  if (m.mood === "follow") m.followCooldownUntil = now + FOLLOW_COOLDOWN_MS;
+  const next = pickMood(rnd, now >= m.followCooldownUntil);
+  const changed = next !== m.mood;
+  m.mood = next;
+  m.until = now + moodDuration(next, rnd);
+  return changed;
+}
+
+/** A random free spot (pet centre) for a wander: inside the viewport, its box touching nothing
+ *  to avoid, and well away from the pointer. Null when none is found. */
+export function pickWanderSpot(viewport: { width: number; height: number }, size: number, avoid: readonly Box[],
+  pointer: Point | null, rnd: () => number = Math.random): Point | null {
+  const m = size / 2 + FOLLOW_EDGE_PX;
+  if (viewport.width < 2 * m || viewport.height < 2 * m) return null;
+  for (let i = 0; i < WANDER_TRIES; i++) {
+    const p = { x: between(rnd, m, viewport.width - m), y: between(rnd, m, viewport.height - m) };
+    if (pointer && Math.hypot(p.x - pointer.x, p.y - pointer.y) < WANDER_POINTER_CLEAR_PX) continue;
+    if (avoids({ left: p.x - size / 2, top: p.y - size / 2, width: size, height: size }, avoid)) return p;
+  }
+  return null;
 }

@@ -16,7 +16,9 @@ Standing rule (user): read the feed + issues every turn and resolve pane issues 
    (username + a GitHub personal access token as password). No secrets are tracked (`.env` is
    ignored; checked).
 2. **No-login demo (a Space Apps rule: judges must open the demo with no password/registration).**
-   Not built yet. Plan: backend `POST /api/v1/auth/demo` (enabled only with env `DEMO_ACCESS=1`)
+   Backend DONE (`cd7b42a`): `POST /api/v1/auth/demo`, on only with `DEMO_ACCESS=1`, synthetic persona only,
+   demo account undeletable; tests + isolation 33/33. Frontend "Try the demo" button: sent to claude-fe.
+   Original plan, kept for reference: Plan: backend `POST /api/v1/auth/demo` (enabled only with env `DEMO_ACCESS=1`)
    that issues tokens for a seeded synthetic persona (`persona-drift@example.invalid`), plus a
    "Try the demo" button on Login (frontend, claude-fe). Add an isolation test (demo token can only
    read the synthetic persona) and a test that the route is 404 when `DEMO_ACCESS` is unset.

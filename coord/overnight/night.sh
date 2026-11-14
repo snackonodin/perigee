@@ -12,13 +12,13 @@
 # Stop: touch coord/overnight/STOP (checked between steps). One step at a time on purpose:
 # the machine was overloaded by parallel suites.
 #
-# Usage: nohup bash coord/overnight/night.sh > coord/overnight/night.log 2>&1 &
+# Usage: VENV=<venv> NIGHT_UNTIL=10:00 nohup bash coord/overnight/night.sh > coord/overnight/night.log 2>&1 &
 set -uo pipefail
 cd "$(git rev-parse --show-toplevel)" || exit 1
 . coord/env.sh
 
-VENV="${VENV:-$HOME/.venvs/astro-app}"   # project convention (CLAUDE.md); outside the synced repo
-[ -x "$VENV/bin/python" ] && export PATH="$VENV/bin:$PATH"
+# VENV: path to the project virtualenv (dev convention in CLAUDE.md); pass it in the env.
+[ -n "${VENV:-}" ] && [ -x "$VENV/bin/python" ] && export PATH="$VENV/bin:$PATH"
 PY="${PY:-python}"
 INTERVAL="${NIGHT_INTERVAL_S:-2700}"
 DEMO_DIR="${DEMO_DATA_DIR:-$HOME/astro-demo}"
@@ -61,7 +61,7 @@ login() {  # $1 = persona key -> prints "access refresh"
     "$PY" -c "import sys,json;d=json.load(sys.stdin);print(d['access_token'],d['refresh_token'])"
 }
 
-last_sha=""
+last_sha=""; suite_sha="${SKIP_SUITE_SHA:-}"
 while ! stop; do
   t0=$(date '+%m-%d %H:%M'); sha=$(git rev-parse --short HEAD); stamp=$(date +%Y%m%d-%H%M)
 
@@ -69,9 +69,13 @@ while ! stop; do
     (cd frontend && nicer npm run build > "../$OUT/frontend_build.log" 2>&1) && build=ok || build=FAIL
     demo_ok=restart
   else build=same; demo_ok=keep; fi
+  last_sha=$sha
   stop && break
 
-  nicer bash coord/suite.sh >/dev/null 2>&1
+  # Full backend suite is slow (~1-2 h under load): run it only when the code changed.
+  if [ "$sha" != "${suite_sha:-}" ]; then
+    nicer bash coord/suite.sh >/dev/null 2>&1; suite_sha=$sha
+  fi
   be_fail=$(grep -cE '^(FAILED|ERROR)' coord/last_suite.txt || true)
   be_pass=$(grep -oE '[0-9]+ passed' coord/last_suite.txt | tail -1)
   stop && break

@@ -2,11 +2,12 @@
 import type { CSSProperties } from "react";
 import "./rig.css";
 import "./pet.css";
+import { Bunny } from "./species/Bunny";
 import { Cat } from "./species/Cat";
+import { Fox } from "./species/Fox";
 import type { PetMood, Species } from "./types";
 
-// Fox and bunny arrive in phase 02; until then they render the cat.
-const DRAW = { cat: Cat, fox: Cat, bunny: Cat } as const;
+const DRAW = { cat: Cat, fox: Fox, bunny: Bunny } as const;
 
 export function PetArt({ species, mood, size = 256, accessories = [], animated = false }: {
   species: Species; mood: PetMood; size?: number; accessories?: readonly string[]; animated?: boolean;

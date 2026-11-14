@@ -27,7 +27,7 @@ export function Briefing() {
   const nights = useLoad(() => api.GET("/api/v1/nights", { params: { query: { from, to } } }), [from, to]);
   const checkins = useLoad(() => api.GET("/api/v1/checkins", { params: { query: { from, to } } }), [from, to]);
   return <div className="screen-page briefing-page">
-    <header className="page-heading"><div><p className="eyebrow telemetry">Week · {from} → {to}</p><TitleReveal text="Briefing"/><p>A read-only summary of your last seven days, compared with your own usual.</p></div>
+    <header className="page-heading"><div><TitleReveal text="Briefing"/><p className="section-meta telemetry">{from} → {to}</p><p>A read-only summary of your last seven days, compared with your own usual.</p></div>
       <button type="button" className="ghost briefing-print" onClick={() => window.print()}>Print</button></header>
     <LoadState state={today} label="your weekly briefing">{raw => {
       const t = raw as EngineToday, engine = t.context_engine;
@@ -37,7 +37,7 @@ export function Briefing() {
       const advisory = engine?.user_facing_advisory;
       return <Reveal className="briefing-grid">
         <section className="card glass briefing-status" aria-labelledby="brief-status-title">
-          <p className="eyebrow">Current status</p><h2 id="brief-status-title">Where things stand</h2>
+<h2 id="brief-status-title">Where things stand</h2>
           <dl className="briefing-chips">
             <div><dt>Body signals</dt><dd><StatusChip state={body}/></dd></div>
             <div><dt>Mind and check-ins</dt><dd><StatusChip state={mind}/></dd></div>
@@ -46,11 +46,11 @@ export function Briefing() {
         </section>
         <LatestNight night={t.latest_night ?? undefined}/>
         <section className="card glass briefing-wide" aria-labelledby="brief-rr-title">
-          <p className="eyebrow">Breathing · last 7 nights</p><h2 id="brief-rr-title">Night breathing vs your usual range</h2>
+          <h2 id="brief-rr-title">Night breathing vs your usual range</h2><p className="section-meta">Last 7 nights</p>
           <LoadState state={nights} label="the last seven nights">{data => <WeekBreathing nights={data} baseline={baseline} from={from}/>}</LoadState>
         </section>
         <section className="card glass briefing-wide" aria-labelledby="brief-ci-title">
-          <p className="eyebrow">Check-ins · this week</p><h2 id="brief-ci-title">Check-ins completed</h2>
+          <h2 id="brief-ci-title">Check-ins completed</h2><p className="section-meta">This week</p>
           <LoadState state={checkins} label="this week's check-ins">{data => <WeekCheckins items={data as Checkin[]}/>}</LoadState>
         </section>
         <p className="footnote briefing-wide">Screening and awareness only. Differences are described as unusual for you, not as a medical finding.</p>
@@ -61,7 +61,7 @@ export function Briefing() {
 
 function LatestNight({ night }: { night?: NightOut }) {
   return <section className="card glass" aria-labelledby="brief-night-title">
-    <p className="eyebrow">Latest night{night ? ` · ${night.date}` : ""}</p><h2 id="brief-night-title">Last recorded night</h2>
+    <h2 id="brief-night-title">Last recorded night</h2>{night && <p className="section-meta telemetry">{night.date}</p>}
     {night?.valid ? <dl className="briefing-stats">
       <div><dt>Breathing</dt><dd>{fmt(night.rr_med)}<small>br/min</small></dd></div>
       <div><dt>Time present</dt><dd>{fmt(night.presence_hours, 1)}<small>h</small></dd></div>

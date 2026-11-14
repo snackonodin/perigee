@@ -68,7 +68,7 @@ export function Settings() {
 
   return (
     <div className="settings-page">
-    <header className="page-heading"><div><p className="eyebrow">Your account · this device</p><TitleReveal text="Settings"/><p>Profile, what is stored, and how the app moves.</p></div></header>
+    <header className="page-heading"><div><TitleReveal text="Settings"/><p>Profile, what is stored, and how the app moves.</p></div></header>
     <Reveal className="settings-grid">
       <div className="settings-col">
       <section className="card glass settings-section" aria-labelledby="settings-profile-title">
@@ -77,7 +77,7 @@ export function Settings() {
         <form className="settings-form" onSubmit={saveProfile}>
           <label>Display name<input value={displayName} onChange={(event) => setDisplayName(event.target.value)} autoComplete="name" /></label>
           <label>Station time (optional)<input type="time" value={stationTime} onChange={(event) => setStationTime(event.target.value)} /></label>
-          <p className="settings-station" role="status"><span className="tag-mono">Saved · Station time = {formatStationOffset(me?.station_time_offset_min ?? 0)}</span></p>
+          <p className="settings-station" role="status"><span className="tag-chip">Saved · Station time = {formatStationOffset(me?.station_time_offset_min ?? 0)}</span></p>
           <p className="muted">The time on your station clock now. Leave blank to use UTC, the atomic-time standard the ISS uses.</p>
           <div className="settings-actions"><button type="submit" disabled={profileBusy}>{profileBusy ? "Saving…" : "Save profile"}</button><span className="settings-saved" role="status">{profileSaved ? "Saved" : ""}</span></div>
           <p className="error" role="alert">{profileError}</p>

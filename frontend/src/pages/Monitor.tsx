@@ -100,7 +100,7 @@ export function Monitor() {
   return (
     <section className="monitor-page" aria-labelledby="monitor-title">
       <header className="monitor-header">
-        <div><p className="eyebrow">On-demand sensor session</p><TitleReveal id="monitor-title" text="Monitor"/></div>
+        <div><TitleReveal id="monitor-title" text="Monitor"/></div>
         <StatusIsland state={session?.state} noSensor={noSensor && !session} />
       </header>
 
@@ -121,8 +121,8 @@ export function Monitor() {
       {active && session && <section className="card glass monitor-session" aria-live="polite">
         <ProgressRing session={session} totalRef={phaseTotal} />
         <div className="monitor-session-copy">
-          {session.state === "calibrating" ? <><p className="telemetry">Room check</p><h2>Please leave the room for 60 s</h2><p className="muted">The sensor is checking the empty room before measuring.</p></>
-            : <><p className="telemetry">{stateLabel(session.state)}</p><h2>{MODE_LABELS[session.mode]}</h2><p className="muted">{session.state === "running" ? "Stay still near the sensor until the ring closes." : "Getting the sensor ready."}</p></>}
+          {session.state === "calibrating" ? <><h2>Please leave the room for 60 s</h2><p className="section-meta">Room check</p><p className="muted">The sensor is checking the empty room before measuring.</p></>
+            : <><h2>{MODE_LABELS[session.mode]}</h2><p className="section-meta">{stateLabel(session.state)}</p><p className="muted">{session.state === "running" ? "Stay still near the sensor until the ring closes." : "Getting the sensor ready."}</p></>}
           <button type="button" className="ghost monitor-stop" onClick={() => void stop()}>Stop session</button>
         </div>
       </section>}
@@ -175,7 +175,7 @@ function ProgressRing({ session, totalRef }: { session: MonitorSession; totalRef
     </svg>
     <span className="satellite" style={{ "--sat-a": `${-90 + progress * 360}deg`, "--sat-r": "88px" } as CSSProperties} aria-hidden="true" />
     {timed ? <p className="monitor-countdown" aria-label={`${remaining} seconds remaining`}>{remaining}<span>s</span></p>
-      : <p className="telemetry ring-wait">{session.state === "finalizing" ? "Finishing" : "Preparing"}</p>}
+      : <p className="meta-label ring-wait">{session.state === "finalizing" ? "Finishing" : "Preparing"}</p>}
   </div>;
 }
 

@@ -66,7 +66,7 @@
 .persona-arc-panel,.persona-radar-panel { position:relative;overflow:hidden;isolation:isolate; }
 .persona-radar-panel::before { content:"";position:absolute;right:-80px;top:-80px;width:260px;height:260px;z-index:-1;border:1px dashed var(--orbit-line);border-radius:50%; }
 .persona-radar-panel::after { content:"";position:absolute;right:-30px;top:-30px;width:160px;height:160px;z-index:-1;border:1px solid var(--orbit-line);border-radius:50%; }
-.persona-scale { font-family:var(--font-mono);font-size:var(--fs-micro);letter-spacing:.08em;text-transform:uppercase; }
+.persona-scale { font-size:var(--fs-small); }
 .persona-page .persona-head { margin-bottom:0; }
 /* Review: 'Not supplied' once, plain labels, 2 columns on phone. */
 .persona-none { margin:0 0 16px;padding:12px 16px;border-radius:var(--radius);background:var(--bg);border:1px solid var(--line);color:var(--muted); }

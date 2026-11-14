@@ -211,3 +211,8 @@ h1,h2,h3 { font-family:var(--font-display);letter-spacing:-.01em; }
 .settings-section .pet-control-note { flex-basis:100%; }
 /* Keep the last card clear of the companion pet and its speech bubble on every page. */
 .screen-page,.monitor-page,.settings-page,.sleep-page,.checkin-page,.body-page,.persona-page,.briefing-page,.consent-page { padding-bottom:calc(var(--companion-size) + var(--companion-inset) + 56px); }
+/* Craft pass: no eyebrow kickers. Context that carries information (a date, a range) sits
+   under the heading as a quiet meta line instead. */
+.section-meta { margin:4px 0 0;color:var(--muted);font-size:var(--fs-small); }
+/* Mono is for data and measurements only; word labels use the text face. */
+.meta-label { color:var(--muted);font-size:var(--fs-small);font-weight:500; }

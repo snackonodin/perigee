@@ -97,7 +97,6 @@ export function Login({ signup = false }: { signup?: boolean }) {
       <main className="login-main auth-main">
         <section className="panel login-card glass auth-card" aria-labelledby="login-title">
           <p className="auth-brand"><span className="brand-mark" aria-hidden="true"><Icon name="brand" size={22}/></span>{BRAND}</p>
-          <p className="eyebrow">Private health companion</p>
           <h1 id="login-title">{signup ? "Create your account" : "Welcome back"}</h1>
           <p className="login-subtitle">{signup ? "Start your private wellbeing log." : "Sign in to continue to your personal log."}</p>
           <form onSubmit={submit}>

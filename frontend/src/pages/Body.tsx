@@ -67,12 +67,12 @@ export function Body() {
     };
     const current=details[selected];
     const nightsIn=Math.min(28,baseline?.n??0);
-    const footer=<><p className="system-meaning">{MEANING[selected]}</p><div className="system-usual"><span className="telemetry">Personal baseline</span><span>{selected==="Cabin"?"Not compared":nightsIn>=28?"Baseline ready":`Building · ${nightsIn} / 28 nights`}</span></div></>;
+    const footer=<><p className="system-meaning">{MEANING[selected]}</p><div className="system-usual"><span className="meta-label">Personal baseline</span><span>{selected==="Cabin"?"Not compared":nightsIn>=28?"Baseline ready":`Building · ${nightsIn} / 28 nights`}</span></div></>;
     return <div className="screen-page body-page">
-      <header className="page-heading"><div><p className="eyebrow">Personal systems · your recent signals</p><TitleReveal text="Body"/><p>Choose a system to see the available reading.</p></div></header>
+      <header className="page-heading"><div><TitleReveal text="Body"/><p>Choose a system to see the available reading.</p></div></header>
       {load.apiMock&&<p className="api-mock-note" role="status">Showing sample data: live service unavailable</p>}
       <Reveal className="body-layout">
-        <section className="body-map-card glass" aria-label="Body systems map"><p className="eyebrow">Five connected systems</p><span className="body-orbit" aria-hidden="true"/><BodyMap selected={selected} details={details} onSelect={setSelected}/></section>
+        <section className="body-map-card glass" aria-label="Body systems map"><span className="body-orbit" aria-hidden="true"/><BodyMap selected={selected} details={details} onSelect={setSelected}/></section>
         <section className="body-detail" aria-live="polite" aria-labelledby="body-detail-title" key={selected}>
           <div className="system-switch" role="group" aria-label="Choose a system">{SYSTEMS.map(name=><button key={name} type="button" className={`system-pill system-pill-${COLORS[name]}`} aria-pressed={selected===name} onClick={()=>setSelected(name)}><i aria-hidden="true"/>{name}</button>)}</div>
           {current.value==="No reading"?<VitalCard label={selected} icon={selected} headingId="body-detail-title" empty={current.copy} footer={footer}/>:

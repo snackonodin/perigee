@@ -40,7 +40,7 @@
 .monitor-page { max-width:none;gap:var(--gutter); }
 .monitor-header { align-items:center; }
 /* Dynamic-island status pill: the state change is the information. Width morphs between labels. */
-.status-island { interpolate-size:allow-keywords;display:inline-flex;align-items:center;gap:10px;min-height:40px;width:auto;padding:8px 18px 8px 14px;border-radius:var(--radius-pill);background:var(--text);color:#fff;font-family:var(--font-mono);font-size:var(--fs-micro);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;overflow:hidden;box-shadow:0 10px 24px -12px rgba(31,42,55,.6);transition:width var(--dur-slow) var(--ease),padding var(--dur-slow) var(--ease),background var(--dur-base) var(--ease); }
+.status-island { interpolate-size:allow-keywords;display:inline-flex;align-items:center;gap:10px;min-height:40px;width:auto;padding:8px 18px 8px 14px;border-radius:var(--radius-pill);background:var(--text);color:#fff;font-size:var(--fs-micro);white-space:nowrap;overflow:hidden;box-shadow:0 10px 24px -12px rgba(31,42,55,.6);transition:width var(--dur-slow) var(--ease),padding var(--dur-slow) var(--ease),background var(--dur-base) var(--ease); }
 .island-dot { width:10px;height:10px;flex:none;border-radius:50%;background:#9AA5B1; }
 .island-connecting .island-dot,.island-link_check .island-dot { background:var(--sky);animation:island-pulse 1.2s ease-in-out infinite; }
 .island-calibrating .island-dot { background:var(--butter);animation:island-pulse 1.2s ease-in-out infinite; }

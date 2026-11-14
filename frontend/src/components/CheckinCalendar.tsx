@@ -20,7 +20,7 @@ export function CheckinCalendar({ checkins, now = new Date() }: { checkins:Check
   checkins.forEach(c=>byDate.set(c.date,[...(byDate.get(c.date)??[]),c]));
   const monthName=new Intl.DateTimeFormat("en",{month:"long",timeZone:"UTC"}).format(first);
   return <section className="card glass checkin-calendar" aria-labelledby="checkin-calendar-title">
-    <div className="row"><div><p className="eyebrow">Your month</p><h2 id="checkin-calendar-title">Check-in calendar</h2></div><span className="pill">{monthName} {year}</span></div>
+    <div className="row"><div><h2 id="checkin-calendar-title">Check-in calendar</h2></div><span className="pill">{monthName} {year}</span></div>
     <p className="muted">Dots mark check-ins you chose to record. They do not grade or infer your mood.</p>
     <div className="calendar-grid" role="grid" aria-label={`${monthName} ${year} check-in calendar`}>
       <div className="calendar-weekdays" role="row">{DAY_LABELS.map((label,i)=><span className="calendar-weekday" role="columnheader" key={`${label}${i}`}>{label}</span>)}</div>

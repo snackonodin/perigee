@@ -31,6 +31,6 @@ export function BreathingOrb({rate,pace,state}:{rate:number|null|undefined;pace?
   },[motion,tempo]);
   return <div className={`breathing-orb ${valid?state:"none"}`} ref={orb} role="img"
     aria-label={!valid?"No breathing reading":`Breathing rate ${rate} breaths per minute`}>
-    {valid?<><strong>{rate}</strong><span>br/min</span></>:<span className="telemetry">Awaiting first night</span>}
+    {valid?<><strong>{rate}</strong><span>br/min</span></>:<span className="meta-label">Awaiting first night</span>}
   </div>;
 }

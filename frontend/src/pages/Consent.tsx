@@ -7,7 +7,7 @@ import "./Briefing.css";
 /** Consent tab: the same switch rows as Settings, the policy version, and export/delete. */
 export function Consent() {
   return <div className="screen-page consent-page">
-    <header className="page-heading"><div><p className="eyebrow">Your data · your choice</p><TitleReveal text="Consent"/><p>Choose what may be stored about you.</p></div></header>
+    <header className="page-heading"><div><TitleReveal text="Consent"/><p>Choose what may be stored about you.</p></div></header>
     <Reveal className="consent-grid">
       <section className="card glass settings-section" aria-labelledby="consent-scopes-title">
         <h2 id="consent-scopes-title">What may be stored</h2>

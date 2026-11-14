@@ -83,7 +83,7 @@ export function AppShell() {
       <a className="skip" href="#main">Skip to content</a>
       <header className="topbar">
         <span className="brand"><span className="brand-mark" aria-hidden="true"><BrandIcon/></span>{BRAND}</span>
-        {me?.is_synthetic && <span className="sim-chip telemetry" data-short="Sim"><span className="sim-chip-text">Simulated data</span></span>}
+        {me?.is_synthetic && <span className="sim-chip meta-label" data-short="Sim"><span className="sim-chip-text">Simulated data</span></span>}
         <span className="spacer" />
         <span className="muted who" title={me?.email}>{crewName(me?.display_name,me?.email)}</span>
         <NavLink className="header-link" to="/monitor" aria-label="Monitor"><Icon name="monitor" size={22}/><span className="header-link-label">Monitor</span></NavLink>

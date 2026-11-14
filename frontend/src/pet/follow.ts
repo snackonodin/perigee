@@ -141,7 +141,8 @@ export function fleeTarget(pos: Point, pointer: Point, size: number, viewport: {
   if (d >= FOLLOW_MIN_DIST_PX) return null;
   const ux = d > 1 ? dx / d : 1, uy = d > 1 ? dy / d : 0, want = FOLLOW_MIN_DIST_PX + 60;
   const straight = clampToViewport({ x: pointer.x + ux * want, y: pointer.y + uy * want }, size, viewport);
-  if (Math.hypot(straight.x - pointer.x, straight.y - pointer.y) >= FOLLOW_MIN_DIST_PX) return straight;
+  const clear = avoids({ left: straight.x - size / 2, top: straight.y - size / 2, width: size, height: size }, avoid);
+  if (clear && Math.hypot(straight.x - pointer.x, straight.y - pointer.y) >= FOLLOW_MIN_DIST_PX) return straight;
   return pickWanderSpot(viewport, size, avoid, pointer, rnd);
 }
 

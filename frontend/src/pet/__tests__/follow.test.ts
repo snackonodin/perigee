@@ -124,6 +124,14 @@ describe("keep away (one card width)", () => {
     expect(t.x).toBeGreaterThan(700);
     expect(Math.hypot(t.x - 600, t.y - 450)).toBeGreaterThanOrEqual(FOLLOW_MIN_DIST_PX);
   });
+  it("does not escape onto text or controls: picks another free spot", () => {
+    const heading = { left: 800, top: 300, width: 400, height: 300 };
+    const t = fleeTarget({ x: 700, y: 450 }, { x: 600, y: 450 }, 96, vp, [heading], seeded(4))!;
+    const box = { left: t.x - 48, top: t.y - 48, width: 96, height: 96 };
+    const overlaps = box.left < heading.left + heading.width && heading.left < box.left + 96 && box.top < heading.top + heading.height && heading.top < box.top + 96;
+    expect(overlaps).toBe(false);
+    expect(Math.hypot(t.x - 600, t.y - 450)).toBeGreaterThanOrEqual(FOLLOW_MIN_DIST_PX);
+  });
   it("when cornered, picks any free spot far enough from the cursor", () => {
     const ptr = { x: 1300, y: 800 };
     const t = fleeTarget({ x: 1380, y: 840 }, ptr, 96, vp, [], seeded(9))!;

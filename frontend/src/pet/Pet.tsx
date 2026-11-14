@@ -28,6 +28,9 @@ import { advanceMood, clampToViewport, createFollow, createMoods, fleeTarget, ho
 import "./pet.css";
 
 const CACHE = cacheJson as unknown as DialogCache;
+/** never stops on controls; avoids headings and text where it can (extra avoid selectors) */
+const CONTROLS = ", a, button, [role=button], label";
+const TEXT = ", h1, h2, h3, h4, p, li, dt, dd, th, td, figcaption, .meta-label, .section-meta";
 
 export function Pet(props: PetProps) {
   const { hidden } = usePetPrefs();
@@ -257,13 +260,13 @@ export function PetLive({ species, personaId, timeOfDay, reducedMotion, nightsLo
     };
     // wander: hop to a free spot (never on forms, controls, dialogs or the focused element), sit, look around
     const wander = () => {
-      const spot = pickWanderSpot(viewport(), size, avoidBoxes(", a, button, [role=button], label"), pointer);
+      const spot = pickWanderSpot(viewport(), size, avoidBoxes(CONTROLS + TEXT), pointer);
       if (spot) hopTo(spot, "wander", WANDER_SPEED_PX_S, () => { dispatch({ type: "arrived" }); lookAround(); });
     };
     // keep away: once out of its corner it never lets the cursor within FOLLOW_MIN_DIST_PX
     const keepAway = () => {
       if (!pointer || !pos.current || mode === "flee" || busy()) return;
-      const target = fleeTarget(pos.current, pointer, size, viewport(), avoidBoxes(", a, button, [role=button], label"));
+      const target = fleeTarget(pos.current, pointer, size, viewport(), avoidBoxes(CONTROLS + TEXT));
       if (target) hopTo(target, "flee", WANDER_SPEED_PX_S * 1.6, () => { dispatch({ type: "arrived" }); lookAround(); });
     };
     const moodTick = () => {
@@ -302,7 +305,7 @@ export function PetLive({ species, personaId, timeOfDay, reducedMotion, nightsLo
       const now = Date.now();
       if (now - lastInput.current < WALK_IDLE_MS || now - lastPointer.current < WALK_IDLE_MS || now - lastWalk.current < WALK_COOLDOWN_MS) return;
       const box = (el: Element): Box => { const r = el.getBoundingClientRect(); return { left: r.left, top: r.top, width: r.width, height: r.height }; };
-      const spots = perchTargets([...document.querySelectorAll("[data-pet-perch]")].map(box), viewport(), size, avoidBoxes());
+      const spots = perchTargets([...document.querySelectorAll("[data-pet-perch]")].map(box), viewport(), size, avoidBoxes(TEXT));
       if (!spots.length) return;
       lastWalk.current = now;
       const spot = spots[Math.floor(Math.random() * spots.length)];

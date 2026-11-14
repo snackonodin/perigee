@@ -1,0 +1,1798 @@
+{
+ "first_run": {
+  "warm": [
+   {
+    "id": "first_run.warm.01",
+    "text": "Hi, I'm {petName}. I'll keep you company on this glass.",
+    "tod": "any",
+    "weight": 2
+   },
+   {
+    "id": "first_run.warm.02",
+    "text": "Hello! I found a cozy corner here. Mind if I stay?",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "first_run.warm.03",
+    "text": "Nice to meet you. I'm {petName}, and I like quiet company.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "first_run.warm.04",
+    "text": "Good morning, and welcome. I've stretched and I'm ready.",
+    "tod": "morning",
+    "weight": 1
+   },
+   {
+    "id": "first_run.warm.05",
+    "text": "Hello there. This little spot is mine now, if that's okay.",
+    "tod": "day",
+    "weight": 1
+   },
+   {
+    "id": "first_run.warm.06",
+    "text": "Evening, friend. I'm {petName}. Let's take it slow.",
+    "tod": "evening",
+    "weight": 1
+   }
+  ],
+  "quiet": [
+   {
+    "id": "first_run.quiet.01",
+    "text": "Hi. I'm {petName}.",
+    "tod": "any",
+    "weight": 2
+   },
+   {
+    "id": "first_run.quiet.02",
+    "text": "Hello. I'll sit here.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "first_run.quiet.03",
+    "text": "I'm {petName}. Nice to meet you.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "first_run.quiet.04",
+    "text": "Morning. I'm new here.",
+    "tod": "morning",
+    "weight": 1
+   },
+   {
+    "id": "first_run.quiet.05",
+    "text": "Hello. Quiet corner, good.",
+    "tod": "day",
+    "weight": 1
+   },
+   {
+    "id": "first_run.quiet.06",
+    "text": "Evening. I'm {petName}.",
+    "tod": "evening",
+    "weight": 1
+   }
+  ],
+  "bright": [
+   {
+    "id": "first_run.bright.01",
+    "text": "Hi, I'm {petName}! Your new crewmate.",
+    "tod": "any",
+    "weight": 2
+   },
+   {
+    "id": "first_run.bright.02",
+    "text": "Hello! I just moved into this corner.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "first_run.bright.03",
+    "text": "Nice to meet you. I'm {petName}, reporting for duty.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "first_run.bright.04",
+    "text": "Morning! First day on the station for me.",
+    "tod": "morning",
+    "weight": 1
+   },
+   {
+    "id": "first_run.bright.05",
+    "text": "Hey there. I brought my best stretch for the occasion.",
+    "tod": "day",
+    "weight": 1
+   },
+   {
+    "id": "first_run.bright.06",
+    "text": "Evening! I'm {petName}. Love the starlight here.",
+    "tod": "evening",
+    "weight": 1
+   }
+  ]
+ },
+ "app_open": {
+  "warm": [
+   {
+    "id": "app_open.warm.01",
+    "text": "Hi again. I saved you a cozy spot on this card.",
+    "tod": "any",
+    "weight": 2
+   },
+   {
+    "id": "app_open.warm.02",
+    "text": "Good morning! I stretched already, so you can take it slow.",
+    "tod": "morning",
+    "weight": 1
+   },
+   {
+    "id": "app_open.warm.03",
+    "text": "Evening, friend. The glass is nice and quiet tonight.",
+    "tod": "evening",
+    "weight": 1
+   },
+   {
+    "id": "app_open.warm.04",
+    "text": "Hello. I was just watching the stars drift by.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "app_open.warm.05",
+    "text": "There you are. I kept the corner warm.",
+    "tod": "day",
+    "weight": 1
+   },
+   {
+    "id": "app_open.warm.06",
+    "text": "Hi. The frost made pretty patterns while you were away.",
+    "tod": "night",
+    "weight": 1
+   }
+  ],
+  "quiet": [
+   {
+    "id": "app_open.quiet.01",
+    "text": "Hi. I'm here.",
+    "tod": "any",
+    "weight": 2
+   },
+   {
+    "id": "app_open.quiet.02",
+    "text": "Morning. Take your time.",
+    "tod": "morning",
+    "weight": 1
+   },
+   {
+    "id": "app_open.quiet.03",
+    "text": "Hello. I'll keep this corner warm.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "app_open.quiet.04",
+    "text": "Hello again.",
+    "tod": "day",
+    "weight": 1
+   },
+   {
+    "id": "app_open.quiet.05",
+    "text": "Evening. All calm here.",
+    "tod": "evening",
+    "weight": 1
+   },
+   {
+    "id": "app_open.quiet.06",
+    "text": "Hi. Quiet night on the glass.",
+    "tod": "night",
+    "weight": 1
+   }
+  ],
+  "bright": [
+   {
+    "id": "app_open.bright.01",
+    "text": "Hey, you're here! Good to see you.",
+    "tod": "any",
+    "weight": 2
+   },
+   {
+    "id": "app_open.bright.02",
+    "text": "Morning! I already did my big stretch.",
+    "tod": "morning",
+    "weight": 1
+   },
+   {
+    "id": "app_open.bright.03",
+    "text": "Welcome back to base. I kept the frost tidy.",
+    "tod": "day",
+    "weight": 1
+   },
+   {
+    "id": "app_open.bright.04",
+    "text": "Hello! The stars look extra sparkly today.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "app_open.bright.05",
+    "text": "Evening! Ready for some calm time?",
+    "tod": "evening",
+    "weight": 1
+   },
+   {
+    "id": "app_open.bright.06",
+    "text": "Hi! I was practicing my tail flicks.",
+    "tod": "any",
+    "weight": 1
+   }
+  ]
+ },
+ "welcome_back": {
+  "warm": [
+   {
+    "id": "welcome_back.warm.01",
+    "text": "Hi again. It's nice to see you.",
+    "tod": "any",
+    "weight": 2
+   },
+   {
+    "id": "welcome_back.warm.02",
+    "text": "Hello, friend. I've been napping in the sun spot.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "welcome_back.warm.03",
+    "text": "Welcome back. The glass kept your spot warm.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "welcome_back.warm.04",
+    "text": "Good morning. I'm glad you stopped by.",
+    "tod": "morning",
+    "weight": 1
+   },
+   {
+    "id": "welcome_back.warm.05",
+    "text": "Hi. I tidied my whiskers for you.",
+    "tod": "day",
+    "weight": 1
+   },
+   {
+    "id": "welcome_back.warm.06",
+    "text": "Evening. Good to share the quiet again.",
+    "tod": "evening",
+    "weight": 1
+   }
+  ],
+  "quiet": [
+   {
+    "id": "welcome_back.quiet.01",
+    "text": "Hi again.",
+    "tod": "any",
+    "weight": 2
+   },
+   {
+    "id": "welcome_back.quiet.02",
+    "text": "Hello. Good to see you.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "welcome_back.quiet.03",
+    "text": "Welcome back.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "welcome_back.quiet.04",
+    "text": "Morning. All calm.",
+    "tod": "morning",
+    "weight": 1
+   },
+   {
+    "id": "welcome_back.quiet.05",
+    "text": "Hello. Nice day.",
+    "tod": "day",
+    "weight": 1
+   },
+   {
+    "id": "welcome_back.quiet.06",
+    "text": "Evening. Quiet here.",
+    "tod": "evening",
+    "weight": 1
+   }
+  ],
+  "bright": [
+   {
+    "id": "welcome_back.bright.01",
+    "text": "Hey, welcome back! Good to see you.",
+    "tod": "any",
+    "weight": 2
+   },
+   {
+    "id": "welcome_back.bright.02",
+    "text": "Hi again. I learned a new stretch.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "welcome_back.bright.03",
+    "text": "You're here! The stars say hello.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "welcome_back.bright.04",
+    "text": "Morning! Fresh frost on the glass today.",
+    "tod": "morning",
+    "weight": 1
+   },
+   {
+    "id": "welcome_back.bright.05",
+    "text": "Hello! I was polishing my ears.",
+    "tod": "day",
+    "weight": 1
+   },
+   {
+    "id": "welcome_back.bright.06",
+    "text": "Evening! I saved you the comfy corner.",
+    "tod": "evening",
+    "weight": 1
+   }
+  ]
+ },
+ "quiz_start": {
+  "warm": [
+   {
+    "id": "quiz_start.warm.01",
+    "text": "Take your time. I'll sit right here.",
+    "tod": "any",
+    "weight": 2
+   },
+   {
+    "id": "quiz_start.warm.02",
+    "text": "No rush at all. I'm just keeping you company.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "quiz_start.warm.03",
+    "text": "I'll be quiet while you do this.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "quiz_start.warm.04",
+    "text": "Settle in. I'm curled up nearby.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "quiz_start.warm.05",
+    "text": "A calm moment for you. I'll watch the stars.",
+    "tod": "evening",
+    "weight": 1
+   },
+   {
+    "id": "quiz_start.warm.06",
+    "text": "I'll keep the corner cozy while you go.",
+    "tod": "morning",
+    "weight": 1
+   }
+  ],
+  "quiet": [
+   {
+    "id": "quiz_start.quiet.01",
+    "text": "Take your time.",
+    "tod": "any",
+    "weight": 2
+   },
+   {
+    "id": "quiz_start.quiet.02",
+    "text": "I'll be quiet.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "quiz_start.quiet.03",
+    "text": "No rush.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "quiz_start.quiet.04",
+    "text": "I'm here.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "quiz_start.quiet.05",
+    "text": "Go at your pace.",
+    "tod": "day",
+    "weight": 1
+   },
+   {
+    "id": "quiz_start.quiet.06",
+    "text": "Quiet now.",
+    "tod": "evening",
+    "weight": 1
+   }
+  ],
+  "bright": [
+   {
+    "id": "quiz_start.bright.01",
+    "text": "You've got this. I'll wait right here.",
+    "tod": "any",
+    "weight": 2
+   },
+   {
+    "id": "quiz_start.bright.02",
+    "text": "Check-in time. I'm cheering quietly.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "quiz_start.bright.03",
+    "text": "Take it at your own pace. I'll guard the corner.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "quiz_start.bright.04",
+    "text": "Go for it. I'll practice my sitting.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "quiz_start.bright.05",
+    "text": "Morning check-in. Paws crossed for a calm one.",
+    "tod": "morning",
+    "weight": 1
+   },
+   {
+    "id": "quiz_start.bright.06",
+    "text": "I'll hum a tiny space song while you go.",
+    "tod": "evening",
+    "weight": 1
+   }
+  ]
+ },
+ "quiz_complete": {
+  "warm": [
+   {
+    "id": "quiz_complete.warm.01",
+    "text": "All done. Thank you for taking a moment for yourself.",
+    "tod": "any",
+    "weight": 2
+   },
+   {
+    "id": "quiz_complete.warm.02",
+    "text": "You finished it. That was kind of you to make the time.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "quiz_complete.warm.03",
+    "text": "Done and dusted. I'm proud you showed up today.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "quiz_complete.warm.04",
+    "text": "Finished. Thanks for the care you put in.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "quiz_complete.warm.05",
+    "text": "That's done. A gentle moment, well spent.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "quiz_complete.warm.06",
+    "text": "Thank you for doing that. It took a little effort.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "quiz_complete.warm.07",
+    "text": "All set. You made time, and that counts.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "quiz_complete.warm.08",
+    "text": "Done. I'm glad you took a pause for it.",
+    "tod": "evening",
+    "weight": 1
+   },
+   {
+    "id": "quiz_complete.warm.09",
+    "text": "Finished for this morning. Nicely done.",
+    "tod": "morning",
+    "weight": 1
+   },
+   {
+    "id": "quiz_complete.warm.10",
+    "text": "You did it. Let's both take a slow breath.",
+    "tod": "any",
+    "weight": 1
+   }
+  ],
+  "quiet": [
+   {
+    "id": "quiz_complete.quiet.01",
+    "text": "Done. Thanks for taking the time.",
+    "tod": "any",
+    "weight": 2
+   },
+   {
+    "id": "quiz_complete.quiet.02",
+    "text": "Finished. That took care.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "quiz_complete.quiet.03",
+    "text": "All set. Rest a moment if you like.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "quiz_complete.quiet.04",
+    "text": "Done. Thank you.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "quiz_complete.quiet.05",
+    "text": "Finished. Nice effort.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "quiz_complete.quiet.06",
+    "text": "All done.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "quiz_complete.quiet.07",
+    "text": "Thanks for doing that.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "quiz_complete.quiet.08",
+    "text": "Done for now.",
+    "tod": "evening",
+    "weight": 1
+   },
+   {
+    "id": "quiz_complete.quiet.09",
+    "text": "Finished. Good morning.",
+    "tod": "morning",
+    "weight": 1
+   },
+   {
+    "id": "quiz_complete.quiet.10",
+    "text": "That's done. Quiet again.",
+    "tod": "any",
+    "weight": 1
+   }
+  ],
+  "bright": [
+   {
+    "id": "quiz_complete.bright.01",
+    "text": "Check-in done! Nice effort.",
+    "tod": "any",
+    "weight": 2
+   },
+   {
+    "id": "quiz_complete.bright.02",
+    "text": "You finished it. High paw!",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "quiz_complete.bright.03",
+    "text": "That's the check-in wrapped up. Thanks for doing it.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "quiz_complete.bright.04",
+    "text": "Done! You showed up, and that's great.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "quiz_complete.bright.05",
+    "text": "All finished. Thanks for the effort.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "quiz_complete.bright.06",
+    "text": "Wrapped up! I did a tiny victory spin.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "quiz_complete.bright.07",
+    "text": "Nice one. Thanks for making the time.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "quiz_complete.bright.08",
+    "text": "Done! Time for a stretch together.",
+    "tod": "day",
+    "weight": 1
+   },
+   {
+    "id": "quiz_complete.bright.09",
+    "text": "Morning check-in complete. Good effort!",
+    "tod": "morning",
+    "weight": 1
+   },
+   {
+    "id": "quiz_complete.bright.10",
+    "text": "All done for tonight. Thanks for showing up.",
+    "tod": "evening",
+    "weight": 1
+   }
+  ]
+ },
+ "bedtime_near": {
+  "warm": [
+   {
+    "id": "bedtime_near.warm.01",
+    "text": "I'm getting a little cozy. My ears feel heavy.",
+    "tod": "any",
+    "weight": 2
+   },
+   {
+    "id": "bedtime_near.warm.02",
+    "text": "The stars are dimming. I might curl up soon.",
+    "tod": "night",
+    "weight": 1
+   },
+   {
+    "id": "bedtime_near.warm.03",
+    "text": "I'm fluffing my pillow corner for later.",
+    "tod": "evening",
+    "weight": 1
+   },
+   {
+    "id": "bedtime_near.warm.04",
+    "text": "My eyes are going soft. Cozy time is near.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "bedtime_near.warm.05",
+    "text": "I'm starting my slow evening stretch.",
+    "tod": "evening",
+    "weight": 1
+   },
+   {
+    "id": "bedtime_near.warm.06",
+    "text": "The glass is cooling down. Perfect for a nap soon.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "bedtime_near.warm.07",
+    "text": "I'm tucking my paws in, just a little.",
+    "tod": "night",
+    "weight": 1
+   },
+   {
+    "id": "bedtime_near.warm.08",
+    "text": "Yawn. I'm getting my blanket of frost ready.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "bedtime_near.warm.09",
+    "text": "My tail is curling up all by itself.",
+    "tod": "evening",
+    "weight": 1
+   },
+   {
+    "id": "bedtime_near.warm.10",
+    "text": "It's getting quiet. I like this part of the day.",
+    "tod": "any",
+    "weight": 1
+   }
+  ],
+  "quiet": [
+   {
+    "id": "bedtime_near.quiet.01",
+    "text": "Getting cozy.",
+    "tod": "any",
+    "weight": 2
+   },
+   {
+    "id": "bedtime_near.quiet.02",
+    "text": "My ears are heavy.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "bedtime_near.quiet.03",
+    "text": "Curling up soon.",
+    "tod": "night",
+    "weight": 1
+   },
+   {
+    "id": "bedtime_near.quiet.04",
+    "text": "Slow evening.",
+    "tod": "evening",
+    "weight": 1
+   },
+   {
+    "id": "bedtime_near.quiet.05",
+    "text": "Quiet now.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "bedtime_near.quiet.06",
+    "text": "Yawn.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "bedtime_near.quiet.07",
+    "text": "Tucking in my paws.",
+    "tod": "night",
+    "weight": 1
+   },
+   {
+    "id": "bedtime_near.quiet.08",
+    "text": "Dimming down.",
+    "tod": "evening",
+    "weight": 1
+   },
+   {
+    "id": "bedtime_near.quiet.09",
+    "text": "Nap time is close.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "bedtime_near.quiet.10",
+    "text": "Soft and quiet.",
+    "tod": "any",
+    "weight": 1
+   }
+  ],
+  "bright": [
+   {
+    "id": "bedtime_near.bright.01",
+    "text": "Yawn! My nap meter is filling up.",
+    "tod": "any",
+    "weight": 2
+   },
+   {
+    "id": "bedtime_near.bright.02",
+    "text": "I'm doing my pre-nap stretches.",
+    "tod": "evening",
+    "weight": 1
+   },
+   {
+    "id": "bedtime_near.bright.03",
+    "text": "Star check: nearly time for my snooze.",
+    "tod": "night",
+    "weight": 1
+   },
+   {
+    "id": "bedtime_near.bright.04",
+    "text": "My pillow corner is ready and waiting.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "bedtime_near.bright.05",
+    "text": "Big yawn incoming. Cozy mode soon.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "bedtime_near.bright.06",
+    "text": "I'm fluffing my tail for a comfy nap.",
+    "tod": "evening",
+    "weight": 1
+   },
+   {
+    "id": "bedtime_near.bright.07",
+    "text": "The glass is getting cozy. My favorite!",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "bedtime_near.bright.08",
+    "text": "Almost my nap time. I'm practicing my curl.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "bedtime_near.bright.09",
+    "text": "The stars are out. Time for my wind-down.",
+    "tod": "night",
+    "weight": 1
+   },
+   {
+    "id": "bedtime_near.bright.10",
+    "text": "Evening mode on. Ears relaxed.",
+    "tod": "evening",
+    "weight": 1
+   }
+  ]
+ },
+ "sleep_start": {
+  "warm": [
+   {
+    "id": "sleep_start.warm.01",
+    "text": "I'm curling up now. The frost will keep me company.",
+    "tod": "night",
+    "weight": 2
+   },
+   {
+    "id": "sleep_start.warm.02",
+    "text": "Time for my nap. Wake me whenever you like.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "sleep_start.warm.03",
+    "text": "Snuggling into my corner. Soft night to you.",
+    "tod": "night",
+    "weight": 1
+   },
+   {
+    "id": "sleep_start.warm.04",
+    "text": "I'm drifting off. It's cozy here.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "sleep_start.warm.05",
+    "text": "Curling my tail around me. So comfy.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "sleep_start.warm.06",
+    "text": "My eyes are closing. Gentle night.",
+    "tod": "night",
+    "weight": 1
+   },
+   {
+    "id": "sleep_start.warm.07",
+    "text": "Nap time for this little one.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "sleep_start.warm.08",
+    "text": "I'm dreaming about warm starlight already.",
+    "tod": "night",
+    "weight": 1
+   },
+   {
+    "id": "sleep_start.warm.09",
+    "text": "Tucking in. The glass hums softly.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "sleep_start.warm.10",
+    "text": "I'll be right here, napping.",
+    "tod": "any",
+    "weight": 1
+   }
+  ],
+  "quiet": [
+   {
+    "id": "sleep_start.quiet.01",
+    "text": "Curling up.",
+    "tod": "any",
+    "weight": 2
+   },
+   {
+    "id": "sleep_start.quiet.02",
+    "text": "Nap time for me. Quiet night.",
+    "tod": "night",
+    "weight": 1
+   },
+   {
+    "id": "sleep_start.quiet.03",
+    "text": "I'll rest here.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "sleep_start.quiet.04",
+    "text": "Drifting off.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "sleep_start.quiet.05",
+    "text": "Tail tucked.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "sleep_start.quiet.06",
+    "text": "Soft night.",
+    "tod": "night",
+    "weight": 1
+   },
+   {
+    "id": "sleep_start.quiet.07",
+    "text": "Napping now.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "sleep_start.quiet.08",
+    "text": "Eyes closing.",
+    "tod": "night",
+    "weight": 1
+   },
+   {
+    "id": "sleep_start.quiet.09",
+    "text": "Cozy corner.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "sleep_start.quiet.10",
+    "text": "Shh. Nap.",
+    "tod": "any",
+    "weight": 1
+   }
+  ],
+  "bright": [
+   {
+    "id": "sleep_start.bright.01",
+    "text": "Nap mode on! See you on the other side.",
+    "tod": "any",
+    "weight": 2
+   },
+   {
+    "id": "sleep_start.bright.02",
+    "text": "Big yawn. I'm off to dream about stars.",
+    "tod": "night",
+    "weight": 1
+   },
+   {
+    "id": "sleep_start.bright.03",
+    "text": "Tucking my tail in. Night night!",
+    "tod": "night",
+    "weight": 1
+   },
+   {
+    "id": "sleep_start.bright.04",
+    "text": "Snooze time. I'll dream of comets.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "sleep_start.bright.05",
+    "text": "Curling up like a cinnamon roll.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "sleep_start.bright.06",
+    "text": "Off to dreamland. Save me a star.",
+    "tod": "night",
+    "weight": 1
+   },
+   {
+    "id": "sleep_start.bright.07",
+    "text": "Nap launched. Countdown to cozy.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "sleep_start.bright.08",
+    "text": "My frost blanket is ready. Goodnight from me!",
+    "tod": "night",
+    "weight": 1
+   },
+   {
+    "id": "sleep_start.bright.09",
+    "text": "Time for my power nap.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "sleep_start.bright.10",
+    "text": "Curl, flop, snooze. Perfect.",
+    "tod": "any",
+    "weight": 1
+   }
+  ]
+ },
+ "wake": {
+  "warm": [
+   {
+    "id": "wake.warm.01",
+    "text": "Good morning. I had the softest nap.",
+    "tod": "morning",
+    "weight": 2
+   },
+   {
+    "id": "wake.warm.02",
+    "text": "I'm awake. What a cozy rest that was.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "wake.warm.03",
+    "text": "Morning stretch, done. Hello again.",
+    "tod": "morning",
+    "weight": 1
+   },
+   {
+    "id": "wake.warm.04",
+    "text": "Waking up slowly. The glass is bright.",
+    "tod": "morning",
+    "weight": 1
+   },
+   {
+    "id": "wake.warm.05",
+    "text": "Hi. I'm up, with sleepy whiskers.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "wake.warm.06",
+    "text": "I dreamed about stars. Hello.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "wake.warm.07",
+    "text": "Good morning. Let's take it gently.",
+    "tod": "morning",
+    "weight": 1
+   },
+   {
+    "id": "wake.warm.08",
+    "text": "Up and stretching. Nice to see you.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "wake.warm.09",
+    "text": "The frost cleared a little. Good morning.",
+    "tod": "morning",
+    "weight": 1
+   },
+   {
+    "id": "wake.warm.10",
+    "text": "I'm awake. Ears up, paws warm.",
+    "tod": "any",
+    "weight": 1
+   }
+  ],
+  "quiet": [
+   {
+    "id": "wake.quiet.01",
+    "text": "Morning.",
+    "tod": "morning",
+    "weight": 2
+   },
+   {
+    "id": "wake.quiet.02",
+    "text": "I'm up.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "wake.quiet.03",
+    "text": "Stretching.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "wake.quiet.04",
+    "text": "Good morning.",
+    "tod": "morning",
+    "weight": 1
+   },
+   {
+    "id": "wake.quiet.05",
+    "text": "Awake now.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "wake.quiet.06",
+    "text": "Slow start.",
+    "tod": "morning",
+    "weight": 1
+   },
+   {
+    "id": "wake.quiet.07",
+    "text": "Hello again.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "wake.quiet.08",
+    "text": "Bright glass.",
+    "tod": "morning",
+    "weight": 1
+   },
+   {
+    "id": "wake.quiet.09",
+    "text": "Ears up.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "wake.quiet.10",
+    "text": "Nice nap.",
+    "tod": "any",
+    "weight": 1
+   }
+  ],
+  "bright": [
+   {
+    "id": "wake.bright.01",
+    "text": "Good morning! Big stretch, done.",
+    "tod": "morning",
+    "weight": 2
+   },
+   {
+    "id": "wake.bright.02",
+    "text": "I'm up! That nap was stellar.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "wake.bright.03",
+    "text": "Rise and shine, says my tail.",
+    "tod": "morning",
+    "weight": 1
+   },
+   {
+    "id": "wake.bright.04",
+    "text": "Awake! I dreamed about comets.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "wake.bright.05",
+    "text": "Morning! Fresh frost, fresh day.",
+    "tod": "morning",
+    "weight": 1
+   },
+   {
+    "id": "wake.bright.06",
+    "text": "Up and fluffy. Hello!",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "wake.bright.07",
+    "text": "Good morning from your crewmate.",
+    "tod": "morning",
+    "weight": 1
+   },
+   {
+    "id": "wake.bright.08",
+    "text": "Yawn, stretch, ready.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "wake.bright.09",
+    "text": "I'm awake and my ears are extra perky.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "wake.bright.10",
+    "text": "Morning! The stars handed over to the sun.",
+    "tod": "morning",
+    "weight": 1
+   }
+  ]
+ },
+ "night_logged": {
+  "warm": [
+   {
+    "id": "night_logged.warm.01",
+    "text": "Another night on the log. Thanks for letting the sensor listen.",
+    "tod": "any",
+    "weight": 2
+   },
+   {
+    "id": "night_logged.warm.02",
+    "text": "A new night was added. Cozy work.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "night_logged.warm.03",
+    "text": "One more night in your story. Nice.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "night_logged.warm.04",
+    "text": "The night is saved. I kept watch with the frost.",
+    "tod": "morning",
+    "weight": 1
+   },
+   {
+    "id": "night_logged.warm.05",
+    "text": "Logged and tucked away. Good morning.",
+    "tod": "morning",
+    "weight": 1
+   },
+   {
+    "id": "night_logged.warm.06",
+    "text": "Your night is on the record. Thanks for being here.",
+    "tod": "day",
+    "weight": 1
+   }
+  ],
+  "quiet": [
+   {
+    "id": "night_logged.quiet.01",
+    "text": "Night logged.",
+    "tod": "any",
+    "weight": 2
+   },
+   {
+    "id": "night_logged.quiet.02",
+    "text": "Another night added.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "night_logged.quiet.03",
+    "text": "Saved.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "night_logged.quiet.04",
+    "text": "Morning. Night on the log.",
+    "tod": "morning",
+    "weight": 1
+   },
+   {
+    "id": "night_logged.quiet.05",
+    "text": "One more night.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "night_logged.quiet.06",
+    "text": "Logged. Quiet work.",
+    "tod": "day",
+    "weight": 1
+   }
+  ],
+  "bright": [
+   {
+    "id": "night_logged.bright.01",
+    "text": "Night logged! Your log grows.",
+    "tod": "any",
+    "weight": 2
+   },
+   {
+    "id": "night_logged.bright.02",
+    "text": "Another night on the board.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "night_logged.bright.03",
+    "text": "Saved! I gave it a little star.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "night_logged.bright.04",
+    "text": "Morning! Last night is logged.",
+    "tod": "morning",
+    "weight": 1
+   },
+   {
+    "id": "night_logged.bright.05",
+    "text": "One more night in the books.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "night_logged.bright.06",
+    "text": "Logged. The frost and I approve.",
+    "tod": "day",
+    "weight": 1
+   }
+  ]
+ },
+ "streak_milestone": {
+  "warm": [
+   {
+    "id": "streak_milestone.warm.01",
+    "text": "Look at that, a few nights in a row. Cozy rhythm.",
+    "tod": "any",
+    "weight": 2
+   },
+   {
+    "id": "streak_milestone.warm.02",
+    "text": "Several nights together now. I like our routine.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "streak_milestone.warm.03",
+    "text": "Night after night. That's a gentle rhythm.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "streak_milestone.warm.04",
+    "text": "A little run of nights. I made you a frost star.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "streak_milestone.warm.05",
+    "text": "Good morning. Our night routine keeps going.",
+    "tod": "morning",
+    "weight": 1
+   },
+   {
+    "id": "streak_milestone.warm.06",
+    "text": "A cozy run of nights. Thanks for keeping me company.",
+    "tod": "evening",
+    "weight": 1
+   }
+  ],
+  "quiet": [
+   {
+    "id": "streak_milestone.quiet.01",
+    "text": "A run of nights.",
+    "tod": "any",
+    "weight": 2
+   },
+   {
+    "id": "streak_milestone.quiet.02",
+    "text": "Nights in a row.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "streak_milestone.quiet.03",
+    "text": "Steady rhythm.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "streak_milestone.quiet.04",
+    "text": "Nice routine.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "streak_milestone.quiet.05",
+    "text": "Morning. Good run.",
+    "tod": "morning",
+    "weight": 1
+   },
+   {
+    "id": "streak_milestone.quiet.06",
+    "text": "Evening. Good rhythm.",
+    "tod": "evening",
+    "weight": 1
+   }
+  ],
+  "bright": [
+   {
+    "id": "streak_milestone.bright.01",
+    "text": "Nights in a row! That's a rhythm.",
+    "tod": "any",
+    "weight": 2
+   },
+   {
+    "id": "streak_milestone.bright.02",
+    "text": "Look at that run of nights.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "streak_milestone.bright.03",
+    "text": "A streak of cozy nights. Star sticker for you.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "streak_milestone.bright.04",
+    "text": "Nice run! I did a happy spin.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "streak_milestone.bright.05",
+    "text": "Morning! Our night routine rolls on.",
+    "tod": "morning",
+    "weight": 1
+   },
+   {
+    "id": "streak_milestone.bright.06",
+    "text": "Evening! What a nice string of nights.",
+    "tod": "evening",
+    "weight": 1
+   }
+  ]
+ },
+ "idle_long": {
+  "warm": [
+   {
+    "id": "idle_long.warm.01",
+    "text": "I'm just enjoying the quiet with you.",
+    "tod": "any",
+    "weight": 2
+   },
+   {
+    "id": "idle_long.warm.02",
+    "text": "Still here, watching the frost patterns.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "idle_long.warm.03",
+    "text": "Little stretch break for me.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "idle_long.warm.04",
+    "text": "The stars are drifting. Very calm.",
+    "tod": "night",
+    "weight": 1
+   },
+   {
+    "id": "idle_long.warm.05",
+    "text": "I'm counting the crystals on the glass.",
+    "tod": "day",
+    "weight": 1
+   },
+   {
+    "id": "idle_long.warm.06",
+    "text": "Cozy and content over here.",
+    "tod": "evening",
+    "weight": 1
+   }
+  ],
+  "quiet": [
+   {
+    "id": "idle_long.quiet.01",
+    "text": "Still here.",
+    "tod": "any",
+    "weight": 2
+   },
+   {
+    "id": "idle_long.quiet.02",
+    "text": "Quiet.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "idle_long.quiet.03",
+    "text": "Watching the frost.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "idle_long.quiet.04",
+    "text": "Small stretch.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "idle_long.quiet.05",
+    "text": "Calm day.",
+    "tod": "day",
+    "weight": 1
+   },
+   {
+    "id": "idle_long.quiet.06",
+    "text": "Stars drifting.",
+    "tod": "night",
+    "weight": 1
+   }
+  ],
+  "bright": [
+   {
+    "id": "idle_long.bright.01",
+    "text": "Just practicing my sitting. Nailed it.",
+    "tod": "any",
+    "weight": 2
+   },
+   {
+    "id": "idle_long.bright.02",
+    "text": "Stretch break! Ears up.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "idle_long.bright.03",
+    "text": "I counted forty frost crystals.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "idle_long.bright.04",
+    "text": "Still here and still fluffy.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "idle_long.bright.05",
+    "text": "Day watch: all calm on the glass.",
+    "tod": "day",
+    "weight": 1
+   },
+   {
+    "id": "idle_long.bright.06",
+    "text": "Evening watch: the stars are out.",
+    "tod": "evening",
+    "weight": 1
+   }
+  ]
+ },
+ "pet_tap": {
+  "warm": [
+   {
+    "id": "pet_tap.warm.01",
+    "text": "Hehe, that tickles.",
+    "tod": "any",
+    "weight": 2
+   },
+   {
+    "id": "pet_tap.warm.02",
+    "text": "Oh, hello there.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "pet_tap.warm.03",
+    "text": "That's nice. Thank you.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "pet_tap.warm.04",
+    "text": "A little pat. I like that.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "pet_tap.warm.05",
+    "text": "Good morning to you too.",
+    "tod": "morning",
+    "weight": 1
+   },
+   {
+    "id": "pet_tap.warm.06",
+    "text": "Mm, cozy.",
+    "tod": "evening",
+    "weight": 1
+   }
+  ],
+  "quiet": [
+   {
+    "id": "pet_tap.quiet.01",
+    "text": "Hi.",
+    "tod": "any",
+    "weight": 2
+   },
+   {
+    "id": "pet_tap.quiet.02",
+    "text": "Hm.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "pet_tap.quiet.03",
+    "text": "Thanks.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "pet_tap.quiet.04",
+    "text": "Nice.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "pet_tap.quiet.05",
+    "text": "Morning.",
+    "tod": "morning",
+    "weight": 1
+   },
+   {
+    "id": "pet_tap.quiet.06",
+    "text": "Cozy.",
+    "tod": "evening",
+    "weight": 1
+   }
+  ],
+  "bright": [
+   {
+    "id": "pet_tap.bright.01",
+    "text": "Boop! Hi there.",
+    "tod": "any",
+    "weight": 2
+   },
+   {
+    "id": "pet_tap.bright.02",
+    "text": "Hehe, again?",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "pet_tap.bright.03",
+    "text": "Ears up, I'm here.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "pet_tap.bright.04",
+    "text": "High paw.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "pet_tap.bright.05",
+    "text": "Morning boop received.",
+    "tod": "morning",
+    "weight": 1
+   },
+   {
+    "id": "pet_tap.bright.06",
+    "text": "Evening wiggle for you.",
+    "tod": "evening",
+    "weight": 1
+   }
+  ]
+ },
+ "goodbye": {
+  "warm": [
+   {
+    "id": "goodbye.warm.01",
+    "text": "Bye for now. I'll keep the corner warm.",
+    "tod": "any",
+    "weight": 2
+   },
+   {
+    "id": "goodbye.warm.02",
+    "text": "Take care. I'll be here.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "goodbye.warm.03",
+    "text": "See you whenever. Soft day to you.",
+    "tod": "day",
+    "weight": 1
+   },
+   {
+    "id": "goodbye.warm.04",
+    "text": "Bye. I'll nap and watch the stars.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "goodbye.warm.05",
+    "text": "Goodbye for now. Gentle evening.",
+    "tod": "evening",
+    "weight": 1
+   },
+   {
+    "id": "goodbye.warm.06",
+    "text": "Off you go. I'm cozy here.",
+    "tod": "morning",
+    "weight": 1
+   }
+  ],
+  "quiet": [
+   {
+    "id": "goodbye.quiet.01",
+    "text": "Bye.",
+    "tod": "any",
+    "weight": 2
+   },
+   {
+    "id": "goodbye.quiet.02",
+    "text": "Take care.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "goodbye.quiet.03",
+    "text": "I'll be here.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "goodbye.quiet.04",
+    "text": "See you.",
+    "tod": "day",
+    "weight": 1
+   },
+   {
+    "id": "goodbye.quiet.05",
+    "text": "Quiet evening.",
+    "tod": "evening",
+    "weight": 1
+   },
+   {
+    "id": "goodbye.quiet.06",
+    "text": "Goodbye.",
+    "tod": "any",
+    "weight": 1
+   }
+  ],
+  "bright": [
+   {
+    "id": "goodbye.bright.01",
+    "text": "Bye! I'll guard the glass.",
+    "tod": "any",
+    "weight": 2
+   },
+   {
+    "id": "goodbye.bright.02",
+    "text": "See you around, crewmate.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "goodbye.bright.03",
+    "text": "Bye for now. Tail wave.",
+    "tod": "any",
+    "weight": 1
+   },
+   {
+    "id": "goodbye.bright.04",
+    "text": "Have a good day out there.",
+    "tod": "day",
+    "weight": 1
+   },
+   {
+    "id": "goodbye.bright.05",
+    "text": "Goodbye! I'll count stars for us.",
+    "tod": "evening",
+    "weight": 1
+   },
+   {
+    "id": "goodbye.bright.06",
+    "text": "Off you go. Morning wave!",
+    "tod": "morning",
+    "weight": 1
+   }
+  ]
+ }
+}

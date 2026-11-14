@@ -4,7 +4,6 @@ import type { CheckinOut, Instrument } from "../api/types";
 import { useLoad } from "../api/useLoad";
 import { CheckinForm } from "../components/CheckinForm";
 import { CheckinCalendar } from "../components/CheckinCalendar";
-import { IndexCards } from "../components/IndexCards";
 import { LoadState } from "../components/LoadState";
 import { QuestionnaireList } from "../components/QuestionnaireList";
 import { friendlyName, officialName } from "../components/instrumentNames";
@@ -32,7 +31,7 @@ export function Psyche() {
       <div className="checkin-stack"><section className="card daily-checkin-card" aria-labelledby="daily-title"><h2 id="daily-title">A quick check-in</h2>
         <LoadState state={list} label="daily check-ins">{items=><QuestionnaireList items={items} dailyOnly completedIds={(history.data??[]).filter(c=>c.date===to).map(c=>c.instrument_id)} onStart={id=>setParams({instrument:id})}/>}</LoadState>
       </section>
-      <section className="card checkin-index-history" data-pet-perch aria-labelledby="weekly-title"><h2 id="weekly-title">Weekly patterns</h2><p className="muted checkin-weekly-lead">Questionnaire summaries over time, never a comparison with others.</p><IndexCards instruments={list.data??[]}/></section></div>
+      <section className="card checkin-index-history" data-pet-perch aria-labelledby="weekly-title"><h2 id="weekly-title">Weekly patterns</h2><p className="muted checkin-weekly-lead">Your check-ins are part of tonight's reading. They are compared only with your own past answers, never with anyone else.</p></section></div>
       <section className="card wide other-checkins-card" data-pet-perch aria-labelledby="other-title"><h2 id="other-title">More reflections</h2>
         <LoadState state={list} label="questionnaires">{items=><QuestionnaireList items={items} completedIds={(history.data??[]).filter(c=>c.date===to).map(c=>c.instrument_id)} onStart={id=>setParams({instrument:id})}/>}</LoadState>
       </section>

@@ -64,7 +64,7 @@ export function Overview() {
         </section>
         <VitalsTiles night={night} baseline={baseline} status={status(physiology)}/>
         {health?.mental_fatigue_score==null?<VitalCard label="Mind and check-ins" icon="◌" to="/checkin" empty="Your check-ins add context here after the first few days."/>:
-        <VitalCard label="Mind and check-ins" to="/checkin" value={`${Math.round(health.mental_fatigue_score)} / 100`} icon="◌" state={status(mental)}>
+        <VitalCard label="Mind and check-ins" to="/checkin" icon="◌" state={status(mental)}>
           <p className="vital-caption">From your recent personal inputs.</p>
         </VitalCard>}
         {night?.valid?<VitalCard label="Rest" to="/sleep" value={fmt(night.presence_hours,1)} unit="h" icon="◔">

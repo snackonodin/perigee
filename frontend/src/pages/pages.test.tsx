@@ -45,11 +45,11 @@ describe("Overview", () => {
     expect(within(breathing).getByText("Your usual range")).toBeTruthy();
   });
 
-  it("shows a personal check-in signal without exposing raw z-scores", async () => {
+  it("shows a personal check-in signal without exposing a score or raw z-scores", async () => {
     render(<App initialPath="/" />);
     const mindHeading = await screen.findByRole("heading", { name: "Mind and check-ins" });
     const mind = mindHeading.closest("article")!;
-    expect(within(mind).getByText("24 / 100")).toBeTruthy();
+    expect(mind.textContent).not.toMatch(/24|\/ 100/);
     expect(mind.textContent).toMatch(/From your recent personal inputs/);
     expect(document.body.textContent).not.toMatch(/[+-]\d+\.\d+\s*z\b/);
   });
@@ -109,6 +109,8 @@ describe("Psyche", () => {
     fireEvent.click(within(form).getAllByRole("radio")[0]);
     fireEvent.click(within(form).getByRole("button", { name: "Send check-in" }));
     expect(await screen.findByText("Saved. Thank you.")).toBeTruthy();
+    // the result never shows a score, total or band
+    expect(screen.getByText("Saved. Thank you.").closest(".checkin-result")!.textContent).not.toMatch(/score|total|band|\d/i);
   });
 });
 

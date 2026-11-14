@@ -6,7 +6,6 @@ interface Entry {
   mad?: number | null;
   z?: number;
   skipped?: string;
-  band?: { band?: string };
 }
 
 const SKIP_NOTE: Record<string, string> = {
@@ -19,10 +18,8 @@ const SKIP_NOTE: Record<string, string> = {
 export function FlagWhy({ components }: { components: Record<string, unknown> }) {
   const alert = typeof components.alert_robust_z === "number" ? components.alert_robust_z : null;
   const rows: { domain: string; name: string; e: Entry }[] = [];
-  for (const [domain, key] of [
-    ["Body", "physiology"],
-    ["Mood", "mental"],
-  ] as const) {
+  // Body signals only: questionnaire scores and bands are never shown to the person.
+  for (const [domain, key] of [["Body", "physiology"]] as const) {
     const entries = components[key];
     if (entries && typeof entries === "object") {
       for (const [name, e] of Object.entries(entries as Record<string, Entry>)) {
@@ -47,7 +44,7 @@ export function FlagWhy({ components }: { components: Record<string, unknown> })
         {rows.map(({ domain, name, e }) => {
           const z = typeof e.z === "number" ? e.z : null;
           const high = z !== null && alert !== null && Math.abs(z) >= alert;
-          const note = e.band?.band ? `questionnaire band: ${e.band.band}` : SKIP_NOTE[e.skipped ?? ""] ?? "–";
+          const note = SKIP_NOTE[e.skipped ?? ""] ?? "–";
           return (
             <tr key={`${domain}.${name}`}>
               <td>{domain}</td>

@@ -61,7 +61,7 @@ export function Body() {
       Respiration:{value:respiration==null?"No reading":fmt(respiration),unit:respiration==null?undefined:"br/min",copy:respiration==null?"No breathing estimate is available yet.":"This signal is shown against your own recent breathing range.",state:respiration==null?"none":rrLevel,statusLabel:respiration==null?"No reading":rrLevel??"Status unavailable"},
       Autonomic:{value:night?.rr_var==null?"No reading":fmt(night.rr_var),copy:night?.rr_var==null?"No overnight breathing-variation reading is available.":"Your overnight breathing variation. No separate status is returned for this measure.",statusLabel:night?.rr_var==null?"No reading":"Status unavailable"},
       Rest:{value:night?.valid?fmt(night.presence_hours,1):"No reading",unit:night?.valid?"h":undefined,copy:night?.valid?"Sensed presence last night. No separate status is returned for this measure.":"No valid night is available yet.",state:night?.valid?undefined:"none",statusLabel:night?.valid?"Status unavailable":"No reading"},
-      Mind:{value:mind==null?"No reading":String(Math.round(mind)),unit:mind==null?undefined:"/ 100",copy:"Check-ins add personal context to this part of your picture.",state:mind==null?"none":mentalLevel,statusLabel:mind==null?"No reading":mentalLevel??"Status unavailable"},
+      Mind:{value:mind==null?"No reading":"From your check-ins",unit:undefined,copy:"Check-ins add personal context to this part of your picture.",state:mind==null?"none":mentalLevel,statusLabel:mind==null?"No reading":mentalLevel??"Status unavailable"},
       Cabin:{value:"No reading",copy:cabinNote??"Cabin context is not included in this snapshot.",state:"none",statusLabel:"No reading"},
     };
     const current=details[selected];

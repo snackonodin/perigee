@@ -55,6 +55,9 @@ describe("Persona: personality questions", () => {
     expect(sent.answers).toEqual({ mini_ipip_1: 4, mini_ipip_2: 2 });
     expect(screen.getByRole("button", { name: "Retake the personality questions" })).toBeTruthy();
     expect(screen.queryByText(/Total score/)).toBeNull();
+    // traits and the quadrant appear, never their numbers (TAKEN has 9, 12-18; matrix 13, 14)
+    const page = document.querySelector(".persona-page")!.textContent!;
+    expect(page).not.toMatch(/\b(9|1[0-9]|20)\b|4–20|\/ 20|Stability|Agency/);
     expect(screen.queryByRole("button", { name: "Take the personality questions (2 min)" })).toBeNull();
   });
 

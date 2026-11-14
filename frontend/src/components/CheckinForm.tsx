@@ -86,7 +86,6 @@ export function CheckinForm({ instrument, onDone, onSubmitted, submitLabel = "Se
         {/* `stored` = a response row was written. Whether the individual answers were kept
             depends on the survey_answers consent, which this result does not report. */}
         <p>{result.stored ? "Saved. Thank you." : "Scored only: nothing was stored (check-ins are off in Settings)."}</p>
-        {typeof result.total === "number" && <p className="muted">Total score: {result.total}</p>}
         {onDone && <button type="button" onClick={onDone}>Done</button>}
       </div>
     );

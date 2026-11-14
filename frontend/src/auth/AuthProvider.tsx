@@ -75,7 +75,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const demo = useCallback(async () => {
     const { data, error, response } = await api.POST("/api/v1/auth/demo");
-    if (response?.status === 404) return "unavailable";
+    // 404: demo access off; 405: an older server without the route. Either way, hide the button.
+    if (response?.status === 404 || response?.status === 405) return "unavailable";
     if (!data) return errorText(error, response?.status, response?.headers.get("Retry-After"));
     tokens.set(data);
     // The demo persona already has a baseline: skip first-run setup and land on Today.

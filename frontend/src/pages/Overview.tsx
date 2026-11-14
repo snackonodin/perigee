@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import { Link } from "react-router";
 import { useAuth } from "../auth/AuthProvider";
+import { plainHeadline, plainMessage } from "../components/advisory";
 import { Icon } from "../components/icons";
 import { Reveal, TitleReveal } from "../components/motion";
 import "./Today.css";
@@ -70,7 +71,7 @@ export function Overview() {
         {night?.valid?<VitalCard label="Rest" to="/sleep" value={fmt(night.presence_hours,1)} unit="h" icon="◔">
           <p className="vital-caption">Sensed presence last night.</p>
         </VitalCard>:<VitalCard label="Rest" icon="◔" to="/sleep" empty="Time at rest appears after your first full night near the sensor."/>}
-        <aside className="today-note-card glass-strong bento-wide"><span className="note-glyph" aria-hidden="true"><Icon name="briefing" size={20}/></span><div><p className="eyebrow">A quiet note</p><strong>{advisory?.headline??"Notice your own rhythm"}</strong><p>{advisory?.personality_tailored_message??"Your patterns are compared with your own recent baseline."}</p></div></aside>
+        <aside className="today-note-card glass-strong bento-wide"><span className="note-glyph" aria-hidden="true"><Icon name="briefing" size={20}/></span><div><p className="eyebrow">A quiet note</p><strong>{plainHeadline(advisory?.headline)??"Notice your own rhythm"}</strong><p>{plainMessage(advisory?.personality_tailored_message)??"Your patterns are compared with your own recent baseline."}</p></div></aside>
       </Reveal>
     </div>;
   }}</LoadState>;

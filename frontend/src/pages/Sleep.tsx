@@ -1,3 +1,4 @@
+import { plainHeadline, plainMessage } from "../components/advisory";
 import { useState } from "react";
 import { api } from "../api/client";
 import type { BaselineOut, NightOut, TodayOut } from "../api/types";
@@ -80,7 +81,8 @@ export function Sleep() {
   const sleepToday=today.data as SleepToday|undefined;
   const level=sleepToday?.context_engine?.scores_and_metrics?.phys_level??sleepToday?.flags[0]?.phys_level;
   const latestValid=[...(nights.data??[])].filter(n=>n.valid).sort((a,b)=>a.date.localeCompare(b.date)).at(-1);
-  const explanation=sleepToday?.context_engine?.user_facing_advisory?.personality_tailored_message??sleepToday?.context_engine?.user_facing_advisory?.headline??"The API did not include a sleep note.";
+  const sleepAdvisory=sleepToday?.context_engine?.user_facing_advisory;
+  const explanation=plainMessage(sleepAdvisory?.personality_tailored_message)??plainHeadline(sleepAdvisory?.headline)??"The API did not include a sleep note.";
   const validCount=nights.data?.filter(n=>n.valid).length;
   const status=levelStatus(level);
   return <div className="sleep-page"><header className="page-heading"><div><p className="eyebrow">Rest cycle · your personal log</p><TitleReveal text="Sleep"/><p>Night by night, compared with your own recent pattern.</p></div>{status!=="none"&&<StatusChip state={status}/>}</header>

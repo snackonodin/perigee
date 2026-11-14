@@ -7,19 +7,38 @@ import { initial, moodOf, reduce, type BehaviorEvent, type BehaviorState } from 
 import { unlocked } from "./accessories";
 import { PetArt } from "./PetArt";
 import {
-  BLINK_MAX_MS, BLINK_MIN_MS, DEFAULT_NAMES, DOUBLE_BLINK_CHANCE, EAR_TWITCH_MAX_MS, EAR_TWITCH_MIN_MS,
+  BLINK_MAX_MS, BLINK_MIN_MS, BREATHE_IN_S, BREATHE_MAX_CYCLES, BREATHE_OUT_S, IDLE_LONG_MS, SAFETY_QUIET_MS, DEFAULT_NAMES, DOUBLE_BLINK_CHANCE, EAR_TWITCH_MAX_MS, EAR_TWITCH_MIN_MS,
   SIT_SETTLE_MS, TAIL_FLICK_MAX_MS, TAIL_FLICK_MIN_MS, WALK_COOLDOWN_MS, WALK_IDLE_MS, WALK_SPEED_PX_S, YAWN_MIN_GAP_MS,
 } from "./petConfig";
 import { createScheduler, type Scheduler } from "./scheduler";
 import type { PetProps } from "./types";
 import { useInteractions } from "./useInteractions";
+import cacheJson from "./dialog/cache.json";
+import { DialogBubble } from "./dialog/DialogBubble";
+import { fill, pickLine } from "./dialog/picker";
+import { KEYS, readKey, writeKey } from "./dialog/storage";
+import { toneFor } from "./dialog/toneFor";
+import { subscribe } from "./emit";
+import { PetControls } from "./PetControls";
+import { petStore, usePetPrefs } from "./store";
+import type { DialogCache, PetEvent, PetEventName } from "./types";
 import { useRig } from "./useRig";
 import { canWalk, perchTargets, stepToward, type Box, type Point } from "./walk";
 import "./pet.css";
 
+const CACHE = cacheJson as unknown as DialogCache;
+
 export function Pet(props: PetProps) {
+  const { hidden } = usePetPrefs();
+  // after the safety screen closes the pet starts fresh and stays silent for 60 s
+  const wasSafety = useRef(props.safetyActive);
+  const quietUntil = useRef(0);
+  if (wasSafety.current && !props.safetyActive) quietUntil.current = Date.now() + SAFETY_QUIET_MS;
+  wasSafety.current = props.safetyActive;
   if (props.safetyActive) return null;
-  return <PetLive {...props} />;
+  if (hidden) return <div className="pet-shown-toggle"><button type="button" className="pet-control pet-show" style={{ minWidth: 44, minHeight: 44 }}
+    onClick={() => { petStore.setHidden(false); props.onHiddenChange?.(false); }}>Show pet</button></div>;
+  return <PetLive {...props} quietUntil={quietUntil.current} />;
 }
 
 function prefersReduced(): boolean {
@@ -29,7 +48,7 @@ function prefersReduced(): boolean {
 /** Optional hooks used by later phases (frost trail, dialog). */
 export interface PetLiveHooks { onStep?(p: Point): void; onTap?(): void; onState?(s: BehaviorState): void }
 
-export function PetLive({ species, timeOfDay, reducedMotion, nightsLogged, petName, placement = "corner", size = 96, hooks }: PetProps & { hooks?: PetLiveHooks }) {
+export function PetLive({ species, personaId, timeOfDay, reducedMotion, nightsLogged, petName, placement = "corner", size = 96, onHiddenChange, hooks, quietUntil = 0 }: PetProps & { hooks?: PetLiveHooks; quietUntil?: number }) {
   const reduced = reducedMotion || prefersReduced();
   const name = petName ?? DEFAULT_NAMES[species];
   const root = useRef<HTMLDivElement>(null);
@@ -45,8 +64,47 @@ export function PetLive({ species, timeOfDay, reducedMotion, nightsLogged, petNa
     setB((s) => reduce(s, e, Date.now()));
   }, []);
   const hooksRef = useRef(hooks); hooksRef.current = hooks;
-  const onTap = useCallback(() => hooksRef.current?.onTap?.(), []);
-  useEffect(() => { hooksRef.current?.onState?.(b); }, [b]);
+  // dialog: one line at a time, picked from the offline cache in the persona's tone
+  const [line, setLine] = useState<string | null>(null);
+  const lastShown = useRef<Partial<Record<PetEventName, number>>>({});
+  const say = useCallback((event: PetEvent) => {
+    if (Date.now() < quietUntil) return;
+    const l = pickLine(CACHE, event.name, toneFor(personaId), timeOfDay, Date.now(), { lastShown: lastShown.current });
+    if (l) setLine(fill(l.text, name));
+    if (event.name === "quiz_complete") dispatch({ type: "cheer" });
+  }, [quietUntil, personaId, timeOfDay, name, dispatch]);
+  const sayRef = useRef(say); sayRef.current = say;
+  useEffect(() => subscribe((e) => sayRef.current(e)), []);
+  const clearLine = useCallback(() => setLine(null), []);
+  useEffect(() => {
+    if (readKey(KEYS.firstRun) === "true") return;
+    writeKey(KEYS.firstRun, "true");
+    sayRef.current({ name: "first_run" });
+  }, []);
+  const onTap = useCallback(() => { sayRef.current({ name: "pet_tap" }); hooksRef.current?.onTap?.(); }, []);
+  const prevState = useRef(b.state);
+  useEffect(() => {
+    hooksRef.current?.onState?.(b);
+    const prev = prevState.current; prevState.current = b.state;
+    if (b.state === "sleeping" && prev === "yawning") sayRef.current({ name: "sleep_start" });
+    if (b.state === "stretching" && !b.bedtime && (prev === "sleeping" || prev === "waking" || prev === "yawning")) sayRef.current({ name: "wake" });
+  }, [b]);
+  useEffect(() => {
+    let fired = false;
+    return scheduler.every(30000, 30000, () => {
+      const idle = Date.now() - lastInput.current;
+      if (idle < IDLE_LONG_MS) { fired = false; return; }
+      if (!fired) { fired = true; sayRef.current({ name: "idle_long" }); }
+    });
+  }, [scheduler]);
+
+  // "Breathe with me": 4 s in / 6 s out, at most 10 cycles. Stops when the pet unmounts (safety).
+  const [buddy, setBuddy] = useState(false);
+  useEffect(() => petStore.onBuddy(() => {
+    setBuddy(true);
+    scheduler.after((BREATHE_IN_S + BREATHE_OUT_S) * BREATHE_MAX_CYCLES * 1000, () => setBuddy(false));
+  }), [scheduler]);
+  const [menu, setMenu] = useState(false);
 
   // timed states end with a tick at `until`
   useEffect(() => {
@@ -143,13 +201,18 @@ export function PetLive({ species, timeOfDay, reducedMotion, nightsLogged, petNa
   const handlers = useInteractions(scheduler, dispatch, onTap);
   const accessories = useMemo(() => unlocked(nightsLogged), [nightsLogged]);
   const mood = moodOf(b.state, timeOfDay);
-  const style = { "--pet-size": `${size}px` } as CSSProperties;
+  const style = { "--pet-size": `${size}px`, "--buddy-s": `${BREATHE_IN_S + BREATHE_OUT_S}s` } as CSSProperties;
   return <div ref={root} className="pet" data-state={b.state} data-species={species} data-placement={placement}
-    data-reduced={reduced ? "true" : undefined} data-perched={perched ? "true" : undefined} style={style}>
+    data-reduced={reduced ? "true" : undefined} data-perched={perched ? "true" : undefined} data-buddy={buddy ? "true" : undefined} style={style}>
+    <DialogBubble text={line} scheduler={scheduler} onDone={clearLine} />
     <button type="button" className="pet-hit" aria-label={`Pet ${name}`} {...handlers}>
       <PetArt species={species} mood={mood} size={size} accessories={accessories} animated />
     </button>
     {b.state === "sleeping" && <span className="pet-z" aria-hidden="true">z</span>}
+    {buddy && <p className="pet-buddy-label">{b.state === "sleeping" ? "" : "Breathe with me · relaxation exercise, not a medical tool"}<button type="button" className="pet-control" style={{ minWidth: 44, minHeight: 44 }} onClick={() => setBuddy(false)}>Stop</button></p>}
+    {placement === "corner" && <button type="button" className="pet-menu-toggle" aria-label="Companion options" aria-expanded={menu} onClick={() => setMenu((m) => !m)}>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="18" cy="12" r="2" /></svg></button>}
+    {menu && <div className="pet-menu"><PetControls onHiddenChange={(h) => { setMenu(false); onHiddenChange?.(h); }} /></div>}
     {placement === "stage" && !reduced && <FrostTrail trail={trail} kickRef={frostKick} />}
   </div>;
 }

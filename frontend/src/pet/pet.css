@@ -54,6 +54,29 @@
 @keyframes pet-z { 0% { opacity:0;transform:translate(0,0) scale(.8); } 15% { opacity:1; } 80%,100% { opacity:0;transform:translate(8px,-24px) scale(1.1); } }
 .pet-z { position:absolute;top:4%;right:6%;font:700 18px/1 var(--font, system-ui);color:var(--pet-zzz, #5B6B7A);pointer-events:none;animation:pet-z 2.5s var(--ease-soft, ease) infinite; }
 
+/* Breathing buddy: 4 s in, 6 s out (40% of a 10 s cycle), at most 10 cycles. */
+@keyframes pet-buddy { 0%,100% { --breathe:0; } 40% { --breathe:1; } }
+.pet[data-buddy] .pet-art { animation:pet-buddy var(--buddy-s, 10s) var(--ease-soft, ease-in-out) 10; }
+.pet[data-buddy] .pet-svg { transform:scale(calc(1 + .06 * var(--breathe))); }
+.pet-buddy-label { position:absolute;right:0;bottom:calc(100% + 8px);display:flex;align-items:center;gap:8px;width:max-content;max-width:280px;margin:0;padding:8px 8px 8px 16px;
+  border-radius:16px;background:var(--glass-strong, rgba(255,255,255,.78));border:1px solid var(--glass-border, rgba(255,255,255,.75));color:var(--muted, #5B6B7A);font-size:var(--fs-tiny, 12px); }
+
+/* Controls: options toggle beside the pet, a glass menu, pill buttons (>= 44 px). */
+.pet-menu-toggle { all:unset;position:absolute;right:calc(100% + 4px);bottom:4px;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;cursor:pointer;
+  background:var(--glass, rgba(255,255,255,.62));border:1px solid var(--glass-border, rgba(255,255,255,.75));color:var(--muted, #5B6B7A);box-shadow:var(--shadow-1, none);opacity:.8; }
+.pet-menu-toggle:hover,.pet-menu-toggle:focus-visible,.pet-menu-toggle[aria-expanded="true"] { opacity:1; }
+.pet-menu-toggle:focus-visible { outline:3px solid var(--teal, #1E7F6E);outline-offset:2px; }
+.pet-menu-toggle svg { width:20px;height:20px;fill:currentColor; }
+.pet-menu { position:absolute;right:calc(100% + 4px);bottom:56px;padding:8px;border-radius:16px;background:var(--glass-strong, rgba(255,255,255,.78));
+  border:1px solid var(--glass-border, rgba(255,255,255,.75));box-shadow:var(--shadow-2, 0 4px 16px rgba(31,42,55,.08));-webkit-backdrop-filter:var(--glass-blur, blur(20px));backdrop-filter:var(--glass-blur, blur(20px)); }
+.pet-controls { display:flex;flex-direction:column;align-items:stretch;gap:8px;min-width:200px; }
+.pet-control { display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 16px;border:1px solid var(--line, #E3ECE8);border-radius:999px;
+  background:var(--surface, #fff);color:var(--text, #1F2A37);font:600 var(--fs-small, 14px)/1.2 var(--font, system-ui);cursor:pointer; }
+.pet-control[aria-pressed="true"] { background:var(--mint, #BFE9D6);color:var(--teal-ink, #166457);border-color:transparent; }
+.pet-control:focus-visible { outline:3px solid var(--teal, #1E7F6E);outline-offset:2px; }
+.pet-control-note { color:var(--muted, #5B6B7A);font-size:var(--fs-tiny, 12px); }
+.pet-shown-toggle { position:fixed;right:var(--companion-inset, 16px);bottom:var(--companion-inset, 16px);z-index:var(--z-companion, 500); }
+
 /* reduced motion: static pose, no loops */
 .pet[data-reduced], .pet[data-reduced] * { animation:none !important;transition:none !important; }
 @media (prefers-reduced-motion: reduce) { .pet, .pet * { animation:none !important;transition:none !important; } }

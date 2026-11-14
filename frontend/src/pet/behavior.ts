@@ -7,7 +7,9 @@ export type PetState = "idle" | "happy" | "petting" | "playful" | "yawning" | "s
 export type BehaviorEvent =
   | { type: "tick" } | { type: "tap" } | { type: "poke" } | { type: "pressStart" } | { type: "pressEnd" }
   | { type: "idleFor"; ms: number } | { type: "yawn" } | { type: "enterBedtime" } | { type: "leaveBedtime" }
-  | { type: "perchFound" } | { type: "arrived" } | { type: "leavePerch" };
+  | { type: "perchFound" } | { type: "arrived" } | { type: "leavePerch" }
+  /** a check-in was completed: a short happy moment (engagement only, no result) */
+  | { type: "cheer" };
 
 export interface Rig { mouth: number; squash: number; earL: number; earR: number; blink: number }
 export interface BehaviorState {
@@ -63,6 +65,8 @@ export function reduce(s: BehaviorState, e: BehaviorEvent, now: number): Behavio
       if (taps.length >= POKE_COUNT) return to(s, "playful", now, PLAYFUL_MS, { taps: [], stretchedIdle: false });
       return to(s, "happy", now, HAPPY_MS, { taps, stretchedIdle: false });
     }
+    case "cheer":
+      return s.state === "sleeping" ? s : to(s, "happy", now, HAPPY_MS, { stretchedIdle: false });
     case "pressStart":
       return s.state === "sleeping" ? s : to(s, "petting", now, PET_MAX_MS, { stretchedIdle: false });
     case "pressEnd":

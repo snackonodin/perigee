@@ -1,0 +1,186 @@
+{
+  "dataset": "PhysioNet Sleep-EDF Expanded (sleep-cassette)",
+  "licence": "Open Data Commons Attribution License v1.0",
+  "window_s": 60.0,
+  "step_s": 30.0,
+  "summary": {
+    "nights": 10,
+    "subjects": 5,
+    "mean_acceptance_rate": 0.8883,
+    "rr_med_range": [
+      13.93,
+      19.08
+    ],
+    "mean_mae_vs_zero_crossing_bpm": 0.83,
+    "night_to_night_abs_delta_rr_med": [
+      0.05,
+      0.02,
+      0.27,
+      2.02,
+      0.67
+    ],
+    "median_night_to_night_delta_bpm": 0.27
+  },
+  "nights": [
+    {
+      "file": "SC4001E0-PSG.edf",
+      "channel": "Resp oro-nasal",
+      "fs_hz": 1.0,
+      "sleep_windows": 642,
+      "accepted_windows": 617,
+      "acceptance_rate": 0.9611,
+      "rr_med": 15.56,
+      "rr_var": 1.006,
+      "rr_p10_p90": [
+        14.66,
+        16.73
+      ],
+      "mae_vs_zero_crossing_bpm": 0.79,
+      "within_2bpm_of_zero_crossing": 0.872
+    },
+    {
+      "file": "SC4002E0-PSG.edf",
+      "channel": "Resp oro-nasal",
+      "fs_hz": 1.0,
+      "sleep_windows": 921,
+      "accepted_windows": 913,
+      "acceptance_rate": 0.9913,
+      "rr_med": 15.51,
+      "rr_var": 1.45,
+      "rr_p10_p90": [
+        14.28,
+        16.82
+      ],
+      "mae_vs_zero_crossing_bpm": 0.59,
+      "within_2bpm_of_zero_crossing": 0.9365
+    },
+    {
+      "file": "SC4011E0-PSG.edf",
+      "channel": "Resp oro-nasal",
+      "fs_hz": 1.0,
+      "sleep_windows": 932,
+      "accepted_windows": 928,
+      "acceptance_rate": 0.9957,
+      "rr_med": 16.99,
+      "rr_var": 1.538,
+      "rr_p10_p90": [
+        15.5,
+        18.66
+      ],
+      "mae_vs_zero_crossing_bpm": 0.34,
+      "within_2bpm_of_zero_crossing": 0.9892
+    },
+    {
+      "file": "SC4012E0-PSG.edf",
+      "channel": "Resp oro-nasal",
+      "fs_hz": 1.0,
+      "sleep_windows": 1008,
+      "accepted_windows": 1007,
+      "acceptance_rate": 0.999,
+      "rr_med": 16.97,
+      "rr_var": 1.252,
+      "rr_p10_p90": [
+        15.64,
+        18.28
+      ],
+      "mae_vs_zero_crossing_bpm": 0.33,
+      "within_2bpm_of_zero_crossing": 0.9841
+    },
+    {
+      "file": "SC4021E0-PSG.edf",
+      "channel": "Resp oro-nasal",
+      "fs_hz": 1.0,
+      "sleep_windows": 889,
+      "accepted_windows": 861,
+      "acceptance_rate": 0.9685,
+      "rr_med": 19.08,
+      "rr_var": 2.752,
+      "rr_p10_p90": [
+        17.43,
+        20.84
+      ],
+      "mae_vs_zero_crossing_bpm": 0.72,
+      "within_2bpm_of_zero_crossing": 0.9164
+    },
+    {
+      "file": "SC4022E0-PSG.edf",
+      "channel": "Resp oro-nasal",
+      "fs_hz": 1.0,
+      "sleep_windows": 878,
+      "accepted_windows": 855,
+      "acceptance_rate": 0.9738,
+      "rr_med": 18.81,
+      "rr_var": 2.548,
+      "rr_p10_p90": [
+        17.16,
+        20.48
+      ],
+      "mae_vs_zero_crossing_bpm": 0.57,
+      "within_2bpm_of_zero_crossing": 0.952
+    },
+    {
+      "file": "SC4031E0-PSG.edf",
+      "channel": "Resp oro-nasal",
+      "fs_hz": 1.0,
+      "sleep_windows": 799,
+      "accepted_windows": 775,
+      "acceptance_rate": 0.97,
+      "rr_med": 13.93,
+      "rr_var": 1.993,
+      "rr_p10_p90": [
+        12.4,
+        15.63
+      ],
+      "mae_vs_zero_crossing_bpm": 0.61,
+      "within_2bpm_of_zero_crossing": 0.9471
+    },
+    {
+      "file": "SC4032E0-PSG.edf",
+      "channel": "Resp oro-nasal",
+      "fs_hz": 1.0,
+      "sleep_windows": 763,
+      "accepted_windows": 81,
+      "acceptance_rate": 0.1062,
+      "rr_med": 15.95,
+      "rr_var": 17.438,
+      "rr_p10_p90": [
+        11.83,
+        21.86
+      ],
+      "mae_vs_zero_crossing_bpm": 2.81,
+      "within_2bpm_of_zero_crossing": 0.4321
+    },
+    {
+      "file": "SC4041E0-PSG.edf",
+      "channel": "Resp oro-nasal",
+      "fs_hz": 1.0,
+      "sleep_windows": 1005,
+      "accepted_windows": 978,
+      "acceptance_rate": 0.9731,
+      "rr_med": 14.5,
+      "rr_var": 1.871,
+      "rr_p10_p90": [
+        12.93,
+        16.1
+      ],
+      "mae_vs_zero_crossing_bpm": 0.68,
+      "within_2bpm_of_zero_crossing": 0.9223
+    },
+    {
+      "file": "SC4042E0-PSG.edf",
+      "channel": "Resp oro-nasal",
+      "fs_hz": 1.0,
+      "sleep_windows": 996,
+      "accepted_windows": 941,
+      "acceptance_rate": 0.9448,
+      "rr_med": 15.17,
+      "rr_var": 2.597,
+      "rr_p10_p90": [
+        13.31,
+        17.02
+      ],
+      "mae_vs_zero_crossing_bpm": 0.91,
+      "within_2bpm_of_zero_crossing": 0.865
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+<section id="how" class="s" data-transition="fade">
+<svg class="aurora" aria-label="An orbital path from evening to morning through four stations: sense, learn, detect, speak" width="1920" height="1080" viewBox="0 0 1920 1080">
+<defs>
+<radialGradient id="h1"><stop offset="0" stop-color="#D9D0F5"/><stop offset="1" stop-color="#D9D0F5" stop-opacity="0"/></radialGradient>
+<radialGradient id="h2"><stop offset="0" stop-color="#BFE9D6"/><stop offset="1" stop-color="#BFE9D6" stop-opacity="0"/></radialGradient>
+<radialGradient id="h3"><stop offset="0" stop-color="#FFD9C7"/><stop offset="1" stop-color="#FFD9C7" stop-opacity="0"/></radialGradient>
+<linearGradient id="hp" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#11624F"/><stop offset="1" stop-color="#4B3DC9"/></linearGradient>
+</defs>
+<rect width="1920" height="1080" fill="#EEF3F8"/>
+<circle cx="1700" cy="180" r="620" fill="url(#h1)"><animateTransform attributeName="transform" type="translate" from="70 -50" to="0 0" dur="2.6s"/></circle>
+<circle cx="180" cy="900" r="600" fill="url(#h2)"><animateTransform attributeName="transform" type="translate" from="-70 60" to="0 0" dur="2.6s"/></circle>
+<circle cx="1000" cy="1120" r="520" fill="url(#h3)"><animateTransform attributeName="transform" type="translate" from="0 90" to="0 0" dur="2.6s"/></circle>
+<path d="M200 720 Q 960 300 1720 720" fill="none" stroke="#FFFFFF" stroke-width="22" stroke-linecap="round" stroke-opacity=".9"/>
+<path d="M200 720 Q 960 300 1720 720" fill="none" stroke="url(#hp)" stroke-width="6" stroke-linecap="round" stroke-dasharray="1700" stroke-dashoffset="0"><animate attributeName="stroke-dashoffset" from="1700" to="0" dur="2.4s" begin="0.2s"/></path>
+</svg>
+<div class="bar fd"><p class="brand">Perigee</p><div class="track"><div class="fill" style="width:92px"></div></div></div>
+<h2 class="title fd" style="--i:0;margin-bottom:12px">How Perigee works, every night</h2>
+<p class="lede fd" style="--i:1;width:1200px">One small receiver by the bunk. Four steps between lights-out and the morning glance.</p>
+<div class="clay clay-mint pop" style="--i:2;position:absolute;left:288px;top:580px;width:128px;height:128px;border-radius:64px;display:flex;align-items:center;justify-content:center"><x-icon name="Activity" style="color:#11624F;width:60px;height:60px"></x-icon></div>
+<div class="clay clay-sky pop" style="--i:3;position:absolute;left:698px;top:460px;width:128px;height:128px;border-radius:64px;display:flex;align-items:center;justify-content:center"><x-icon name="Database" style="color:#1B4F7A;width:60px;height:60px"></x-icon></div>
+<div class="clay clay-lav pop" style="--i:4;position:absolute;left:1094px;top:460px;width:128px;height:128px;border-radius:64px;display:flex;align-items:center;justify-content:center"><x-icon name="Search" style="color:#4B3DC9;width:60px;height:60px"></x-icon></div>
+<div class="clay clay-peach pop" style="--i:5;position:absolute;left:1504px;top:580px;width:128px;height:128px;border-radius:64px;display:flex;align-items:center;justify-content:center"><x-icon name="Chat" style="color:#8A3A1C;width:60px;height:60px"></x-icon></div>
+<div class="st" style="--i:3;position:absolute;left:182px;top:740px;width:340px"><h3 style="font-size:36px;margin:0 0 8px">Sense</h3><p style="font-size:25px;line-height:1.36;color:#46516A;margin:0">Wi-Fi channel state gives breathing, presence and movement, every 30 s.</p></div>
+<div class="st" style="--i:4;position:absolute;left:592px;top:620px;width:340px"><h3 style="font-size:36px;margin:0 0 8px">Learn</h3><p style="font-size:25px;line-height:1.36;color:#46516A;margin:0">Each night joins a personal 28-night baseline, if it was calm and long enough.</p></div>
+<div class="st" style="--i:5;position:absolute;left:988px;top:620px;width:340px"><h3 style="font-size:36px;margin:0 0 8px">Detect</h3><p style="font-size:25px;line-height:1.36;color:#46516A;margin:0">Robust z and a CUSUM memory turn small shifts into Watch, then Alert.</p></div>
+<div class="st" style="--i:6;position:absolute;left:1398px;top:740px;width:340px"><h3 style="font-size:36px;margin:0 0 8px">Speak</h3><p style="font-size:25px;line-height:1.36;color:#46516A;margin:0">Plain flags in the person’s own tone, with weekly check-ins and a companion.</p></div>
+<p class="footer">Safety first: a check-in that needs support opens the safety screen before anything else is scored</p>
+<aside>Trace the arc left to right: sense, learn, detect, speak. Everything after "sense" is math we show next. The one rule that sits above the arc: if a check-in signals the person needs support, the safety screen comes first and nothing else runs.</aside>
+</section>

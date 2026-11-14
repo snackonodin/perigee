@@ -1,0 +1,19 @@
+{
+  "v": 5,
+  "createdOnFiles": {"v": 1, "at": "2026-11-14T08:30:00Z"},
+  "lists": "css",
+  "format": {"v": 1, "shared": ["project/deck.css"]},
+  "title": "Perigee — Space Apps 2026",
+  "order": ["cover", "how", "sense", "baseline", "persona", "evidence", "impact"],
+  "sections": {
+    "s1": {"description": "What Perigee is and how it works", "start": "cover"},
+    "s2": {"description": "The math: sensing, personal baselines, drift detection, persona", "start": "sense"},
+    "s3": {"description": "Evidence on real and NASA-calibrated data, and the difference it makes", "start": "evidence"}
+  },
+  "faces": {
+    "space-grotesk": {"family": "Space Grotesk", "href": "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400..700&family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap"},
+    "inter": {"family": "Inter", "href": "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400..700&family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap"},
+    "jetbrains-mono": {"family": "JetBrains Mono", "href": "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400..700&family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap"}
+  },
+  "designSystems": []
+}

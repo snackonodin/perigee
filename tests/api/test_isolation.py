@@ -116,6 +116,8 @@ ISOLATION_CASES: list[IsolationCase] = [
         "get", "/api/v1/checkins", 200, params={"from": "2026-10-01", "to": "2026-12-01"}
     ),
     IsolationCase("get", "/api/v1/today", 200),
+    # persona: always the caller's own traits (A's quiz never reaches B; test_persona_quiz)
+    IsolationCase("get", "/api/v1/persona", 200),
     # injection (INJ-1): estimates for A's session must look like a missing session, write
     # nothing and reveal nothing, whatever else the request carries
     # monitor (on-demand ESP sessions): B's list is B's own; A's session ids look missing.

@@ -1,0 +1,581 @@
+{
+  "id": "mini_ipip",
+  "name": "Mini-IPIP personality questions (20 items)",
+  "version": "1.0",
+  "timeframe": "Describe yourself as you generally are now, not as you wish to be in the future.",
+  "license_note": "International Personality Item Pool (ipip.ori.org): items are in the public domain. Mini-IPIP short form: Donnellan MB, Oswald FL, Baird BM, Lucas RE. The Mini-IPIP scales: tiny-yet-effective measures of the Big Five factors of personality. Psychol Assess. 2006;18(2):192-203. doi:10.1037/1040-3590.18.2.192.",
+  "source_url": "https://ipip.ori.org/MiniIPIPKey.htm",
+  "verification": "TODO-VERIFY: wording and item order follow waiwai1/context-v2.md section 2.2, which the Context Engine's reverse keys match (items 2,4,6,8,10,12,14,16,18,20 reversed). The spec's O3 'Am interested in abstract ideas' (+) differs from the published Mini-IPIP item 'Am not interested in abstract ideas' (R); reconcile with the engine owner before release.",
+  "notes": "Personality traits only shape wording and layout (context-v2 section 1.2). Trait scores never change any alert, score or safety rule. Not a clinical instrument; no bands. Traits are scored by the Context Engine (engine.api), not here.",
+  "items": [
+    {
+      "key": "mini_ipip_1",
+      "text": "Am the life of the party.",
+      "trait": "E",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Very inaccurate"
+        },
+        {
+          "value": 2,
+          "label": "Moderately inaccurate"
+        },
+        {
+          "value": 3,
+          "label": "Neither inaccurate nor accurate"
+        },
+        {
+          "value": 4,
+          "label": "Moderately accurate"
+        },
+        {
+          "value": 5,
+          "label": "Very accurate"
+        }
+      ]
+    },
+    {
+      "key": "mini_ipip_2",
+      "text": "Don't talk a lot.",
+      "trait": "E",
+      "reverse": true,
+      "options": [
+        {
+          "value": 1,
+          "label": "Very inaccurate"
+        },
+        {
+          "value": 2,
+          "label": "Moderately inaccurate"
+        },
+        {
+          "value": 3,
+          "label": "Neither inaccurate nor accurate"
+        },
+        {
+          "value": 4,
+          "label": "Moderately accurate"
+        },
+        {
+          "value": 5,
+          "label": "Very accurate"
+        }
+      ]
+    },
+    {
+      "key": "mini_ipip_3",
+      "text": "Talk to a lot of different people at parties.",
+      "trait": "E",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Very inaccurate"
+        },
+        {
+          "value": 2,
+          "label": "Moderately inaccurate"
+        },
+        {
+          "value": 3,
+          "label": "Neither inaccurate nor accurate"
+        },
+        {
+          "value": 4,
+          "label": "Moderately accurate"
+        },
+        {
+          "value": 5,
+          "label": "Very accurate"
+        }
+      ]
+    },
+    {
+      "key": "mini_ipip_4",
+      "text": "Keep in the background.",
+      "trait": "E",
+      "reverse": true,
+      "options": [
+        {
+          "value": 1,
+          "label": "Very inaccurate"
+        },
+        {
+          "value": 2,
+          "label": "Moderately inaccurate"
+        },
+        {
+          "value": 3,
+          "label": "Neither inaccurate nor accurate"
+        },
+        {
+          "value": 4,
+          "label": "Moderately accurate"
+        },
+        {
+          "value": 5,
+          "label": "Very accurate"
+        }
+      ]
+    },
+    {
+      "key": "mini_ipip_5",
+      "text": "Sympathize with others' feelings.",
+      "trait": "A",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Very inaccurate"
+        },
+        {
+          "value": 2,
+          "label": "Moderately inaccurate"
+        },
+        {
+          "value": 3,
+          "label": "Neither inaccurate nor accurate"
+        },
+        {
+          "value": 4,
+          "label": "Moderately accurate"
+        },
+        {
+          "value": 5,
+          "label": "Very accurate"
+        }
+      ]
+    },
+    {
+      "key": "mini_ipip_6",
+      "text": "Am not interested in other people's problems.",
+      "trait": "A",
+      "reverse": true,
+      "options": [
+        {
+          "value": 1,
+          "label": "Very inaccurate"
+        },
+        {
+          "value": 2,
+          "label": "Moderately inaccurate"
+        },
+        {
+          "value": 3,
+          "label": "Neither inaccurate nor accurate"
+        },
+        {
+          "value": 4,
+          "label": "Moderately accurate"
+        },
+        {
+          "value": 5,
+          "label": "Very accurate"
+        }
+      ]
+    },
+    {
+      "key": "mini_ipip_7",
+      "text": "Feel others' emotions.",
+      "trait": "A",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Very inaccurate"
+        },
+        {
+          "value": 2,
+          "label": "Moderately inaccurate"
+        },
+        {
+          "value": 3,
+          "label": "Neither inaccurate nor accurate"
+        },
+        {
+          "value": 4,
+          "label": "Moderately accurate"
+        },
+        {
+          "value": 5,
+          "label": "Very accurate"
+        }
+      ]
+    },
+    {
+      "key": "mini_ipip_8",
+      "text": "Am not really interested in others.",
+      "trait": "A",
+      "reverse": true,
+      "options": [
+        {
+          "value": 1,
+          "label": "Very inaccurate"
+        },
+        {
+          "value": 2,
+          "label": "Moderately inaccurate"
+        },
+        {
+          "value": 3,
+          "label": "Neither inaccurate nor accurate"
+        },
+        {
+          "value": 4,
+          "label": "Moderately accurate"
+        },
+        {
+          "value": 5,
+          "label": "Very accurate"
+        }
+      ]
+    },
+    {
+      "key": "mini_ipip_9",
+      "text": "Get chores done right away.",
+      "trait": "C",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Very inaccurate"
+        },
+        {
+          "value": 2,
+          "label": "Moderately inaccurate"
+        },
+        {
+          "value": 3,
+          "label": "Neither inaccurate nor accurate"
+        },
+        {
+          "value": 4,
+          "label": "Moderately accurate"
+        },
+        {
+          "value": 5,
+          "label": "Very accurate"
+        }
+      ]
+    },
+    {
+      "key": "mini_ipip_10",
+      "text": "Often forget to put things back in their proper place.",
+      "trait": "C",
+      "reverse": true,
+      "options": [
+        {
+          "value": 1,
+          "label": "Very inaccurate"
+        },
+        {
+          "value": 2,
+          "label": "Moderately inaccurate"
+        },
+        {
+          "value": 3,
+          "label": "Neither inaccurate nor accurate"
+        },
+        {
+          "value": 4,
+          "label": "Moderately accurate"
+        },
+        {
+          "value": 5,
+          "label": "Very accurate"
+        }
+      ]
+    },
+    {
+      "key": "mini_ipip_11",
+      "text": "Like order.",
+      "trait": "C",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Very inaccurate"
+        },
+        {
+          "value": 2,
+          "label": "Moderately inaccurate"
+        },
+        {
+          "value": 3,
+          "label": "Neither inaccurate nor accurate"
+        },
+        {
+          "value": 4,
+          "label": "Moderately accurate"
+        },
+        {
+          "value": 5,
+          "label": "Very accurate"
+        }
+      ]
+    },
+    {
+      "key": "mini_ipip_12",
+      "text": "Make a mess of things.",
+      "trait": "C",
+      "reverse": true,
+      "options": [
+        {
+          "value": 1,
+          "label": "Very inaccurate"
+        },
+        {
+          "value": 2,
+          "label": "Moderately inaccurate"
+        },
+        {
+          "value": 3,
+          "label": "Neither inaccurate nor accurate"
+        },
+        {
+          "value": 4,
+          "label": "Moderately accurate"
+        },
+        {
+          "value": 5,
+          "label": "Very accurate"
+        }
+      ]
+    },
+    {
+      "key": "mini_ipip_13",
+      "text": "Have frequent mood swings.",
+      "trait": "N",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Very inaccurate"
+        },
+        {
+          "value": 2,
+          "label": "Moderately inaccurate"
+        },
+        {
+          "value": 3,
+          "label": "Neither inaccurate nor accurate"
+        },
+        {
+          "value": 4,
+          "label": "Moderately accurate"
+        },
+        {
+          "value": 5,
+          "label": "Very accurate"
+        }
+      ]
+    },
+    {
+      "key": "mini_ipip_14",
+      "text": "Am relaxed most of the time.",
+      "trait": "N",
+      "reverse": true,
+      "options": [
+        {
+          "value": 1,
+          "label": "Very inaccurate"
+        },
+        {
+          "value": 2,
+          "label": "Moderately inaccurate"
+        },
+        {
+          "value": 3,
+          "label": "Neither inaccurate nor accurate"
+        },
+        {
+          "value": 4,
+          "label": "Moderately accurate"
+        },
+        {
+          "value": 5,
+          "label": "Very accurate"
+        }
+      ]
+    },
+    {
+      "key": "mini_ipip_15",
+      "text": "Get upset easily.",
+      "trait": "N",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Very inaccurate"
+        },
+        {
+          "value": 2,
+          "label": "Moderately inaccurate"
+        },
+        {
+          "value": 3,
+          "label": "Neither inaccurate nor accurate"
+        },
+        {
+          "value": 4,
+          "label": "Moderately accurate"
+        },
+        {
+          "value": 5,
+          "label": "Very accurate"
+        }
+      ]
+    },
+    {
+      "key": "mini_ipip_16",
+      "text": "Seldom feel blue.",
+      "trait": "N",
+      "reverse": true,
+      "options": [
+        {
+          "value": 1,
+          "label": "Very inaccurate"
+        },
+        {
+          "value": 2,
+          "label": "Moderately inaccurate"
+        },
+        {
+          "value": 3,
+          "label": "Neither inaccurate nor accurate"
+        },
+        {
+          "value": 4,
+          "label": "Moderately accurate"
+        },
+        {
+          "value": 5,
+          "label": "Very accurate"
+        }
+      ]
+    },
+    {
+      "key": "mini_ipip_17",
+      "text": "Have a vivid imagination.",
+      "trait": "O",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Very inaccurate"
+        },
+        {
+          "value": 2,
+          "label": "Moderately inaccurate"
+        },
+        {
+          "value": 3,
+          "label": "Neither inaccurate nor accurate"
+        },
+        {
+          "value": 4,
+          "label": "Moderately accurate"
+        },
+        {
+          "value": 5,
+          "label": "Very accurate"
+        }
+      ]
+    },
+    {
+      "key": "mini_ipip_18",
+      "text": "Have difficulty understanding abstract ideas.",
+      "trait": "O",
+      "reverse": true,
+      "options": [
+        {
+          "value": 1,
+          "label": "Very inaccurate"
+        },
+        {
+          "value": 2,
+          "label": "Moderately inaccurate"
+        },
+        {
+          "value": 3,
+          "label": "Neither inaccurate nor accurate"
+        },
+        {
+          "value": 4,
+          "label": "Moderately accurate"
+        },
+        {
+          "value": 5,
+          "label": "Very accurate"
+        }
+      ]
+    },
+    {
+      "key": "mini_ipip_19",
+      "text": "Am interested in abstract ideas.",
+      "trait": "O",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Very inaccurate"
+        },
+        {
+          "value": 2,
+          "label": "Moderately inaccurate"
+        },
+        {
+          "value": 3,
+          "label": "Neither inaccurate nor accurate"
+        },
+        {
+          "value": 4,
+          "label": "Moderately accurate"
+        },
+        {
+          "value": 5,
+          "label": "Very accurate"
+        }
+      ]
+    },
+    {
+      "key": "mini_ipip_20",
+      "text": "Do not have a good imagination.",
+      "trait": "O",
+      "reverse": true,
+      "options": [
+        {
+          "value": 1,
+          "label": "Very inaccurate"
+        },
+        {
+          "value": 2,
+          "label": "Moderately inaccurate"
+        },
+        {
+          "value": 3,
+          "label": "Neither inaccurate nor accurate"
+        },
+        {
+          "value": 4,
+          "label": "Moderately accurate"
+        },
+        {
+          "value": 5,
+          "label": "Very accurate"
+        }
+      ]
+    }
+  ],
+  "scoring": {
+    "method": "sum",
+    "per_item": true,
+    "min": 20,
+    "max": 100,
+    "ranges_source": "None: the Mini-IPIP has no screening bands. The total is not shown; the five trait totals (4-20 each) come from engine.api.",
+    "ranges": []
+  },
+  "direction": null
+}

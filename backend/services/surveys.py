@@ -457,6 +457,9 @@ def submit_response(db: Any, user_id: str, data: SurveyResponse) -> dict:
         db.rollback()
         log.error("response could not be stored (instrument=%s)", instrument["id"])
         raise SubmissionError("storage", safety, missing=missing) from None
+    traits = _update_traits(db, user_id, instrument["id"], data.answers)
+    if traits:
+        scored = {**scored, "traits": traits}
     log.info(
         "response handled id=%s instrument=%s stored=%s",
         row_id,
@@ -472,6 +475,24 @@ def submit_response(db: Any, user_id: str, data: SurveyResponse) -> dict:
         "safety": safety.model_dump(),
         **safety_fields(safety, missing),
     }
+
+
+def _update_traits(db: Any, user_id: str, instrument_id: str, answers: dict) -> dict | None:
+    """Mini-IPIP only: engine-scored trait totals saved on the profile (persona at once).
+    A failure here never fails the stored submission. Values are never logged."""
+    from backend.services import personality
+
+    if instrument_id != personality.INSTRUMENT_ID:
+        return None
+    try:
+        traits = personality.traits_from_answers(answers)
+        if traits:
+            personality.save_traits(db, user_id, traits)
+        return traits or None
+    except Exception:
+        db.rollback()
+        log.error("traits could not be updated (instrument=%s)", instrument_id)
+        return None
 
 
 def _score_allowing_missing_safety(instrument: dict, answers: dict, missing: list[str]) -> dict:
@@ -614,6 +635,8 @@ def weekly_indices(
         if score is None:
             continue
         inst = inst_for(row.instrument_id, row.instrument_version)
+        if inst.get("direction") is None:  # not a load measure (e.g. Mini-IPIP traits)
+            continue
         band, alert = band_for(inst, score)
         out[row.instrument_id] = {
             "value": float(score),

@@ -111,7 +111,9 @@ def test_all_routes_require_auth(client) -> None:
 def test_list_and_get_instruments(client, auth) -> None:
     _, h = auth
     lst = client.get("/api/v1/instruments", headers=h).json()
-    assert {i["id"] for i in lst} == {"phq2", "gad2", "who5", "phq9", "daily_am", "daily_pm"}
+    assert {i["id"] for i in lst} == {
+        "phq2", "gad2", "who5", "phq9", "daily_am", "daily_pm", "mini_ipip"
+    }
     phq9 = next(i for i in lst if i["id"] == "phq9")
     assert phq9["items"] == 9 and phq9["source_url"].startswith("https://")
     full = client.get("/api/v1/instruments/phq9", headers=h).json()

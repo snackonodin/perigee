@@ -25,6 +25,7 @@ log = logging.getLogger(__name__)
 ROUTER_MODULES: list[tuple[str, str]] = [
     ("backend.api.v1.auth", "router"),
     ("backend.api.v1.me", "router"),
+    ("backend.api.v1.persona", "router"),
     ("backend.api.v1.instruments", "router"),
     ("backend.api.v1.responses", "router"),
     ("backend.api.v1.sessions", "router"),

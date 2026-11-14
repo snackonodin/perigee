@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import hashlib
 import subprocess
-from pathlib import Path
 from datetime import UTC, date, datetime
+from pathlib import Path
 from typing import Any
 
 from sqlalchemy import select
@@ -150,19 +150,23 @@ def build_payload(
     return payload, state_row
 
 
-def run_night(
-    db: Session, user_id: str, day: date, night: Any, run_id: str | None
-) -> dict[str, Any]:
-    """Call the single engine entry point and idempotently persist non-crisis output."""
+def engine_run(payload: dict[str, Any]) -> dict[str, Any]:
+    """The single Context Engine entry point (vendored as `engine` or from waiwai1)."""
     try:
         from engine.api import run
     except ModuleNotFoundError as exc:
         if exc.name != "engine":
             raise
         from waiwai1.engine.api import run
+    return run(payload)
 
+
+def run_night(
+    db: Session, user_id: str, day: date, night: Any, run_id: str | None
+) -> dict[str, Any]:
+    """Call the single engine entry point and idempotently persist non-crisis output."""
     payload, _ = build_payload(db, user_id, day, night)
-    output = run(payload)
+    output = engine_run(payload)
     if output.get("safety_status", {}).get("crisis_override_triggered"):
         return output
     state = dict(output.get("state") or {})

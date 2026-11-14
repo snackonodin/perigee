@@ -24,6 +24,17 @@ function Trace({label,points,color,band}:{label:string;points:Point[];color:stri
   </svg>;
 }
 
+/** Usual range (median ± MAD) with a marker for the current value. */
+function RangeBar({band,value,label}:{band:[number,number];value:number;label:string}) {
+  const lo=Math.min(band[0],value),hi=Math.max(band[1],value),pad=Math.max((hi-lo)*.25,.5);
+  const min=lo-pad,max=hi+pad,pct=(v:number)=>`${((v-min)/(max-min))*100}%`;
+  const inside=value>=band[0]&&value<=band[1];
+  return <div className="range-bar" role="img" aria-label={`${label} ${fmt(value)}, your usual range ${fmt(band[0])} to ${fmt(band[1])}`}>
+    <span className="range-bar-band" style={{left:pct(band[0]),width:`calc(${pct(band[1])} - ${pct(band[0])})`}}/>
+    <span className={`range-bar-marker${inside?"":" outside"}`} style={{left:pct(value)}}/>
+  </div>;
+}
+
 function HeartTile({hearts}:{hearts:readonly HeartEvent[]}) {
   const points=hearts.slice(-30).flatMap(h=>h.hr_bpm==null?[]:[{t:Date.parse(h.t_start),v:h.hr_bpm}]);
   const latest=points.at(-1)?.v;
@@ -42,11 +53,11 @@ export function VitalsTiles({night,baseline,status="none"}:{night?:NightOut|null
   const band: [number,number]|undefined=baseline?.median!=null&&baseline.mad!=null
     ?[baseline.median-baseline.mad,baseline.median+baseline.mad]:undefined;
   const rrPoints:Point[]=liveWindows.flatMap((w:WindowEvent)=>w.rr_a==null?[]:[{t:Date.parse(w.t_start),v:w.rr_a}]);
-  const liveStatus=vitals.status.state==="open"?"Live signal":vitals.status.state==="connecting"||vitals.status.state==="reconnecting"?"Connecting to sensor":"Latest valid night";
+  const liveStatus=vitals.status.state==="open"&&latest?"Live signal":vitals.status.state==="connecting"||vitals.status.state==="reconnecting"?"Connecting to sensor":"Latest valid night";
   return <>
     {respiration==null?<VitalCard label="Breathing" icon="≈" to="/sleep" empty="Your breathing rate appears after your first full night near the sensor."/>:
     <VitalCard label="Breathing" to="/sleep" value={fmt(respiration)} unit="br/min" icon="≈" state={status}>
-      <Trace label="Breathing rate" points={rrPoints} color="var(--teal)" band={band}/>
+      {rrPoints.length>1||!band?<Trace label="Breathing rate" points={rrPoints} color="var(--teal)" band={band}/>:<RangeBar band={band} value={respiration} label={latest?"Now":"Last night"}/>}
       {band?<div className="vital-range"><span>{fmt(band[0])}</span><span>Your usual range</span><span>{fmt(band[1])}</span></div>:<p className="vital-caption">Your personal breathing range is still taking shape.</p>}
       <p className="vital-caption">{liveStatus}</p>
     </VitalCard>}

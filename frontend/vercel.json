@@ -3,7 +3,7 @@
   "buildCommand": "npm run build -- --outDir dist --emptyOutDir",
   "outputDirectory": "dist",
   "rewrites": [
-    { "source": "/api/:path*", "destination": "https://REPLACE_WITH_BACKEND_HOST/api/:path*" },
+    { "source": "/api/:path*", "destination": "https://perigee-production-8f461d66.up.railway.app/api/:path*" },
     { "source": "/((?!assets/).*)", "destination": "/index.html" }
   ]
 }

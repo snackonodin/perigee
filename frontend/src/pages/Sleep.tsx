@@ -6,6 +6,7 @@ import { useLoad } from "../api/useLoad";
 import { fmt } from "../components/format";
 import { LoadState } from "../components/LoadState";
 import { NightsTable } from "../components/NightsTable";
+import { useChartWidth } from "../components/useChartWidth";
 import { RrTrend } from "../components/RrTrend";
 import { SleepArc } from "../components/SleepArc";
 import { StatusChip, type Status } from "../components/StatusChip";
@@ -23,7 +24,8 @@ type SleepToday = TodayOut & { context_engine?: {
 function levelStatus(level?:number):Status { return level==null?"none":level>=2?"alert":level===1?"watch":"normal"; }
 
 function SleepTimeline({ nights, days = DAYS }: { nights: NightOut[]; days?: number }) {
-  const W=720,H=220,L=42,R=14,T=14,B=30;
+  const [box,W]=useChartWidth<HTMLElement>(720);
+  const H=220,L=42,R=14,T=14,B=30;
   const end=Date.now(), start=end-(days-1)*86_400_000;
   const dates=Array.from({length:days},(_,i)=>new Date(start+i*86_400_000).toISOString().slice(0,10));
   const values=nights.filter(n=>n.valid).map(n=>n.presence_hours);
@@ -32,7 +34,7 @@ function SleepTimeline({ nights, days = DAYS }: { nights: NightOut[]; days?: num
   const x=(index:number)=>L+(index/Math.max(days-1,1))*(W-L-R);
   const y=(hours:number)=>T+(1-Math.min(hours,maxHours)/maxHours)*(H-T-B);
   const latest=dates.map(date=>nights.find(n=>n.date===date&&n.valid)).filter((n):n is NightOut=>!!n).at(-1);
-  return <figure className="sleep-timeline"><svg viewBox={`0 0 ${W} ${H}`} role="img" aria-labelledby="sleep-timeline-title sleep-timeline-desc">
+  return <figure className="sleep-timeline" ref={box}><svg viewBox={`0 0 ${W} ${H}`} role="img" aria-labelledby="sleep-timeline-title sleep-timeline-desc">
     <title id="sleep-timeline-title">Nightly sensed rest over {days} days</title>
     <desc id="sleep-timeline-desc">{values.length} valid nights. Bars show hours present overnight; missing bars are nights without a valid signal.</desc>
     {[0,.5,1].map((f,i)=>{const yy=y(maxHours*f);return <g key={i}><line className="gridline" x1={L} x2={W-R} y1={yy} y2={yy}/><text className="label" x={L-7} y={yy+4} textAnchor="end">{fmt(maxHours*f,0)} h</text></g>;})}

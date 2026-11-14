@@ -178,3 +178,8 @@ h1,h2,h3 { font-family:var(--font-display);letter-spacing:-.01em; }
   .sim-chip::after { content:attr(data-short); }
   .sim-chip-text { position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap; }
 }
+
+/* V4: chart labels are 12 px mono (charts use a 1 unit = 1 px viewBox), units 40 % of their number. */
+.trend svg,.sleep-timeline svg { display:block;width:100%;height:auto; }
+.trend .label,.sleep-timeline .label { fill:var(--muted);font-family:var(--font-mono);font-size:12px;letter-spacing:.02em; }
+.sleep-metric-value small,.vital-number small,.vital-card-value small { margin-left:6px;font-size:.4em;font-weight:500;color:var(--muted); }

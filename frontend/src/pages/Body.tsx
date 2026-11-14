@@ -30,7 +30,7 @@ const MEANING:Record<System,string>={
   Cabin:"The room around you: notes about the environment, not your body.",
 };
 const COLORS:Record<System,string>={Respiration:"mint",Autonomic:"peach",Rest:"sky",Mind:"lavender",Cabin:"butter"};
-type Detail={value:string;copy:string;state?:Status;statusLabel:string};
+type Detail={unit?:string;value:string;copy:string;state?:Status;statusLabel:string};
 function stateFor(level?:number):Status|undefined { if(level==null)return undefined;if(level>=2)return "alert";return level===1?"watch":"normal"; }
 function BodyMap({selected,details,onSelect}:{selected:System;details:Record<System,Detail>;onSelect:(s:System)=>void}) {
   return <div className="body-map">
@@ -59,10 +59,10 @@ export function Body() {
     const mind=engine?.fatigue_and_health_ratings?.mental_fatigue_score;
     const cabinNote=engine?.user_facing_advisory?.environmental_note;
     const details:Record<System,Detail>={
-      Respiration:{value:respiration==null?"No reading":`${fmt(respiration)} br/min`,copy:respiration==null?"No breathing estimate is available yet.":"This signal is shown against your own recent breathing range.",state:respiration==null?"none":rrLevel,statusLabel:respiration==null?"No reading":rrLevel??"Status unavailable"},
+      Respiration:{value:respiration==null?"No reading":fmt(respiration),unit:respiration==null?undefined:"br/min",copy:respiration==null?"No breathing estimate is available yet.":"This signal is shown against your own recent breathing range.",state:respiration==null?"none":rrLevel,statusLabel:respiration==null?"No reading":rrLevel??"Status unavailable"},
       Autonomic:{value:night?.rr_var==null?"No reading":fmt(night.rr_var),copy:night?.rr_var==null?"No overnight breathing-variation reading is available.":"Your overnight breathing variation. No separate status is returned for this measure.",statusLabel:night?.rr_var==null?"No reading":"Status unavailable"},
-      Rest:{value:night?.valid?`${fmt(night.presence_hours,1)} h`:"No reading",copy:night?.valid?"Sensed presence last night. No separate status is returned for this measure.":"No valid night is available yet.",state:night?.valid?undefined:"none",statusLabel:night?.valid?"Status unavailable":"No reading"},
-      Mind:{value:mind==null?"No reading":`${Math.round(mind)} / 100`,copy:"Check-ins add personal context to this part of your picture.",state:mind==null?"none":mentalLevel,statusLabel:mind==null?"No reading":mentalLevel??"Status unavailable"},
+      Rest:{value:night?.valid?fmt(night.presence_hours,1):"No reading",unit:night?.valid?"h":undefined,copy:night?.valid?"Sensed presence last night. No separate status is returned for this measure.":"No valid night is available yet.",state:night?.valid?undefined:"none",statusLabel:night?.valid?"Status unavailable":"No reading"},
+      Mind:{value:mind==null?"No reading":String(Math.round(mind)),unit:mind==null?undefined:"/ 100",copy:"Check-ins add personal context to this part of your picture.",state:mind==null?"none":mentalLevel,statusLabel:mind==null?"No reading":mentalLevel??"Status unavailable"},
       Cabin:{value:"No reading",copy:cabinNote??"Cabin context is not included in this snapshot.",state:"none",statusLabel:"No reading"},
     };
     const current=details[selected];
@@ -76,9 +76,9 @@ export function Body() {
         <section className="body-detail" aria-live="polite" aria-labelledby="body-detail-title" key={selected}>
           <div className="system-switch" role="group" aria-label="Choose a system">{SYSTEMS.map(name=><button key={name} type="button" className={`system-pill system-pill-${COLORS[name]}`} aria-pressed={selected===name} onClick={()=>setSelected(name)}><i aria-hidden="true"/>{name}</button>)}</div>
           {current.value==="No reading"?<VitalCard label={selected} icon={selected} headingId="body-detail-title" empty={current.copy} footer={footer}/>:
-          <VitalCard label={selected} value={current.value} icon={selected} state={current.state} headingId="body-detail-title" footer={footer}>
+          <VitalCard label={selected} value={current.value} unit={current.unit} icon={selected} state={current.state} headingId="body-detail-title" footer={footer}>
             <p>{current.copy}</p>
-            {selected==="Respiration"&&baseline?.median!=null&&baseline.mad!=null&&<p className="body-baseline">Personal baseline · 28 nights<br/>{fmt(baseline.median-baseline.mad)}–{fmt(baseline.median+baseline.mad)} br/min (median ± MAD)</p>}
+            {selected==="Respiration"&&baseline?.median!=null&&baseline.mad!=null&&<p className="body-baseline">Your usual range<br/>{fmt(baseline.median-baseline.mad)}–{fmt(baseline.median+baseline.mad)} br/min (median ± MAD)</p>}
           </VitalCard>}
         </section>
       </Reveal>

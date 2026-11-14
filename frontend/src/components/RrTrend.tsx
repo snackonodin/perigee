@@ -1,7 +1,8 @@
 import type { BaselineOut, NightOut } from "../api/types";
 import { fmt } from "./format";
+import { useChartWidth } from "./useChartWidth";
 
-const W = 640, H = 220, L = 44, R = 12, T = 12, B = 28;
+const H = 220, L = 44, R = 12, T = 12, B = 28;
 const DAY = 86_400_000;
 
 /** rr_med per valid night over `days`, against the person's median ± MAD band (inline SVG). */
@@ -11,6 +12,7 @@ export function RrTrend({ nights, baseline, days = 28, now = Date.now() }: {
   days?: number;
   now?: number;
 }) {
+  const [box, W] = useChartWidth<HTMLElement>(640);
   const pts = nights
     .filter((n) => n.valid && typeof n.rr_med === "number")
     .map((n) => ({ t: Date.parse(`${n.date}T00:00:00Z`), v: n.rr_med as number, d: n.date }))
@@ -29,7 +31,7 @@ export function RrTrend({ nights, baseline, days = 28, now = Date.now() }: {
   const out = (v: number) => med !== null && mad !== null && Math.abs(v - med) > mad;
 
   return (
-    <figure className="trend">
+    <figure className="trend" ref={box}>
       <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-labelledby="rr-title">
         <title id="rr-title">Breathing rate per night against your usual range</title>
         {med !== null && mad !== null && (

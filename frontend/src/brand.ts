@@ -1,2 +1,2 @@
-/** Product name, in one place. The user will decide the final name. */
-export const BRAND = "Astronaut Vitals";
+/** Product name, in one place (user decided 2026-11-14). */
+export const BRAND = "Perigee";

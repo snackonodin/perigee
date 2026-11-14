@@ -9,7 +9,13 @@ import { friendlyName } from "./instrumentNames";
 /** A questionnaire rendered from its catalog JSON. Safety comes first, always:
  *  1) local safety_trigger check → safety screen before the request is even sent;
  *  2) the server's safety result (also on a 500) → before any score is shown. */
-export function CheckinForm({ instrument, onDone }: { instrument: Instrument; onDone?(): void }) {
+export function CheckinForm({ instrument, onDone, onSubmitted, submitLabel = "Send check-in" }: {
+  instrument: Instrument;
+  onDone?(): void;
+  /** Called with a stored, non-crisis result instead of showing the score card (e.g. the personality quiz). */
+  onSubmitted?(out: ResponseOut): void;
+  submitLabel?: string;
+}) {
   useEffect(() => { emit("quiz_start"); }, []);
   const { showSafety } = useSafety();
   const [answers, setAnswers] = useState<Record<string, number>>({});
@@ -63,9 +69,10 @@ export function CheckinForm({ instrument, onDone }: { instrument: Instrument; on
       showSafety(contentFromServer(out.safety ?? {}));
       setResult(null);
     } else if (out.ok) {
-      setResult(out);
       // companion: completion only, never on a safety response, never with any data
       if (!localSafety && out.safety_screen_required === false) emit("quiz_complete");
+      if (onSubmitted) onSubmitted(out);
+      else setResult(out);
     }
     else {
       const errs = out.errors ?? [];
@@ -109,7 +116,7 @@ export function CheckinForm({ instrument, onDone }: { instrument: Instrument; on
         {step>0&&<button type="button" className="ghost" onClick={previous}>Previous</button>}
         {step<instrument.items.length-1
           ? <button type="button" onClick={next}>Next <span aria-hidden="true">→</span></button>
-          : <button type="submit" disabled={busy}>Send check-in</button>}
+          : <button type="submit" disabled={busy}>{submitLabel}</button>}
       </div>
       <p className="error" role="alert">{error}</p>
     </form>

@@ -4,6 +4,7 @@ import { api, errorText } from "../api/client";
 import type { Instrument, InstrumentSummary } from "../api/types";
 import { useAuth } from "../auth/AuthProvider";
 import { CheckinForm } from "../components/CheckinForm";
+import { NOT_CHECKINS } from "../components/QuestionnaireList";
 import { Consents } from "../components/Consents";
 
 export function Setup() {
@@ -53,7 +54,13 @@ export function Setup() {
         setCheckinBusy(false);
         return;
       }
-      const choice = data.find((item: InstrumentSummary) => /week/i.test(item.timeframe ?? "")) ?? data[0];
+      const checkins = data.filter((item: InstrumentSummary) => !NOT_CHECKINS.has(item.id));
+      const choice = checkins.find((item: InstrumentSummary) => /week/i.test(item.timeframe ?? "")) ?? checkins[0];
+      if (!choice) {
+        setCheckinError("No check-ins are available right now.");
+        setCheckinBusy(false);
+        return;
+      }
       const detail = await api.GET("/api/v1/instruments/{instrument_id}", { params: { path: { instrument_id: choice.id } } });
       if (!detail.data) setCheckinError(errorText(detail.error, detail.response.status));
       else setInstrument(detail.data as unknown as Instrument);

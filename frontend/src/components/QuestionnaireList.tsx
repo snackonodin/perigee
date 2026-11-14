@@ -3,9 +3,11 @@ import { friendlyName } from "./instrumentNames";
 
 // Daily check-ins are offered on Overview ("Check-ins due"); the rest are questionnaires.
 export const DAILY_INSTRUMENTS = new Set(["daily_am", "daily_pm"]);
+// Not check-ins: the personality questions live on the Persona page only.
+export const NOT_CHECKINS = new Set(["mini_ipip"]);
 
 export function QuestionnaireList({ items, onStart, dailyOnly = false, completedIds=[] }: { items: InstrumentSummary[]; onStart(id: string): void; dailyOnly?: boolean; completedIds?:string[] }) {
-  const list = items.filter((i) => DAILY_INSTRUMENTS.has(i.id) === dailyOnly);
+  const list = items.filter((i) => !NOT_CHECKINS.has(i.id) && DAILY_INSTRUMENTS.has(i.id) === dailyOnly);
   if (list.length === 0) return <p className="muted">{dailyOnly ? "No daily check-ins are available right now." : "No questionnaires available."}</p>;
   return (
     <ul className="plain">

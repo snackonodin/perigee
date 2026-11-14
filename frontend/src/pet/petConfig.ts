@@ -29,6 +29,8 @@ export const Z_EVERY_MS = 2500;
 
 export const WALK_MIN_WIDTH_PX = 768;
 export const WALK_SPEED_PX_S = 95;
+/** to the check-in or quiz form: a slow, unhurried hop (after any speech bubble has finished) */
+export const FORM_WALK_SPEED_PX_S = 55;
 export const WALK_IDLE_MS = 20000;
 export const WALK_COOLDOWN_MS = 45000;
 export const SIT_SETTLE_MS = 1000;

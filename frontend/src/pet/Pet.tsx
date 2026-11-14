@@ -8,7 +8,7 @@ import { unlocked } from "./accessories";
 import { PetArt } from "./PetArt";
 import {
   BLINK_MAX_MS, BLINK_MIN_MS, BREATHE_IN_S, BREATHE_MAX_CYCLES, BREATHE_OUT_S, IDLE_LONG_MS, SAFETY_QUIET_MS, DEFAULT_NAMES, DOUBLE_BLINK_CHANCE, EAR_TWITCH_MAX_MS, EAR_TWITCH_MIN_MS,
-  FOLLOW_MIN_DIST_PX, HOP_MS, MOOD_ACTIVE_MS, SERVER_BUBBLE_MS, SIT_SETTLE_MS, WANDER_SPEED_PX_S, TAIL_FLICK_MAX_MS, TAIL_FLICK_MIN_MS, WALK_COOLDOWN_MS, WALK_IDLE_MS, WALK_SPEED_PX_S, YAWN_MIN_GAP_MS,
+  FOLLOW_MIN_DIST_PX, FORM_WALK_SPEED_PX_S, HOP_MS, MOOD_ACTIVE_MS, SERVER_BUBBLE_MS, SIT_SETTLE_MS, WANDER_SPEED_PX_S, TAIL_FLICK_MAX_MS, TAIL_FLICK_MIN_MS, WALK_COOLDOWN_MS, WALK_IDLE_MS, WALK_SPEED_PX_S, YAWN_MIN_GAP_MS,
 } from "./petConfig";
 import { createScheduler, type Scheduler } from "./scheduler";
 import type { PetProps } from "./types";
@@ -69,6 +69,7 @@ export function PetLive({ species, personaId, timeOfDay, reducedMotion, nightsLo
   const hooksRef = useRef(hooks); hooksRef.current = hooks;
   // dialog: one line at a time, picked from the offline cache in the persona's tone
   const [line, setLine] = useState<BubbleLine | null>(null);
+  const lineRef = useRef(line); lineRef.current = line;
   // a server bubble wins: while it shows, offline cache lines wait
   const serverShowing = useRef(false);
   const [serverShown, setServerShown] = useState(false);
@@ -267,13 +268,14 @@ export function PetLive({ species, personaId, timeOfDay, reducedMotion, nightsLo
     const sitCheck = (): boolean => {
       const form = document.querySelector("[data-pet-sit]");
       if (!form) { sitting = false; return false; }
-      if (!sitting && mode === "none") { sitting = true; hopTo(formSpot()); }
+      // first finish what it is saying, sitting where it is; then hop slowly to the form
+      if (!sitting && mode === "none" && !lineRef.current) { sitting = true; hopTo(formSpot(), FORM_WALK_SPEED_PX_S); }
       return true;
     };
     // keep away: never let the cursor within FOLLOW_MIN_DIST_PX while out of the corner; escape
     // to the nearest designated spot that is far enough, else home
     const keepAway = () => {
-      if (!pointer || !pos.current || mode !== "none" || busy() || sitting) return;
+      if (!pointer || !pos.current || mode !== "none" || busy() || sitting || document.querySelector("[data-pet-sit]")) return;
       if (Math.hypot(pos.current.x - pointer.x, pos.current.y - pointer.y) >= FOLLOW_MIN_DIST_PX) return;
       hopTo(nearestSpot(spots(), pos.current, pointer, pos.current), WANDER_SPEED_PX_S * 1.5, lookAround);
     };

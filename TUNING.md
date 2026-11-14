@@ -35,3 +35,9 @@ When a value is validated, record the data and date next to it.
 | auth.max_failures_per_email_ip | 5 | Failed logins per (email, IP) before 429 | no |
 | auth.max_failures_per_email | 20 | Failed logins per email across IPs before 429 | no |
 | baseline.mad_floor.* | rr_med 0.3, rr_var 0.05, presence_hours 0.2, restless_frac 0.01 | Lower bound on MAD in robust z; small-n MAD underestimates spread and, with FR13 excluding flagged nights, ratchets narrower | no |
+| psyche.module_high | 3.5 | Psyche module mean (1-5) counted as a high tendency for advice rules (owner-supplied heuristic, non-clinical) | no |
+| psyche.flag_mean_high / flag_item_high | 3.5 / 4 | Psyche UI-flag rules (feedback style) | no |
+| psyche.axis_midpoint | 12.0 | Stability / Agency quadrant crossing (4-20) | no |
+| psyche.checkin_window_days | 3 | Recent check-ins used as advice context | no |
+| psyche.checkin_stress_high / checkin_low | 3 / 1 | daily_pm stress high; mood / energy / sleep_quality low (0-4 scale) for advice context | no |
+| psyche.midsleep_shift_h / midsleep_window_nights | 0.75 / 7 | Circadian drift context for advice (owner-supplied) | no |

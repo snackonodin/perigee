@@ -46,13 +46,34 @@ def save_traits(db: Session, user_id: str, traits: dict[str, float]) -> None:
 
 
 def readout(db: Session, user_id: str) -> dict[str, Any]:
-    """The caller's persona now: traits + the engine's persona matrix, or empty."""
+    """The caller's persona now. The psyche60 bank wins when taken (its own quadrant, feedback
+    style and context-matched advice); otherwise Mini-IPIP traits through the engine."""
+    from backend.services import psyche, surveys
+
     profile = db.scalar(scoped(select(Profile), Profile, user_id))
     settings = (profile.settings or {}) if profile else {}
     traits = {k: v for k, v in (settings.get("traits") or {}).items() if k in TRAIT_KEYS}
+    p60 = settings.get(psyche.SETTINGS_KEY)
+    if p60:
+        locked = surveys.safety_state(db, user_id)["safety_screen_required"]
+        cfg = psyche._cfg()
+        return {
+            "available": True,
+            "source": psyche.INSTRUMENT_ID,
+            "updated_at": p60.get("at"),
+            "traits": {},
+            "persona_matrix": {
+                "stability_score": p60["stability"],
+                "agency_score": p60["agency"],
+                "quadrant_name": p60["quadrant"],
+            },
+            "style": p60.get("flags", {}),
+            # safety first: no advice while a safety screen is pending
+            "advice": [] if locked else psyche.advice(p60, psyche.context(db, user_id), cfg),
+        }
     if not traits:
         return {"available": False, "source": None, "updated_at": None,
-                "traits": {}, "persona_matrix": None}
+                "traits": {}, "persona_matrix": None, "style": {}, "advice": []}
     # Persona fields only: no sensing data and no state, so nothing nightly is implied.
     out = engine_run({"persona": {"user_id": user_id, "traits": traits}})
     viz = out.get("dashboard_visualization_data") or {}
@@ -62,4 +83,6 @@ def readout(db: Session, user_id: str) -> dict[str, Any]:
         "updated_at": settings.get("traits_at"),
         "traits": viz.get("radar_traits") or traits,
         "persona_matrix": viz.get("persona_matrix"),
+        "style": {},
+        "advice": [],
     }

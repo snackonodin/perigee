@@ -20,17 +20,25 @@ class PersonaMatrixOut(BaseModel):
     quadrant_name: str
 
 
+class AdviceOut(BaseModel):
+    tag: str
+    text: str
+
+
 class PersonaOut(BaseModel):
     available: bool
     source: str | None = None
     updated_at: str | None = None
     traits: dict[str, float]
     persona_matrix: PersonaMatrixOut | None = None
+    style: dict[str, bool] = {}
+    advice: list[AdviceOut] = []
 
 
 @router.get("/persona", response_model=PersonaOut)
 def get_persona(db: DbSession, user_id: CurrentUser) -> dict[str, Any]:
-    """The caller's persona from the Mini-IPIP quiz (instrument mini_ipip), ready as soon
-    as it is submitted; no nights needed. available=false until the quiz is taken.
-    Traits (E, A, C, N, O; 4-20 each) shape wording only, never scores or alerts."""
+    """The caller's persona, ready as soon as a persona quiz is submitted (no nights needed).
+    psyche60 (preferred): quadrant + feedback-style flags + advice matched to the latest
+    night and recent check-ins (empty while a safety screen is pending). mini_ipip: traits.
+    available=false until a quiz is taken. Never changes scores, alerts or the safety path."""
     return personality.readout(db, user_id)

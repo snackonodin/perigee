@@ -103,3 +103,17 @@ monitor:
     sleep_analysis: 180            # PLACEHOLDER: handoff default (3 minutes)
     heart_rate: 60                 # PLACEHOLDER
     breathing_rate: 90             # PLACEHOLDER
+
+# Psyche question bank (60 items): heuristic, non-clinical demo values supplied by the project
+# owner (docs/psyche60.md). Placeholders, see TUNING.md. They only pick wording and advice tags;
+# they never change a physiological threshold, alert or the safety path.
+psyche:
+  module_high: 3.5          # module mean (1-5) at or above this = "high tendency"
+  flag_mean_high: 3.5       # UI-flag rule: mean of two items at or above this
+  flag_item_high: 4         # UI-flag rule: single item at or above this
+  axis_midpoint: 12.0       # Stability / Agency (4-20) quadrant crossing
+  checkin_window_days: 3    # check-ins this recent count as current context for advice
+  checkin_stress_high: 3    # daily_pm stress (0-4) at or above this = high stress context
+  checkin_low: 1            # mood / energy / sleep_quality (0-4) at or below this = low
+  midsleep_shift_h: 0.75    # mid-sleep moved this far from the recent median = circadian drift
+  midsleep_window_nights: 7 # nights in that median

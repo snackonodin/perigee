@@ -108,6 +108,16 @@ def _clinical(db: Session, user_id: str, until: datetime) -> dict[str, Any]:
     return clinical
 
 
+def _persona_matrix(profile: Profile | None) -> dict[str, Any]:
+    """psyche60 quadrant for the engine (used by the engine only when no traits are given)."""
+    p60 = ((profile.settings or {}).get("psyche") if profile else None) or {}
+    if not p60.get("quadrant"):
+        return {}
+    return {"persona_matrix": {
+        "quadrant": p60["quadrant"], "stability": p60["stability"], "agency": p60["agency"],
+    }}
+
+
 def build_payload(
     db: Session, user_id: str, day: date, night: Any
 ) -> tuple[dict[str, Any], ContextEngineNight | None]:
@@ -126,6 +136,7 @@ def build_payload(
         "persona": {
             "user_id": user_id,
             "traits": (profile.settings or {}).get("traits", {}) if profile else {},
+            **_persona_matrix(profile),
             "baselines": {
                 "rr_med": base.median if base and base.median is not None else night.rr_med or 0.0,
                 "mad_rr": base.mad if base and base.mad is not None else 0.40,

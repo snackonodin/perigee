@@ -112,7 +112,7 @@ def test_list_and_get_instruments(client, auth) -> None:
     _, h = auth
     lst = client.get("/api/v1/instruments", headers=h).json()
     assert {i["id"] for i in lst} == {
-        "phq2", "gad2", "who5", "phq9", "daily_am", "daily_pm", "mini_ipip"
+        "phq2", "gad2", "who5", "phq9", "daily_am", "daily_pm", "mini_ipip", "psyche60"
     }
     phq9 = next(i for i in lst if i["id"] == "phq9")
     assert phq9["items"] == 9 and phq9["source_url"].startswith("https://")

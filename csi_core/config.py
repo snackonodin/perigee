@@ -144,6 +144,21 @@ class MonitorCfg(_Section):
     duration_s: MonitorDurationsCfg
 
 
+class PsycheCfg(_Section):
+    """Psyche question bank (seeds/instruments/psyche60.json). Heuristic, non-clinical
+    demo values supplied by the project owner; all placeholders (TUNING.md)."""
+
+    module_high: float = Field(default=3.5, ge=1, le=5)
+    flag_mean_high: float = Field(default=3.5, ge=1, le=5)
+    flag_item_high: int = Field(default=4, ge=1, le=5)
+    axis_midpoint: float = Field(default=12.0, ge=4, le=20)
+    checkin_window_days: int = Field(default=3, ge=1)
+    checkin_stress_high: int = Field(default=3, ge=0, le=4)
+    checkin_low: int = Field(default=1, ge=0, le=4)
+    midsleep_shift_h: float = Field(default=0.75, gt=0)
+    midsleep_window_nights: int = Field(default=7, ge=2)
+
+
 class CoreConfig(_Section):
     capture: CaptureCfg
     preprocess: PreprocessCfg
@@ -156,6 +171,7 @@ class CoreConfig(_Section):
     auth: AuthCfg = AuthCfg()
     session_scoring: SessionScoringCfg | None = None
     monitor: MonitorCfg | None = None
+    psyche: PsycheCfg = PsycheCfg()
 
 
 def resolve_estimator(spec: str) -> Callable[..., Any]:

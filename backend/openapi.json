@@ -1,6 +1,24 @@
 {
   "components": {
     "schemas": {
+      "AdviceOut": {
+        "properties": {
+          "tag": {
+            "title": "Tag",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tag",
+          "text"
+        ],
+        "title": "AdviceOut",
+        "type": "object"
+      },
       "BaselineOut": {
         "properties": {
           "feature": {
@@ -1075,6 +1093,14 @@
       },
       "PersonaOut": {
         "properties": {
+          "advice": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/AdviceOut"
+            },
+            "title": "Advice",
+            "type": "array"
+          },
           "available": {
             "title": "Available",
             "type": "boolean"
@@ -1099,6 +1125,14 @@
               }
             ],
             "title": "Source"
+          },
+          "style": {
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "default": {},
+            "title": "Style",
+            "type": "object"
           },
           "traits": {
             "additionalProperties": {
@@ -5032,7 +5066,7 @@
     },
     "/api/v1/persona": {
       "get": {
-        "description": "The caller's persona from the Mini-IPIP quiz (instrument mini_ipip), ready as soon\nas it is submitted; no nights needed. available=false until the quiz is taken.\nTraits (E, A, C, N, O; 4-20 each) shape wording only, never scores or alerts.",
+        "description": "The caller's persona, ready as soon as a persona quiz is submitted (no nights needed).\npsyche60 (preferred): quadrant + feedback-style flags + advice matched to the latest\nnight and recent check-ins (empty while a safety screen is pending). mini_ipip: traits.\navailable=false until a quiz is taken. Never changes scores, alerts or the safety path.",
         "operationId": "get_persona_api_v1_persona_get",
         "responses": {
           "200": {

@@ -457,7 +457,7 @@ def submit_response(db: Any, user_id: str, data: SurveyResponse) -> dict:
         db.rollback()
         log.error("response could not be stored (instrument=%s)", instrument["id"])
         raise SubmissionError("storage", safety, missing=missing) from None
-    traits = _update_traits(db, user_id, instrument["id"], data.answers)
+    traits = _update_traits(db, user_id, instrument, data.answers)
     if traits:
         scored = {**scored, "traits": traits}
     log.info(
@@ -477,11 +477,21 @@ def submit_response(db: Any, user_id: str, data: SurveyResponse) -> dict:
     }
 
 
-def _update_traits(db: Any, user_id: str, instrument_id: str, answers: dict) -> dict | None:
-    """Mini-IPIP only: engine-scored trait totals saved on the profile (persona at once).
-    A failure here never fails the stored submission. Values are never logged."""
-    from backend.services import personality
+def _update_traits(db: Any, user_id: str, instrument: dict, answers: dict) -> dict | None:
+    """Persona instruments only (Mini-IPIP, psyche60): derived results saved on the profile
+    so the persona is ready at once. A failure here never fails the stored submission.
+    Values are never logged, and nothing derived is returned to the client for psyche60."""
+    from backend.services import personality, psyche
 
+    instrument_id = instrument["id"]
+    if instrument_id == psyche.INSTRUMENT_ID:
+        try:
+            result = psyche.score(answers, instrument["psyche_spec"], psyche._cfg())
+            psyche.save(db, user_id, result)
+        except Exception:
+            db.rollback()
+            log.error("psyche result could not be updated (instrument=%s)", instrument_id)
+        return None
     if instrument_id != personality.INSTRUMENT_ID:
         return None
     try:

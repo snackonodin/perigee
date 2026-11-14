@@ -91,3 +91,15 @@ Context Engine. No bands, no alert, not part of weekly indices.
 as soon as the quiz is submitted, **no nights needed**. `available:false` (traits `{}`,
 persona_matrix null) until the quiz is taken. Retaking replaces the traits. The nightly engine run
 also receives the traits from then on (wording and layout only; traits never change scores).
+
+## Psyche question bank, added 2026-11-15 (replaces Mini-IPIP on Persona)
+
+Instrument `psyche60`: 60 items `psyche_1..60`, values 1-5 ("Not true of me" .. "Deeply true of
+me"), each item has `module` (m1..m10). Submit with `POST /api/v1/responses`; the response carries
+no module scores. `GET /api/v1/persona` then returns `source:"psyche60"`, `persona_matrix`
+`{stability_score, agency_score, quadrant_name}`, `style` (6 booleans: show_raw_telemetry,
+calm_non_alarming_tone, structured_checklist_mode, private_scheduled_recovery,
+baseline_only_framing, privacy_lock_reminder) and `advice: [{tag, text}]`. Advice is matched to
+the latest night and check-ins from the last 3 days, so a new check-in can change it at once;
+empty while a safety screen is pending. `traits` is `{}` for psyche60. Spec: docs/psyche60.md.
+Show no numbers from it. `mini_ipip` stays in the catalog but the UI should use psyche60.

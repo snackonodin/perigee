@@ -159,6 +159,16 @@ class PsycheCfg(_Section):
     midsleep_window_nights: int = Field(default=7, ge=2)
 
 
+class HazardsCfg(_Section):
+    """Spaceflight-hazard context tags (cabin air, symptoms). Context only: they explain a
+    flagged night and never move a physiological threshold. Placeholders (TUNING.md)."""
+
+    co2_tag_mmhg: float = Field(default=2.5, gt=0)
+    co2_limit_mmhg: float = Field(default=3.0, gt=0)
+    symptom_window_days: int = Field(default=2, ge=1)
+    max_tags: int = Field(default=2, ge=1)
+
+
 class CoreConfig(_Section):
     capture: CaptureCfg
     preprocess: PreprocessCfg
@@ -172,6 +182,7 @@ class CoreConfig(_Section):
     session_scoring: SessionScoringCfg | None = None
     monitor: MonitorCfg | None = None
     psyche: PsycheCfg = PsycheCfg()
+    hazards: HazardsCfg = HazardsCfg()
 
 
 def resolve_estimator(spec: str) -> Callable[..., Any]:

@@ -1,0 +1,379 @@
+{
+  "id": "body_cabin",
+  "name": "Body and cabin check-in",
+  "version": "1.0",
+  "timeframe": "Today. Answer the first three right away if any is true.",
+  "license_note": "Perigee item list (project owner, 2026-11-15) built from NASA spaceflight hazard themes: closed environment (CO2), altered gravity (fluid shift, vision), isolation (immune-like symptoms, external-authority friction). Session RPE effort scale after Foster et al. 2001 (CR10). Not a clinical instrument.",
+  "source_url": "",
+  "verification": "Item list supplied by the project owner; red-flag items always open the safety screen.",
+  "notes": "Context only: symptoms explain a flagged night, they never hide it. Red-flag items bypass everything and show the medical-help screen.",
+  "items": [
+    {
+      "key": "red_chest",
+      "text": "Sudden severe chest pain right now",
+      "group": "red_flag",
+      "options": [
+        {
+          "value": 0,
+          "label": "No"
+        },
+        {
+          "value": 1,
+          "label": "Yes"
+        }
+      ],
+      "safety_trigger": {
+        "min_value": 1,
+        "reason": "severe_symptom"
+      }
+    },
+    {
+      "key": "red_faint",
+      "text": "Fainting, or nearly fainting, today",
+      "group": "red_flag",
+      "options": [
+        {
+          "value": 0,
+          "label": "No"
+        },
+        {
+          "value": 1,
+          "label": "Yes"
+        }
+      ],
+      "safety_trigger": {
+        "min_value": 1,
+        "reason": "severe_symptom"
+      }
+    },
+    {
+      "key": "red_breath",
+      "text": "Severe breathlessness right now",
+      "group": "red_flag",
+      "options": [
+        {
+          "value": 0,
+          "label": "No"
+        },
+        {
+          "value": 1,
+          "label": "Yes"
+        }
+      ],
+      "safety_trigger": {
+        "min_value": 1,
+        "reason": "severe_symptom"
+      }
+    },
+    {
+      "key": "sym_headache",
+      "text": "Headache",
+      "group": "cabin",
+      "options": [
+        {
+          "value": 0,
+          "label": "No"
+        },
+        {
+          "value": 1,
+          "label": "Yes"
+        }
+      ]
+    },
+    {
+      "key": "sym_stuffiness",
+      "text": "Stuffy or stale-air feeling",
+      "group": "cabin",
+      "options": [
+        {
+          "value": 0,
+          "label": "No"
+        },
+        {
+          "value": 1,
+          "label": "Yes"
+        }
+      ]
+    },
+    {
+      "key": "sym_vision",
+      "text": "Vision change or eye strain",
+      "group": "gravity",
+      "options": [
+        {
+          "value": 0,
+          "label": "No"
+        },
+        {
+          "value": 1,
+          "label": "Yes"
+        }
+      ]
+    },
+    {
+      "key": "sym_fatigue",
+      "text": "Unusual tiredness",
+      "group": "general",
+      "options": [
+        {
+          "value": 0,
+          "label": "No"
+        },
+        {
+          "value": 1,
+          "label": "Yes"
+        }
+      ]
+    },
+    {
+      "key": "sym_nausea",
+      "text": "Nausea",
+      "group": "general",
+      "options": [
+        {
+          "value": 0,
+          "label": "No"
+        },
+        {
+          "value": 1,
+          "label": "Yes"
+        }
+      ]
+    },
+    {
+      "key": "sym_fever",
+      "text": "Feeling feverish",
+      "group": "immune",
+      "options": [
+        {
+          "value": 0,
+          "label": "No"
+        },
+        {
+          "value": 1,
+          "label": "Yes"
+        }
+      ]
+    },
+    {
+      "key": "sym_throat",
+      "text": "Sore throat",
+      "group": "immune",
+      "options": [
+        {
+          "value": 0,
+          "label": "No"
+        },
+        {
+          "value": 1,
+          "label": "Yes"
+        }
+      ]
+    },
+    {
+      "key": "sym_cough",
+      "text": "Cough",
+      "group": "immune",
+      "options": [
+        {
+          "value": 0,
+          "label": "No"
+        },
+        {
+          "value": 1,
+          "label": "Yes"
+        }
+      ]
+    },
+    {
+      "key": "sym_muscle",
+      "text": "Muscle or joint pain",
+      "group": "immune",
+      "options": [
+        {
+          "value": 0,
+          "label": "No"
+        },
+        {
+          "value": 1,
+          "label": "Yes"
+        }
+      ]
+    },
+    {
+      "key": "sym_stomach",
+      "text": "Stomach upset",
+      "group": "immune",
+      "options": [
+        {
+          "value": 0,
+          "label": "No"
+        },
+        {
+          "value": 1,
+          "label": "Yes"
+        }
+      ]
+    },
+    {
+      "key": "sym_drowsy",
+      "text": "Unusual daytime drowsiness",
+      "group": "immune",
+      "options": [
+        {
+          "value": 0,
+          "label": "No"
+        },
+        {
+          "value": 1,
+          "label": "Yes"
+        }
+      ]
+    },
+    {
+      "key": "exercise_min",
+      "text": "Exercise today (minutes)",
+      "group": "exercise",
+      "options": [
+        {
+          "value": 0,
+          "label": "None"
+        },
+        {
+          "value": 15,
+          "label": "About 15"
+        },
+        {
+          "value": 30,
+          "label": "About 30"
+        },
+        {
+          "value": 45,
+          "label": "About 45"
+        },
+        {
+          "value": 60,
+          "label": "About 60"
+        },
+        {
+          "value": 90,
+          "label": "90 or more"
+        }
+      ]
+    },
+    {
+      "key": "exercise_effort",
+      "text": "How hard was that exercise overall? (0 = rest, 10 = maximal)",
+      "group": "exercise",
+      "options": [
+        {
+          "value": 0,
+          "label": "Rest"
+        },
+        {
+          "value": 1,
+          "label": "Very easy"
+        },
+        {
+          "value": 2,
+          "label": "Easy"
+        },
+        {
+          "value": 3,
+          "label": "Moderate"
+        },
+        {
+          "value": 4,
+          "label": "Somewhat hard"
+        },
+        {
+          "value": 5,
+          "label": "Hard"
+        },
+        {
+          "value": 6,
+          "label": "Hard+"
+        },
+        {
+          "value": 7,
+          "label": "Very hard"
+        },
+        {
+          "value": 8,
+          "label": "Very hard+"
+        },
+        {
+          "value": 9,
+          "label": "Near maximal"
+        },
+        {
+          "value": 10,
+          "label": "Maximal"
+        }
+      ]
+    },
+    {
+      "key": "friction_crew",
+      "text": "Friction within the crew today",
+      "group": "friction",
+      "options": [
+        {
+          "value": 0,
+          "label": "None"
+        },
+        {
+          "value": 1,
+          "label": "A little"
+        },
+        {
+          "value": 2,
+          "label": "Some"
+        },
+        {
+          "value": 3,
+          "label": "A lot"
+        },
+        {
+          "value": 4,
+          "label": "Very much"
+        }
+      ]
+    },
+    {
+      "key": "friction_external",
+      "text": "Friction with the outside schedule or support team today",
+      "group": "friction",
+      "options": [
+        {
+          "value": 0,
+          "label": "None"
+        },
+        {
+          "value": 1,
+          "label": "A little"
+        },
+        {
+          "value": 2,
+          "label": "Some"
+        },
+        {
+          "value": 3,
+          "label": "A lot"
+        },
+        {
+          "value": 4,
+          "label": "Very much"
+        }
+      ]
+    }
+  ],
+  "scoring": {
+    "method": "sum",
+    "per_item": true,
+    "min": 0,
+    "max": 200,
+    "ranges_source": "None: no bands; context tags only.",
+    "ranges": []
+  },
+  "direction": null
+}

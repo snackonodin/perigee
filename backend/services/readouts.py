@@ -21,7 +21,7 @@ from backend.models import (
     NightFeaturesRow,
     scoped,
 )
-from backend.services import guidance, surveys
+from backend.services import guidance, hazards, surveys
 
 DEFAULT_RANGE_DAYS = 14
 MAX_RANGE_DAYS = 366
@@ -237,5 +237,6 @@ def today(db: Session, user_id: str, on: date | None = None) -> dict[str, Any]:
         "baselines": [baseline_dict(b) for b in baselines],
         "context_engine": engine_night.output_json if engine_night else None,
         "sync_status": {"state": "offline"},
+        **hazards.today_context(db, user_id),
         **surveys.safety_state(db, user_id),
     }

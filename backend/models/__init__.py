@@ -15,6 +15,7 @@ from backend.models.mental import (
 from backend.models.ops import PipelineRun
 from backend.models.physiology import (
     Baseline,
+    CabinReading,
     ContextEngineNight,
     Flag,
     HeartEstimateRow,
@@ -27,6 +28,7 @@ __all__ = [
     "AuditLog",
     "Base",
     "Baseline",
+    "CabinReading",
     "CaptureSession",
     "CheckinDaily",
     "Consent",

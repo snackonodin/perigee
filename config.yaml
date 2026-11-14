@@ -117,3 +117,12 @@ psyche:
   checkin_low: 1            # mood / energy / sleep_quality (0-4) at or below this = low
   midsleep_shift_h: 0.75    # mid-sleep moved this far from the recent median = circadian drift
   midsleep_window_nights: 7 # nights in that median
+
+# Spaceflight-hazard context tags (owner-supplied, docs/hazards.md). Context only: shown under a
+# flagged night, never a threshold. ppCO2 values from NASA-STD-3001 Vol. 2 as cited by the owner
+# (2.5 mmHg: <1% headache; 3.0 mmHg: 1-hour limit); verify before release.
+hazards:
+  co2_tag_mmhg: 2.5
+  co2_limit_mmhg: 3.0
+  symptom_window_days: 2
+  max_tags: 2

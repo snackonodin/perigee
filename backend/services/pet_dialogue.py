@@ -14,7 +14,7 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from backend.models import ContextEngineNight, NightFeaturesRow, scoped
+from backend.models import ContextEngineNight, NightFeaturesRow, SafetyEvent, scoped
 from csi_core.config import ROOT
 
 VOICE_BY_QUADRANT = {
@@ -52,6 +52,15 @@ def select_bubble(db: Session, user_id: str) -> dict[str, Any]:
 
     # Gate 1: safety. Unmodulated voice, no playful animation, nothing else first.
     if surveys.safety_state(db, user_id)["safety_screen_required"]:
+        latest = db.scalar(
+            select(SafetyEvent.source)
+            .where(SafetyEvent.user_id == user_id, SafetyEvent.acknowledged_at.is_(None))
+            .order_by(SafetyEvent.ts.desc())
+            .limit(1)
+        )
+        if latest == "survey:body_cabin":  # a severe physical symptom: medical help, not crisis
+            return card("safety_overrides", "safety_severe_somatic", "unmodulated", "medical",
+                        False)
         return card("safety_overrides", "safety_phq9_item9", "unmodulated", "crisis", False)
 
     quadrant = _quadrant(db, user_id)

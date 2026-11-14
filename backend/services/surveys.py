@@ -63,11 +63,11 @@ class UnknownInstrument(LookupError):
 # --------------------------------------------------------------------------- safety (pure)
 
 
-@lru_cache(maxsize=1)
-def _safety_resources() -> tuple[str, tuple[str, ...]]:
+@lru_cache(maxsize=4)
+def _safety_resources(reason_key: str = "safety_item") -> tuple[str, tuple[str, ...]]:
     try:
         doc = json.loads((SEEDS_DIR / "safety_resources.json").read_text(encoding="utf-8"))
-        reason = doc["reasons"]["safety_item"]
+        reason = doc["reasons"].get(reason_key) or doc["reasons"]["safety_item"]
         resources = tuple(str(r) for r in doc["resources"])
         if not resources:
             raise ValueError("empty resources")
@@ -94,7 +94,7 @@ def safety_check(instrument: dict, answers: dict[str, int]) -> SafetyResult:
         except TypeError:
             fired = True
         if fired:
-            reason, resources = _safety_resources()
+            reason, resources = _safety_resources(trigger.get("reason", "safety_item"))
             return SafetyResult(show=True, reason=reason, resources=list(resources))
     return SafetyResult(show=False)
 
@@ -136,33 +136,49 @@ def safety_instrument_ids() -> set[str]:
 def safety_state(db: Any, user_id: str) -> dict:
     """Server-side safety lock for GET /today, scoped to one user.
 
-    Required while a safety signal (a flagged survey row, or an unacknowledged
-    survey safety event) is newer than the user's latest clean submission of a
-    safety instrument (stored with safety_flag false). Never reads answer values
-    except the stored list of missing safety items.
+    Required while a safety signal (a flagged survey row, or an unacknowledged survey
+    safety event) is newer than the user's latest clean submission of the SAME safety
+    instrument (stored with safety_flag false). Per instrument, so a clean answer on one
+    instrument (e.g. body_cabin) never clears a signal from another (e.g. phq9). Never reads
+    answer values except the stored list of missing safety items.
     """
     from sqlalchemy import select
 
     m = _models()
-    ids = safety_instrument_ids()
     rows = m.SurveyResponseRow
-    last_clean = db.scalar(
-        select(rows.created_at)
-        .where(rows.user_id == user_id, rows.instrument_id.in_(ids), rows.safety_flag.is_(False))
-        .order_by(rows.created_at.desc())
-        .limit(1)
+    flagged = None
+    event = None
+    for iid in sorted(safety_instrument_ids()):
+        last_clean = db.scalar(
+            select(rows.created_at)
+            .where(rows.user_id == user_id, rows.instrument_id == iid,
+                   rows.safety_flag.is_(False))
+            .order_by(rows.created_at.desc())
+            .limit(1)
+        )
+        flagged_q = select(rows).where(
+            rows.user_id == user_id, rows.instrument_id == iid, rows.safety_flag.is_(True)
+        )
+        events_q = select(m.SafetyEvent.ts).where(
+            m.SafetyEvent.user_id == user_id,
+            m.SafetyEvent.source == f"survey:{iid}",
+            m.SafetyEvent.acknowledged_at.is_(None),
+        )
+        if last_clean is not None:
+            flagged_q = flagged_q.where(rows.created_at > last_clean)
+            events_q = events_q.where(m.SafetyEvent.ts > last_clean)
+        flagged = flagged or db.scalars(flagged_q.order_by(rows.created_at.desc()).limit(1)).first()
+        event = event or db.scalar(events_q.limit(1))
+    # Safety events from any other survey source stay locking until acknowledged.
+    others = db.scalar(
+        select(m.SafetyEvent.ts).where(
+            m.SafetyEvent.user_id == user_id,
+            m.SafetyEvent.source.like("survey:%"),
+            m.SafetyEvent.source.not_in([f"survey:{i}" for i in safety_instrument_ids()]),
+            m.SafetyEvent.acknowledged_at.is_(None),
+        ).limit(1)
     )
-    flagged_q = select(rows).where(rows.user_id == user_id, rows.safety_flag.is_(True))
-    events_q = select(m.SafetyEvent.ts).where(
-        m.SafetyEvent.user_id == user_id,
-        m.SafetyEvent.source.like("survey:%"),
-        m.SafetyEvent.acknowledged_at.is_(None),
-    )
-    if last_clean is not None:
-        flagged_q = flagged_q.where(rows.created_at > last_clean)
-        events_q = events_q.where(m.SafetyEvent.ts > last_clean)
-    flagged = db.scalars(flagged_q.order_by(rows.created_at.desc()).limit(1)).first()
-    event = db.scalar(events_q.limit(1))
+    event = event or others
     missing = None
     if flagged is not None:
         items = (flagged.scores or {}).get("missing_items") or []

@@ -41,6 +41,19 @@ class SyncStatus(BaseModel):
     state: str
 
 
+class CabinOut(BaseModel):
+    date: date
+    ppco2_mmhg: float | None = None
+    temp_c: float | None = None
+    rh_pct: float | None = None
+    level: str = Field(description="usual | elevated | high | no_reading (config hazards:)")
+
+
+class ContextTagOut(BaseModel):
+    kind: str = Field(description="cabin_co2 | symptoms | immune")
+    text: str
+
+
 class TodayOut(BaseModel):
     safety_screen_required: bool = Field(
         default=False,
@@ -55,6 +68,11 @@ class TodayOut(BaseModel):
     checkins_consent: bool
     baselines: list[BaselineOut]
     context_engine: dict[str, Any] | None = None
+    cabin: CabinOut | None = Field(default=None, description="Latest cabin air reading")
+    context_tags: list[ContextTagOut] = Field(
+        default_factory=list,
+        description="Up to 2 hazard tags explaining a Watch/Alert night; never hide the flag",
+    )
     sync_status: SyncStatus
 
 

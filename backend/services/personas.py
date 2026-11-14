@@ -88,6 +88,13 @@ class Persona:
     duration_h: tuple[float, float] = DURATION_H
     # Daily check-in centre values (mood, energy, stress, sleep_quality), 0-4.
     daily_base: tuple[int, int, int, int] = (3, 3, 1, 3)
+    # Spaceflight-hazard context (docs/hazards.md): cabin air per night and a daily
+    # body_cabin check-in. Off for the original three personas.
+    hazards: bool = False
+    cabin_co2: tuple[float, float] = (2.1, 0.2)  # ppCO2 mmHg mean, sd (synthetic)
+    cabin_late_rise: tuple[float, ...] = ()  # added to the last len(...) nights
+    late_symptoms: tuple[str, ...] = ()  # body_cabin keys answered yes on the last 2 days
+    friction_external: int = 1
 
 
 def _answers(*vals: int) -> list[int]:
@@ -159,6 +166,11 @@ ISS_PERSONAS: tuple[Persona, ...] = (
             "who5": (_answers(4, 4, 3, 3, 3), _answers(4, 3, 3, 3, 3)),
         },
         duration_h=(6.09, 0.67),
+        hazards=True,
+        cabin_co2=(2.2, 0.2),
+        cabin_late_rise=(0.4, 0.6, 0.9),  # a sleep-station CO2 pocket on the last nights
+        late_symptoms=("sym_headache", "sym_stuffiness"),
+        friction_external=2,
     ),
     Persona(
         key="iss-aligned",
@@ -174,6 +186,8 @@ ISS_PERSONAS: tuple[Persona, ...] = (
             "who5": (_answers(4, 4, 3, 3, 3), _answers(4, 4, 3, 3, 3)),
         },
         duration_h=(6.4, 1.2),
+        hazards=True,
+        cabin_co2=(2.0, 0.15),
     ),
     Persona(
         key="iss-misaligned",
@@ -190,6 +204,10 @@ ISS_PERSONAS: tuple[Persona, ...] = (
         },
         mental_dip=True,
         duration_h=(5.4, 1.4),
+        hazards=True,
+        cabin_co2=(2.3, 0.2),
+        late_symptoms=("sym_fatigue", "sym_drowsy", "sym_throat"),
+        friction_external=3,
     ),
 )
 ALL_PERSONAS: tuple[Persona, ...] = PERSONAS + ISS_PERSONAS
@@ -301,6 +319,35 @@ def seed_surveys_for_day(db: Session, p: Persona, uid: str, anchor: date, i: int
             ):
                 n += 1
     return n
+
+
+def seed_hazards_for_day(db: Session, p: Persona, uid: str, anchor: date, i: int) -> int:
+    """Cabin air for night i and that day's body_cabin check-in (synthetic; never a red flag)."""
+    from backend.models import CabinReading
+
+    day = anchor - timedelta(days=14 - i)
+    rng = np.random.default_rng(p.seed * 7000 + i)
+    late = len(p.cabin_late_rise)
+    rise = p.cabin_late_rise[i - (14 - late)] if late and i >= 14 - late else 0.0
+    have = db.scalar(
+        scoped(select(CabinReading).where(CabinReading.date == day), CabinReading, uid)
+    )
+    if have is None:
+        db.add(CabinReading(
+            user_id=uid, date=day, source="synthetic",
+            ppco2_mmhg=round(float(max(1.0, rng.normal(*p.cabin_co2))) + rise, 2),
+            temp_c=round(float(rng.normal(22.5, 0.6)), 1),
+            rh_pct=round(float(rng.normal(45, 4)), 0),
+        ))
+        db.commit()
+    keys = _item_keys(db, "body_cabin")
+    yes = set(p.late_symptoms) if i >= 12 else set()
+    vals = {k: (1 if k in yes else 0) for k in keys}
+    vals["exercise_min"] = int(rng.choice([30, 45, 60, 90]))
+    vals["exercise_effort"] = int(rng.integers(3, 7))
+    vals["friction_crew"] = int(rng.integers(0, 2))
+    vals["friction_external"] = int(min(4, p.friction_external + (1 if i >= 12 else 0)))
+    return 1 if _submit(db, uid, "body_cabin", keys, [vals[k] for k in keys], _at(day, 20)) else 0
 
 
 def seed_final_phq9(db: Session, p: Persona, uid: str, anchor: date) -> int:
@@ -602,6 +649,8 @@ def _seed_rest(
     for i in range(14):
         night = anchor - timedelta(days=14 - i)
         n_surveys += seed_surveys_for_day(db, p, uid, anchor, i)
+        if p.hazards:
+            n_surveys += seed_hazards_for_day(db, p, uid, anchor, i)
         if night not in done:
             _run_kind(db, "run_nightly", {"user_id": uid, "day": night.isoformat()}, uid)
             ran += 1
@@ -652,6 +701,9 @@ def custom_persona(email: str, profile: dict[str, Any], seed: int) -> Persona:
         },
         mental_dip=mood <= 1 or stress >= 3,
         duration_h=(hours, SLEEP_SD_BY_REGULARITY[reg]),
+        hazards=True,
+        late_symptoms=("sym_fatigue", "sym_headache") if change else (),
+        friction_external=min(4, stress),
         daily_base=(mood, energy, stress, max(0, min(4, round((hours - 4) / 1.25)))),
     )
 

@@ -156,6 +156,14 @@ def build_payload(
         "environmental_logs": {},
         "timestamp_utc": datetime.now(UTC).isoformat(),
     }
+    # Spaceflight-hazard context through the engine's existing inputs (docs/hazards.md).
+    from backend.services import hazards
+
+    extra = hazards.engine_inputs(db, user_id, day)
+    payload["behavioral_inputs"].update(extra["behavioral_inputs"])
+    payload["environmental_logs"] = extra["environmental_logs"]
+    if extra["exercise_log"]:
+        payload["exercise_log"] = extra["exercise_log"]
     if state:
         payload["state"] = state
     return payload, state_row

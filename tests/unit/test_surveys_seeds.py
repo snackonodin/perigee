@@ -6,7 +6,9 @@ from pathlib import Path
 import pytest
 
 SEEDS = Path(__file__).resolve().parents[2] / "seeds" / "instruments"
-EXPECTED = {"phq2", "gad2", "who5", "phq9", "daily_am", "daily_pm", "mini_ipip", "psyche60"}
+EXPECTED = {
+    "phq2", "gad2", "who5", "phq9", "daily_am", "daily_pm", "mini_ipip", "psyche60", "body_cabin",
+}
 
 
 def _load(name: str) -> dict:

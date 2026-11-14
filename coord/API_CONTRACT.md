@@ -126,3 +126,14 @@ Not wired (no data yet): cabin CO2 nudge, weekly reflection, exploratory pattern
   0 = none .. 4 = very high; `mood` 0 = very low .. 4 = very good; `recent_change` = new
   schedule, travel or illness (adds a breathing drift). No PHQ-9 is ever simulated.
 - Both together → 422. Unknown crew → 422. Same 50-visitor cap (503 demo_full), same TokenOut.
+
+## Spaceflight hazards, added 2026-11-15 (docs/hazards.md)
+
+New daily instrument `body_cabin` (submit like any survey): red flags FIRST (`red_chest`,
+`red_faint`, `red_breath`, 0/1 → any 1 opens the safety screen with the medical reason),
+11 symptoms 0/1 (`sym_*`, each has `group`: cabin/gravity/general/immune), `exercise_min`
+(0/15/30/45/60/90), `exercise_effort` (0-10), `friction_crew` and `friction_external` (0-4).
+`GET /api/v1/today` adds `cabin: {date, ppco2_mmhg, temp_c, rh_pct, level}` (level usual |
+elevated | high | no_reading; null when no reading) and `context_tags: [{kind, text}]` (max 2,
+only for a Watch/Alert night; render under the breathing strip, never instead of the flag).
+`GET /api/v1/pet/bubble` may return `safety_severe_somatic` (ui_action OPEN_MEDICAL_HELP_NOW).

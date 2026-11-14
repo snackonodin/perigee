@@ -44,4 +44,6 @@ When a value is validated, record the data and date next to it.
 | seeds/pet_dialogue_bank.json thresholds.index_high | 65 | Engine mental index (0-100) that triggers a pet nudge (owner-supplied) | no |
 | ... thresholds.short_sleep_h | 6.0 | Short-sleep pet nudge (owner-supplied) | no |
 | ... thresholds.persist_valve_days / persist_support_days | 3 / 7 | Safety-valve card and support-contact card persistence (owner-supplied) | no |
+| hazards.co2_tag_mmhg / co2_limit_mmhg | 2.5 / 3.0 | Cabin ppCO2 context tag on a flagged night (owner-cited NASA-STD-3001 Vol. 2; verify) | no |
+| hazards.symptom_window_days / max_tags | 2 / 2 | Symptom tags look back this many days; at most this many tags under the breathing strip | no |
 

@@ -111,6 +111,24 @@ class ContextEngineNight(UserOwned, Base):
     run_id: Mapped[str | None] = _run_fk()
 
 
+class CabinReading(UserOwned, Base):
+    """One night's cabin air near the sleep station (ppCO2, temperature, humidity).
+
+    Context only: shown as a tag next to a flagged night and passed to the Context Engine
+    as environmental_logs; it never moves a physiological threshold."""
+
+    __tablename__ = "cabin_readings"
+    __table_args__ = (UniqueConstraint("user_id", "date"),)
+
+    id: Mapped[str] = uuid_pk()
+    date: Mapped[date] = mapped_column(Date, nullable=False)
+    ppco2_mmhg: Mapped[float | None] = mapped_column(Float)
+    temp_c: Mapped[float | None] = mapped_column(Float)
+    rh_pct: Mapped[float | None] = mapped_column(Float)
+    source: Mapped[str] = mapped_column(String(16), nullable=False, default="synthetic")
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow, nullable=False)
+
+
 class Baseline(UserOwned, Base):
     __tablename__ = "baselines"
     __table_args__ = (

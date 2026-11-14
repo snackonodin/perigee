@@ -174,7 +174,19 @@ def test_every_response_carries_safety_and_one_event(world: World, body, who) ->
     item9 = body["answers"].get("phq9_9", None) if body["instrument_id"] == "phq9" else None
     if body["instrument_id"] == "phq9" and _is_int(item9) and item9 >= 1:
         assert safety["show"] is True, body
-    if body["instrument_id"] != "phq9" or "phq9_9" not in body["answers"]:
+    # body_cabin red flags (sudden chest pain, fainting, severe breathlessness) are safety
+    # items too: any present red flag >= 1 must show the screen.
+    red = {k: v for k, v in body["answers"].items() if str(k).startswith("red_")} \
+        if body["instrument_id"] == "body_cabin" else {}
+    def _fires(v: Any) -> bool:  # same rule as surveys.safety_check: >= 1, or uncomparable
+        try:
+            return bool(v >= 1)
+        except TypeError:
+            return True
+
+    if any(_fires(v) for v in red.values()):
+        assert safety["show"] is True, body
+    elif body["instrument_id"] != "phq9" or "phq9_9" not in body["answers"]:
         assert safety["show"] is False, body
     if body["instrument_id"] == "phq9" and _is_int(item9) and item9 == 0:
         assert safety["show"] is False, body

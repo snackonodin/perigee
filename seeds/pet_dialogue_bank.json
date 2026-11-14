@@ -44,6 +44,11 @@
       "pet_animation": "cozy_support",
       "ui_action": "PROMPT_SUPPORT_CONTACT",
       "bubble": "It's been a heavy week. Please reach out to your support team today so you aren't doing this solo."
+    },
+    "safety_severe_somatic": {
+      "pet_animation": "calm_alert",
+      "ui_action": "OPEN_MEDICAL_HELP_NOW",
+      "bubble": "Stop checking in for a moment and get medical help right away."
     }
   },
   "context_cards": {

@@ -75,6 +75,59 @@
         "title": "BaselineOut",
         "type": "object"
       },
+      "CabinOut": {
+        "properties": {
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "level": {
+            "description": "usual | elevated | high | no_reading (config hazards:)",
+            "title": "Level",
+            "type": "string"
+          },
+          "ppco2_mmhg": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ppco2 Mmhg"
+          },
+          "rh_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rh Pct"
+          },
+          "temp_c": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Temp C"
+          }
+        },
+        "required": [
+          "date",
+          "level"
+        ],
+        "title": "CabinOut",
+        "type": "object"
+      },
       "CaptureStats": {
         "additionalProperties": false,
         "description": "FR4: capture quality numbers computed from a raw log.",
@@ -249,6 +302,25 @@
           "policy_version"
         ],
         "title": "ConsentsIn",
+        "type": "object"
+      },
+      "ContextTagOut": {
+        "properties": {
+          "kind": {
+            "description": "cabin_co2 | symptoms | immune",
+            "title": "Kind",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "text"
+        ],
+        "title": "ContextTagOut",
         "type": "object"
       },
       "DemoIn": {
@@ -1882,6 +1954,17 @@
             "title": "Baselines",
             "type": "array"
           },
+          "cabin": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CabinOut"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Latest cabin air reading"
+          },
           "checkins_consent": {
             "title": "Checkins Consent",
             "type": "boolean"
@@ -1897,6 +1980,14 @@
               }
             ],
             "title": "Context Engine"
+          },
+          "context_tags": {
+            "description": "Up to 2 hazard tags explaining a Watch/Alert night; never hide the flag",
+            "items": {
+              "$ref": "#/components/schemas/ContextTagOut"
+            },
+            "title": "Context Tags",
+            "type": "array"
           },
           "date": {
             "format": "date",

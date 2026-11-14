@@ -1,0 +1,30 @@
+/* Briefing + Consent tabs (V2). */
+.briefing-page,.consent-page { padding-bottom:calc(var(--companion-size) + var(--companion-inset)); }
+.briefing-grid,.consent-grid { display:grid;grid-template-columns:minmax(0,1fr);gap:var(--gutter);align-items:start; }
+@media (min-width:768px) { .briefing-grid,.consent-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+.briefing-wide { grid-column:1 / -1; }
+.briefing-grid .card h2 { margin:4px 0 16px;font-size:var(--fs-h3);line-height:var(--lh-h3); }
+.briefing-chips { display:grid;gap:12px;margin:0; }
+.briefing-chips>div { display:flex;align-items:center;justify-content:space-between;gap:12px; }
+.briefing-chips dt { color:var(--muted);font-size:var(--fs-small); }
+.briefing-chips dd { margin:0; }
+.briefing-note { margin:16px 0 0;padding-top:12px;border-top:1px solid var(--line);font-size:var(--fs-small); }
+.briefing-stats { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:0; }
+.briefing-stats dt { color:var(--muted);font-size:var(--fs-small); }
+.briefing-stats dd { margin:4px 0 0;font-family:var(--font-display);font-size:40px;line-height:44px;font-weight:600;font-variant-numeric:tabular-nums; }
+.briefing-stats dd small { margin-left:6px;font-size:.4em;font-weight:500;color:var(--muted); }
+.briefing-summary { margin:0 0 12px;font-weight:600; }
+.briefing-table { width:100%;border-collapse:collapse;font-size:var(--fs-small);font-variant-numeric:tabular-nums; }
+.briefing-table th { text-align:left;font-family:var(--font-mono);font-size:var(--fs-micro);font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--muted); }
+.briefing-table th,.briefing-table td { padding:8px 4px;border-bottom:1px solid var(--line); }
+.briefing-list { display:grid;gap:8px;margin:0;padding:0;list-style:none; }
+.briefing-list li { display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line); }
+.briefing-print { min-height:44px; }
+
+@media print {
+  .topbar,.tabs,.aurora-backdrop,#companion-slot,.skip,.briefing-print { display:none !important; }
+  body,.shell,main { background:#fff !important;color:#000 !important; }
+  .briefing-page .card { break-inside:avoid;box-shadow:none !important;backdrop-filter:none !important;background:#fff !important;border:1px solid #bbb !important; }
+  .briefing-page { padding:0 !important; }
+  .briefing-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}

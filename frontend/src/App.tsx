@@ -12,6 +12,8 @@ import { Psyche } from "./pages/Psyche";
 import { Settings } from "./pages/Settings";
 import { Sleep } from "./pages/Sleep";
 import { Placeholder } from "./routes/Placeholder";
+import { Briefing } from "./pages/Briefing";
+import { Consent } from "./pages/Consent";
 import { TABS } from "./routes/tabs";
 import { SafetyProvider } from "./safety/SafetyProvider";
 import { CompanionGallery } from "./pages/CompanionGallery";
@@ -23,6 +25,8 @@ const PAGES: Record<string, ReactElement> = {
   "/persona": <Persona />,
   "/body": <Body />,
   "/checkin": <Psyche />,
+  "/briefing": <Briefing />,
+  "/consent": <Consent />,
 };
 
 function Root() {

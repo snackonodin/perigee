@@ -88,3 +88,9 @@
   -webkit-backdrop-filter:var(--glass-blur, blur(20px));backdrop-filter:var(--glass-blur, blur(20px));box-shadow:var(--shadow-2, 0 4px 16px rgba(31,42,55,.08));
   color:var(--text, #1F2A37);font:500 var(--fs-small, 14px)/1.4 var(--font, system-ui);pointer-events:none;visibility:hidden; }
 .pet-bubble[data-show] { visibility:visible;animation:pet-bubble-in 250ms var(--ease-bounce, ease) 1; }
+
+/* Cursor follow: when the pet roams to the left half or the top of the viewport, its
+   bubble, breathe label and menu open toward the side with room. */
+.pet[data-side="left"] .pet-bubble, .pet[data-side="left"] .pet-buddy-label { right:auto;left:0; }
+.pet[data-side="left"] .pet-menu-toggle, .pet[data-side="left"] .pet-menu { right:auto;left:calc(100% + 4px); }
+.pet[data-vside="below"] .pet-bubble, .pet[data-vside="below"] .pet-buddy-label { bottom:auto;top:calc(100% + 8px); }

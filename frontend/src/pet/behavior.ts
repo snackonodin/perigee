@@ -8,6 +8,8 @@ export type BehaviorEvent =
   | { type: "tick" } | { type: "tap" } | { type: "poke" } | { type: "pressStart" } | { type: "pressEnd" }
   | { type: "idleFor"; ms: number } | { type: "yawn" } | { type: "enterBedtime" } | { type: "leaveBedtime" }
   | { type: "perchFound" } | { type: "arrived" } | { type: "leavePerch" }
+  /** cursor follow: the pet trots after the pointer, then settles */
+  | { type: "followStart" } | { type: "followStop" }
   /** a check-in was completed: a short happy moment (engagement only, no result) */
   | { type: "cheer" };
 
@@ -86,6 +88,10 @@ export function reduce(s: BehaviorState, e: BehaviorEvent, now: number): Behavio
       return s.state === "idle" ? to(s, "walking", now) : s;
     case "arrived":
       return s.state === "walking" ? to(s, "sitting", now) : s;
+    case "followStart":
+      return s.state === "idle" || s.state === "sitting" ? to(s, "walking", now) : s;
+    case "followStop":
+      return s.state === "walking" ? to(s, "idle", now) : s;
     case "leavePerch":
       return s.state === "walking" || s.state === "sitting" ? to(s, "idle", now) : s;
   }

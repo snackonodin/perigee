@@ -53,7 +53,7 @@ describe("pet behavior", () => {
   });
   it("no transition ever yields a sad state, and moods come only from state + time of day", () => {
     const events: BehaviorEvent[] = [{ type: "tick" }, { type: "tap" }, { type: "poke" }, { type: "pressStart" }, { type: "pressEnd" }, { type: "idleFor", ms: 60000 },
-      { type: "yawn" }, { type: "enterBedtime" }, { type: "leaveBedtime" }, { type: "perchFound" }, { type: "arrived" }, { type: "leavePerch" }];
+      { type: "yawn" }, { type: "enterBedtime" }, { type: "leaveBedtime" }, { type: "perchFound" }, { type: "arrived" }, { type: "leavePerch" }, { type: "followStart" }, { type: "followStop" }];
     let s = initial(); let t = 0;
     for (let i = 0; i < 2000; i++) {
       s = run(s, events[(i * 7 + (i >> 3)) % events.length], (t += 137));

@@ -33,6 +33,29 @@ export const WALK_IDLE_MS = 20000;
 export const WALK_COOLDOWN_MS = 45000;
 export const SIT_SETTLE_MS = 1000;
 
+// Cursor follow (mouse/pen only; touch keeps the corner). Animation numbers, not health values.
+/** the pet chases where the pointer was this long ago */
+export const FOLLOW_LAG_MS = 350;
+/** within this distance of the (lagged) pointer the pet stops: never covers what you click */
+export const FOLLOW_DEADZONE_PX = 110;
+/** it aims to stand this far short of the pointer (>= pet radius + 24 px) */
+export const FOLLOW_GAP_PX = 90;
+export const FOLLOW_MAX_SPEED_PX_S = 260;
+/** desired speed = distance x this (per second), so it lags more the farther it is */
+export const FOLLOW_EASE = 2.2;
+/** how fast velocity catches up with the desired velocity (per second) */
+export const FOLLOW_ACCEL = 4;
+export const FOLLOW_STOP_SPEED_PX_S = 6;
+export const FOLLOW_WOBBLE_PX = 14;
+export const FOLLOW_WOBBLE_HZ = 0.6;
+/** chance per second of starting a detour while far from the pointer */
+export const FOLLOW_DETOUR_CHANCE_S = 0.35;
+export const FOLLOW_DETOUR_MIN_DIST_PX = 220;
+export const FOLLOW_DETOUR_MIN_PX = 50;
+export const FOLLOW_DETOUR_MAX_PX = 140;
+export const FOLLOW_DETOUR_MAX_MS = 1600;
+export const FOLLOW_EDGE_PX = 8;
+
 /** Bedtime window, station time (the host passes timeOfDay "night" inside it). */
 export const BEDTIME_START = "22:00";
 export const BEDTIME_END = "06:30";

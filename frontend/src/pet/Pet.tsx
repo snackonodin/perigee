@@ -8,7 +8,7 @@ import { unlocked } from "./accessories";
 import { PetArt } from "./PetArt";
 import {
   BLINK_MAX_MS, BLINK_MIN_MS, BREATHE_IN_S, BREATHE_MAX_CYCLES, BREATHE_OUT_S, IDLE_LONG_MS, SAFETY_QUIET_MS, DEFAULT_NAMES, DOUBLE_BLINK_CHANCE, EAR_TWITCH_MAX_MS, EAR_TWITCH_MIN_MS,
-  SIT_SETTLE_MS, TAIL_FLICK_MAX_MS, TAIL_FLICK_MIN_MS, WALK_COOLDOWN_MS, WALK_IDLE_MS, WALK_SPEED_PX_S, YAWN_MIN_GAP_MS,
+  FOLLOW_LAG_MS, SIT_SETTLE_MS, TAIL_FLICK_MAX_MS, TAIL_FLICK_MIN_MS, WALK_COOLDOWN_MS, WALK_IDLE_MS, WALK_SPEED_PX_S, YAWN_MIN_GAP_MS,
 } from "./petConfig";
 import { createScheduler, type Scheduler } from "./scheduler";
 import type { PetProps } from "./types";
@@ -24,6 +24,7 @@ import { petStore, usePetPrefs } from "./store";
 import type { DialogCache, PetEvent, PetEventName } from "./types";
 import { useRig } from "./useRig";
 import { canWalk, perchTargets, stepToward, type Box, type Point } from "./walk";
+import { clampToViewport, createFollow, notePointer, stepFollow } from "./follow";
 import "./pet.css";
 
 const CACHE = cacheJson as unknown as DialogCache;
@@ -152,51 +153,101 @@ export function PetLive({ species, personaId, timeOfDay, reducedMotion, nightsLo
     return () => window.removeEventListener("pointermove", move);
   }, [reduced]);
 
-  // walking on wide screens ("stage" placement): along the top edge of [data-pet-perch]
+  // Moving on wide screens ("stage" placement). One position (pet centre, viewport px;
+  // null = home corner) shared by two movers: cursor follow (mouse/pen only) and the idle
+  // walk to the top edge of a [data-pet-perch] card. Touch devices keep the corner.
   const [perched, setPerched] = useState(false);
+  const perchedRef = useRef(false); perchedRef.current = perched;
+  const stateRef = useRef(b.state); stateRef.current = b.state;
   const trail = useMemo(() => createTrail(300), []);
   const frostKick = useRef<(() => void) | null>(null);
   const lastWalk = useRef(0);
+  const lastPointer = useRef(0);
+  const pos = useRef<Point | null>(null);
+  const homeCenter = useCallback((): Point => ({ x: window.innerWidth - 16 - size / 2, y: window.innerHeight - 16 - size / 2 }), [size]);
+  const place = useCallback((p: Point | null) => {
+    pos.current = p;
+    const el = root.current; if (!el) return;
+    const h = homeCenter();
+    el.style.transform = p ? `translate(${(p.x - h.x).toFixed(1)}px, ${(p.y - h.y).toFixed(1)}px)` : "";
+    // bubble and menu open toward the roomier side
+    if (p && p.x < window.innerWidth / 2) el.setAttribute("data-side", "left"); else el.removeAttribute("data-side");
+    if (p && p.y < 220) el.setAttribute("data-vside", "below"); else el.removeAttribute("data-vside");
+  }, [homeCenter]);
   useEffect(() => {
     if (placement !== "stage" || reduced) return;
-    let raf = 0;
-    const home = () => ({ x: window.innerWidth - 16 - size / 2, y: window.innerHeight - 16 });
-    const stopWalk = () => { if (raf) cancelAnimationFrame(raf); raf = 0; };
-    const goHome = () => { stopWalk(); if (root.current) root.current.style.transform = ""; setPerched(false); dispatch({ type: "leavePerch" }); };
+    let raf = 0, last = 0, mode: "none" | "perch" | "follow" = "none", following = false;
+    const viewport = () => ({ width: window.innerWidth, height: window.innerHeight });
+    const fine = (() => { try { return window.matchMedia?.("(pointer: fine)").matches ?? false; } catch { return false; } })();
+    const f = createFollow(homeCenter());
+    const stop = () => { if (raf) cancelAnimationFrame(raf); raf = 0; mode = "none"; if (following) { following = false; dispatch({ type: "followStop" }); } };
+    const step = (p: Point) => { place(p); if (trail.add(p.x, p.y + size / 2 - 4, performance.now())) frostKick.current?.(); hooksRef.current?.onStep?.(p); };
+    const leavePerch = () => { if (!perchedRef.current) return; setPerched(false); dispatch({ type: "leavePerch" }); };
+    const goHome = () => { if (mode === "perch") stop(); if (perchedRef.current || mode === "perch") { place(null); leavePerch(); } };
+
+    // cursor follow: chase a lagged pointer, stop in the dead zone, wobble and detour
+    const busy = () => ["sleeping", "yawning", "waking", "petting", "playful"].includes(stateRef.current);
+    const followFrame = (t: number) => {
+      const dt = Math.min(.05, (t - last) / 1000); last = t;
+      if (busy()) { stop(); return; }
+      const r = stepFollow(f, Date.now(), dt, { size, viewport: viewport() });
+      step(f.pos);
+      if (r.moving !== following) { following = r.moving; dispatch({ type: following ? "followStart" : "followStop" }); }
+      if (!r.moving && Date.now() - lastPointer.current > FOLLOW_LAG_MS + 250) { raf = 0; mode = "none"; return; }
+      raf = requestAnimationFrame(followFrame);
+    };
+    const move = (e: PointerEvent) => {
+      if (!fine || (e.pointerType !== "mouse" && e.pointerType !== "pen")) return;
+      if (!canWalk(window.innerWidth, reduced) || busy()) return;
+      lastPointer.current = Date.now();
+      notePointer(f, e.clientX, e.clientY, Date.now());
+      if (mode === "follow") return;
+      if (mode === "perch") stop();
+      leavePerch();
+      f.pos = pos.current ?? homeCenter(); f.vel = { x: 0, y: 0 }; f.detour = undefined;
+      mode = "follow"; last = performance.now();
+      raf = requestAnimationFrame(followFrame);
+    };
+
+    // idle walk to a perch card (after 20 s without pet input or pointer movement)
     const tryWalk = () => {
-      if (!canWalk(window.innerWidth, reduced) || raf) return;
-      if (Date.now() - lastInput.current < WALK_IDLE_MS || Date.now() - lastWalk.current < WALK_COOLDOWN_MS) return;
+      if (!canWalk(window.innerWidth, reduced) || mode !== "none" || perchedRef.current || stateRef.current !== "idle") return;
+      const now = Date.now();
+      if (now - lastInput.current < WALK_IDLE_MS || now - lastPointer.current < WALK_IDLE_MS || now - lastWalk.current < WALK_COOLDOWN_MS) return;
       const box = (el: Element): Box => { const r = el.getBoundingClientRect(); return { left: r.left, top: r.top, width: r.width, height: r.height }; };
       const avoid = [...document.querySelectorAll("[data-pet-avoid], form, input, textarea, select, [role=dialog]")].map(box);
       if (document.activeElement && document.activeElement !== document.body) avoid.push(box(document.activeElement));
-      const spots = perchTargets([...document.querySelectorAll("[data-pet-perch]")].map(box), { width: window.innerWidth, height: window.innerHeight }, size, avoid);
+      const spots = perchTargets([...document.querySelectorAll("[data-pet-perch]")].map(box), viewport(), size, avoid);
       if (!spots.length) return;
-      lastWalk.current = Date.now();
-      const target = spots[Math.floor(Math.random() * spots.length)];
-      let pos = home(), last = performance.now();
+      lastWalk.current = now;
+      const spot = spots[Math.floor(Math.random() * spots.length)];
+      const target = { x: spot.x, y: spot.y - size / 2 };
+      let p = pos.current ?? homeCenter();
       dispatch({ type: "perchFound" });
       setPerched(true);
+      mode = "perch"; last = performance.now();
       const frame = (t: number) => {
-        const r = stepToward(pos, target, WALK_SPEED_PX_S, Math.min(.05, (t - last) / 1000));
-        last = t; pos = r.pos;
-        const h = home();
-        if (root.current) root.current.style.transform = `translate(${(pos.x - h.x).toFixed(1)}px, ${(pos.y - h.y).toFixed(1)}px)`;
-        if (trail.add(pos.x, pos.y - 4, performance.now())) frostKick.current?.();
-        hooksRef.current?.onStep?.(pos);
-        if (r.arrived) { raf = 0; scheduler.after(SIT_SETTLE_MS, () => dispatch({ type: "arrived" })); return; }
+        const r = stepToward(p, target, WALK_SPEED_PX_S, Math.min(.05, (t - last) / 1000));
+        last = t; p = r.pos; step(p);
+        if (r.arrived) { raf = 0; mode = "none"; scheduler.after(SIT_SETTLE_MS, () => dispatch({ type: "arrived" })); return; }
         raf = requestAnimationFrame(frame);
       };
       raf = requestAnimationFrame(frame);
     };
+    const onResize = () => { goHome(); if (pos.current) place(clampToViewport(pos.current, size, viewport())); };
     const stopCheck = scheduler.every(5000, 5000, tryWalk);
+    window.addEventListener("pointermove", move, { passive: true });
     window.addEventListener("scroll", goHome, { passive: true });
-    window.addEventListener("resize", goHome);
-    return () => { stopCheck(); stopWalk(); window.removeEventListener("scroll", goHome); window.removeEventListener("resize", goHome); };
-  }, [placement, reduced, size, scheduler, dispatch, trail]);
+    window.addEventListener("resize", onResize);
+    return () => {
+      stopCheck(); if (raf) cancelAnimationFrame(raf);
+      window.removeEventListener("pointermove", move); window.removeEventListener("scroll", goHome); window.removeEventListener("resize", onResize);
+    };
+  }, [placement, reduced, size, scheduler, dispatch, trail, place, homeCenter]);
   // any interaction while perched sends the pet home
   useEffect(() => {
-    if (perched && (b.state === "happy" || b.state === "petting" || b.state === "playful")) { if (root.current) root.current.style.transform = ""; setPerched(false); }
-  }, [b.state, perched]);
+    if (perched && (b.state === "happy" || b.state === "petting" || b.state === "playful")) { place(null); setPerched(false); }
+  }, [b.state, perched, place]);
 
   const handlers = useInteractions(scheduler, dispatch, onTap);
   const accessories = useMemo(() => unlocked(nightsLogged), [nightsLogged]);

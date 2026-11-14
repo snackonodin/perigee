@@ -84,6 +84,8 @@ class Persona:
     history_rr: tuple[float, ...]  # one per history night, D-14 .. D-2
     weekly: dict[str, tuple[list[int], list[int]]] = field(default_factory=dict)
     mental_dip: bool = False
+    # Sleep length per history night (mean, sd in hours). Default: the original generator.
+    duration_h: tuple[float, float] = DURATION_H
 
 
 def _answers(*vals: int) -> list[int]:
@@ -136,6 +138,59 @@ PERSONAS: tuple[Persona, ...] = (
         mental_dip=True,
     ),
 )
+# NASA-calibrated crew (synthetic people; only the sleep length comes from published ISS
+# actigraphy): Barger et al. 2014, Lancet Neurol 13:904 (in flight 6.09 +/- 0.67 h) and
+# Flynn-Evans et al. 2016, npj Microgravity 2:16019 (circadian-aligned 6.4 +/- 1.2 h,
+# misaligned 5.4 +/- 1.4 h). Breathing values are a stated design assumption, not NASA data.
+ISS_PERSONAS: tuple[Persona, ...] = (
+    Persona(
+        key="iss-flight",
+        email="iss-flight@ex.com",
+        seed=404,
+        demo_rr=16.0,
+        demo_restless=0.20,
+        raw_motion_bursts=4,
+        history_rr=(13.0,) * 9 + (13.6, 14.0, 14.4, 14.8),  # slow breathing drift
+        weekly={
+            "phq2": (_answers(1, 0), _answers(1, 0)),
+            "gad2": (_answers(1, 0), _answers(1, 0)),
+            "who5": (_answers(4, 4, 3, 3, 3), _answers(4, 3, 3, 3, 3)),
+        },
+        duration_h=(6.09, 0.67),
+    ),
+    Persona(
+        key="iss-aligned",
+        email="iss-aligned@ex.com",
+        seed=505,
+        demo_rr=14.0,
+        demo_restless=0.05,
+        raw_motion_bursts=1,
+        history_rr=(14.0,) * HISTORY_NIGHTS,
+        weekly={
+            "phq2": (_answers(1, 0), _answers(1, 0)),
+            "gad2": (_answers(1, 0), _answers(1, 0)),
+            "who5": (_answers(4, 4, 3, 3, 3), _answers(4, 4, 3, 3, 3)),
+        },
+        duration_h=(6.4, 1.2),
+    ),
+    Persona(
+        key="iss-misaligned",
+        email="iss-misaligned@ex.com",
+        seed=606,
+        demo_rr=15.0,
+        demo_restless=0.05,
+        raw_motion_bursts=1,
+        history_rr=(15.0,) * HISTORY_NIGHTS,
+        weekly={
+            "phq2": (_answers(1, 0), _answers(2, 1)),
+            "gad2": (_answers(1, 0), _answers(2, 1)),
+            "who5": (_answers(4, 3, 3, 3, 3), _answers(3, 2, 2, 2, 2)),
+        },
+        mental_dip=True,
+        duration_h=(5.4, 1.4),
+    ),
+)
+ALL_PERSONAS: tuple[Persona, ...] = PERSONAS + ISS_PERSONAS
 FINAL_PHQ9 = {f"phq9_{i}": v for i, v in enumerate((2, 2, 2, 1, 1, 2, 1, 0, 1), start=1)}
 
 
@@ -293,8 +348,10 @@ def _window_rows(
     return rows
 
 
-def _night_plan(p: Persona, anchor: date) -> list[dict[str, Any]]:
-    """Window-level parts: 13 history nights + the demo night's 6 h part."""
+def _night_plan(p: Persona, anchor: date, full_demo: bool = False) -> list[dict[str, Any]]:
+    """Window-level parts: 13 history nights + the demo night's 6 h part. ``full_demo``
+    (no raw capture seeded) covers the raw part's hours with windows too, so the demo night
+    keeps its usual length and mid-sleep time."""
     plan = []
     for k in range(HISTORY_NIGHTS):
         night = anchor - timedelta(days=14 - k)
@@ -307,7 +364,7 @@ def _night_plan(p: Persona, anchor: date) -> list[dict[str, Any]]:
                 "night": night,
                 "onset": onset,
                 "rng": rng,
-                "hours": float(rng.normal(*DURATION_H)),
+                "hours": float(rng.normal(*p.duration_h)),
                 "rr": float(rng.normal(p.history_rr[k], SIGMA_RR)),
                 "restless": float(np.clip(rng.normal(*RESTLESS), 0.0, 1.0)),
             }
@@ -318,7 +375,7 @@ def _night_plan(p: Persona, anchor: date) -> list[dict[str, Any]]:
             "night": demo,
             "onset": datetime.combine(demo, DEMO_WINDOW_START, tzinfo=UTC),
             "rng": np.random.default_rng(p.seed * 100 + HISTORY_NIGHTS),
-            "hours": DEMO_WINDOW_H,
+            "hours": DEMO_WINDOW_H + (DEMO_RAW_H if full_demo else 0.0),
             "rr": p.demo_rr,
             "restless": p.demo_restless,
         }
@@ -337,11 +394,17 @@ def _missing_window_nights(db: Session, p: Persona, anchor: date) -> list[date]:
 
 
 def seed_windows(
-    db: Session, p: Persona, uid: str, anchor: date, run_id: str | None, cfg: CoreConfig
+    db: Session,
+    p: Persona,
+    uid: str,
+    anchor: date,
+    run_id: str | None,
+    cfg: CoreConfig,
+    full_demo: bool = False,
 ) -> int:
     """One synthetic session + its windows per planned night. Skips existing sessions."""
     n = 0
-    for night in _night_plan(p, anchor):
+    for night in _night_plan(p, anchor, full_demo):
         key, sid = _window_session_key(p, night["night"])
         if db.get(CaptureSession, sid) is not None:
             continue
@@ -380,8 +443,11 @@ def seed_windows(
 
 def seed_windows_handler(db: Session, run: PipelineRun) -> str:
     prm = run.parameters
-    p = next(x for x in PERSONAS if x.key == prm["persona"])
-    n = seed_windows(db, p, prm["user_id"], date.fromisoformat(prm["anchor"]), run.id, get_config())
+    p = next(x for x in ALL_PERSONAS if x.key == prm["persona"])
+    n = seed_windows(
+        db, p, prm["user_id"], date.fromisoformat(prm["anchor"]), run.id, get_config(),
+        full_demo=bool(prm.get("full_demo")),
+    )
     return f"seed_persona_windows persona={p.key} windows={n}"
 
 
@@ -476,22 +542,32 @@ def seed(
     raw_fs: float = RAW_FS,
     raw_n_sub: int = RAW_N_SUB,
     cache_root: Path | None = None,
+    with_iss: bool = False,
+    with_raw: bool = True,
 ) -> dict[str, Any]:
-    """Seed all personas for demo day ``anchor``. Safe to re-run."""
+    """Seed all personas for demo day ``anchor`` (plus the NASA-calibrated ISS crew when
+    ``with_iss``). Safe to re-run: existing personas are only topped up. ``with_raw=False``
+    skips the synthetic raw CSI capture (~850 MB peak to synthesise); nights are then built
+    from the seeded breathing windows only. Used on small cloud hosts."""
     from backend.services import surveys
 
     out: dict[str, Any] = {"anchor": anchor.isoformat(), "personas": []}
-    for p in PERSONAS:
+    for p in ALL_PERSONAS if with_iss else PERSONAS:
         uid, generated = _ensure_user(db, p, password)
         surveys.load_catalog(db)
         if _missing_window_nights(db, p, anchor):  # no run row at all on a no-op reseed
             _run_kind(
                 db,
                 "seed_persona_windows",
-                {"persona": p.key, "user_id": uid, "anchor": anchor.isoformat()},
+                {"persona": p.key, "user_id": uid, "anchor": anchor.isoformat(),
+                 "full_demo": not with_raw},
                 uid,
             )
-        raw_sid = seed_raw(db, p, uid, anchor, fs=raw_fs, n_sub=raw_n_sub, cache_root=cache_root)
+        raw_sid = (
+            seed_raw(db, p, uid, anchor, fs=raw_fs, n_sub=raw_n_sub, cache_root=cache_root)
+            if with_raw
+            else None
+        )
         # Chronological: a night only sees surveys submitted up to that day, so the
         # backfill does not leak later answers into earlier nights.
         done = set(db.scalars(scoped(select(NightFeaturesRow.date), NightFeaturesRow, uid)))

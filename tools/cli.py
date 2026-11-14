@@ -145,7 +145,10 @@ def cmd_seed_personas(db: Session, args: argparse.Namespace) -> int:
 
     _load_pipeline()
     anchor = date.fromisoformat(args.anchor) if args.anchor else date.today()
-    _out(personas.seed(db, anchor=anchor, include_final_phq9=args.include_final_phq9))
+    _out(personas.seed(
+        db, anchor=anchor, include_final_phq9=args.include_final_phq9,
+        with_iss=args.with_iss, with_raw=not args.no_raw,
+    ))
     return 0
 
 
@@ -248,6 +251,16 @@ def build_parser() -> argparse.ArgumentParser:
         "--include-final-phq9",
         action="store_true",
         help="also seed P3's final PHQ-9 (normally submitted live in the demo)",
+    )
+    s.add_argument(
+        "--with-iss",
+        action="store_true",
+        help="also seed the NASA-calibrated ISS crew (iss-flight/aligned/misaligned@ex.com)",
+    )
+    s.add_argument(
+        "--no-raw",
+        action="store_true",
+        help="skip the synthetic raw CSI capture (needs ~850 MB); for small cloud hosts",
     )
     s.set_defaults(fn=cmd_seed_personas)
 

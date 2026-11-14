@@ -18,6 +18,8 @@ if [ "${SEED_DEMO:-0}" = "1" ]; then
   # Seeding synthesises 14 nights per persona (~8 min the first time). Run it in the background
   # so the port opens at once (hosts kill apps that do not listen within a few minutes).
   : "${DEMO_PERSONA_PASSWORD:?set DEMO_PERSONA_PASSWORD when SEED_DEMO=1}"
-  (python -m tools.cli seed-personas > "$DATA_DIR/seed-personas.json" 2> "$DATA_DIR/seed-personas.log" &)
+  # The raw CSI capture needs ~850 MB to synthesise; skip it unless SEED_RAW=1 (small hosts).
+  RAW_FLAG="--no-raw"; [ "${SEED_RAW:-0}" = "1" ] && RAW_FLAG=""
+  (python -m tools.cli seed-personas --with-iss $RAW_FLAG > "$DATA_DIR/seed-personas.json" 2> "$DATA_DIR/seed-personas.log" &)
 fi
 exec python -m uvicorn backend.main:app --host 0.0.0.0 --port "${PORT:-8000}" --proxy-headers

@@ -64,6 +64,7 @@ Verified locally in deploy mode: `env -i` with fresh keys, `DATA_DIR` in a temp 
       - `SECRET_KEY`: a new random value.
       - `FIELD_KEY`: a new Fernet key.
       - `SEED_DEMO=1` and `DEMO_PERSONA_PASSWORD=12345678`: the 3 demo accounts steady@ex.com, drift@ex.com, dip@ex.com (synthetic only; may be shorter than the 10-character sign-up minimum).
+      - Seeding on start also creates the NASA-calibrated crew `iss-flight@ex.com`, `iss-aligned@ex.com`, `iss-misaligned@ex.com` (same password; sleep length from Barger 2014 / Flynn-Evans 2016) and skips the raw CSI capture (~850 MB) unless `SEED_RAW=1`; all six accounts seed in under a minute at ~310 MB.
       - `DEMO_ACCESS=1`: enables `POST /api/v1/auth/demo`, the no-login "Try the demo" sign-in (Space Apps requires a demo without registration).
       - `DEMO_MAX_USERS=50`: each "Try the demo" visitor gets a private copy of the drift persona (about 2 s); after 50 visitors the route answers 503 `demo_full`.
       - `SIGNUP_MAX_USERS=50`: optional cap on self-registered real accounts (403 `signup_closed`); unset or 0 means no cap.

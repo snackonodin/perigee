@@ -1,0 +1,5 @@
+/* Frost canvas: under the page content (cards and their text paint above it), shows
+   through the glass. Reduced motion: no canvas; a static layer that fades 600 ms. */
+.pet-frost { position:fixed;inset:0;width:100vw;height:100vh;z-index:-1;pointer-events:none; }
+.frost-fallback { position:fixed;inset:0;z-index:-1;pointer-events:none;background:rgba(234,244,251,.55);opacity:1;transition:opacity 600ms ease; }
+.frost-fallback[data-passing] { opacity:0; }

@@ -1,6 +1,8 @@
 // The live companion pet. Safety first: while safetyActive is true this returns null and
 // the inner component (which owns every timer, listener and rAF) is unmounted.
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { FrostTrail } from "./frost/FrostTrail";
+import { createTrail } from "./frost/trailBuffer";
 import { initial, moodOf, reduce, type BehaviorEvent, type BehaviorState } from "./behavior";
 import { unlocked } from "./accessories";
 import { PetArt } from "./PetArt";
@@ -94,6 +96,8 @@ export function PetLive({ species, timeOfDay, reducedMotion, nightsLogged, petNa
 
   // walking on wide screens ("stage" placement): along the top edge of [data-pet-perch]
   const [perched, setPerched] = useState(false);
+  const trail = useMemo(() => createTrail(300), []);
+  const frostKick = useRef<(() => void) | null>(null);
   const lastWalk = useRef(0);
   useEffect(() => {
     if (placement !== "stage" || reduced) return;
@@ -119,6 +123,7 @@ export function PetLive({ species, timeOfDay, reducedMotion, nightsLogged, petNa
         last = t; pos = r.pos;
         const h = home();
         if (root.current) root.current.style.transform = `translate(${(pos.x - h.x).toFixed(1)}px, ${(pos.y - h.y).toFixed(1)}px)`;
+        if (trail.add(pos.x, pos.y - 4, performance.now())) frostKick.current?.();
         hooksRef.current?.onStep?.(pos);
         if (r.arrived) { raf = 0; scheduler.after(SIT_SETTLE_MS, () => dispatch({ type: "arrived" })); return; }
         raf = requestAnimationFrame(frame);
@@ -129,7 +134,7 @@ export function PetLive({ species, timeOfDay, reducedMotion, nightsLogged, petNa
     window.addEventListener("scroll", goHome, { passive: true });
     window.addEventListener("resize", goHome);
     return () => { stopCheck(); stopWalk(); window.removeEventListener("scroll", goHome); window.removeEventListener("resize", goHome); };
-  }, [placement, reduced, size, scheduler, dispatch]);
+  }, [placement, reduced, size, scheduler, dispatch, trail]);
   // any interaction while perched sends the pet home
   useEffect(() => {
     if (perched && (b.state === "happy" || b.state === "petting" || b.state === "playful")) { if (root.current) root.current.style.transform = ""; setPerched(false); }
@@ -145,5 +150,6 @@ export function PetLive({ species, timeOfDay, reducedMotion, nightsLogged, petNa
       <PetArt species={species} mood={mood} size={size} accessories={accessories} animated />
     </button>
     {b.state === "sleeping" && <span className="pet-z" aria-hidden="true">z</span>}
+    {placement === "stage" && !reduced && <FrostTrail trail={trail} kickRef={frostKick} />}
   </div>;
 }

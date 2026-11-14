@@ -5,6 +5,7 @@ import { useAuth } from "../auth/AuthProvider";
 import { BRAND } from "../brand";
 import { Icon } from "../components/icons";
 import "./Login.css";
+import { DemoChoice, type DemoBody } from "./DemoChoice";
 
 export function Login({ signup = false }: { signup?: boolean }) {
   const { status, login, demo } = useAuth();
@@ -15,7 +16,9 @@ export function Login({ signup = false }: { signup?: boolean }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [demoBusy, setDemoBusy] = useState(false);
+  const [demoBusy, setDemoBusy] = useState<"crew" | "profile" | null>(null);
+  // signed-out visitors see the demo choice first; the sign-in form is one link away
+  const [accountView, setAccountView] = useState(false);
   const [checkingSetup, setCheckingSetup] = useState(false);
   // Hidden once the server says the public demo is off (404/405), for the rest of this tab.
   const [demoOff, setDemoOff] = useState(() => { try { return sessionStorage.getItem("demo.off") === "1"; } catch { return false; } });
@@ -75,20 +78,36 @@ export function Login({ signup = false }: { signup?: boolean }) {
     if (message) setError(message);
   }
 
-  async function tryDemo() {
+  // A server that says demo access is off (health.demo === false) skips the choice up front.
+  useEffect(() => {
+    let live = true;
+    fetch(new URL("/api/v1/health", window.location.origin)).then((r) => r.json()).then((h: { demo?: boolean }) => {
+      if (live && h?.demo === false) setDemoOff(true);
+    }).catch(() => { /* unknown: keep the choice; a 404 on choosing falls back to sign-in */ });
+    return () => { live = false; };
+  }, []);
+
+  async function tryDemo(body?: DemoBody, kind: "crew" | "profile" = "crew") {
     setBusy(true);
-    setDemoBusy(true);
+    setDemoBusy(kind);
     setError(null);
     demoLanding.current = true;
-    const message = await demo();
+    const message = await demo(body);
     setBusy(false);
-    setDemoBusy(false);
+    setDemoBusy(null);
     if (message === "unavailable") {
       setDemoOff(true);
       try { sessionStorage.setItem("demo.off", "1"); } catch { /* hidden for this render only */ }
       demoLanding.current = false;
     } else if (message) { setError(message); demoLanding.current = false; }
   }
+
+  if (!signup && !demoOff && !accountView) return (
+    <div className="login-layout demo-layout">
+      <div className="aurora-backdrop" aria-hidden="true"><i /><i /><i /><i /></div>
+      <DemoChoice busy={demoBusy} error={error} onChoose={(b, k) => void tryDemo(b, k)} onAccount={() => { setError(null); setAccountView(true); }} />
+    </div>
+  );
 
   return (
     <div className="login-layout auth-layout">
@@ -106,7 +125,7 @@ export function Login({ signup = false }: { signup?: boolean }) {
             <p className="error" role="alert">{error}</p>
           </form>
           {!signup && !demoOff && (
-            <button type="button" className="login-demo" disabled={busy || checkingSetup} aria-busy={demoBusy} onClick={() => void tryDemo()}>{demoBusy ? "Preparing your demo…" : "Try the demo"}</button>
+            <button type="button" className="login-demo" disabled={busy || checkingSetup} onClick={() => { setError(null); setAccountView(false); }}>Back to the demo</button>
           )}
           <p className="login-toggle">{signup ? "Already have an account?" : `New to ${BRAND}?`} <button type="button" className="link" onClick={() => navigate(signup ? "/login" : "/register")}>{signup ? "Sign in" : "Create an account"}</button></p>
           <p className="login-privacy"><span aria-hidden="true">◈</span> Your personal signals stay in your account.</p>

@@ -1,10 +1,16 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { App } from "../App";
 import { me, today } from "../test/fixtures";
 import { mockApi, signIn } from "../test/mockApi";
 
 const tokens = (a: string, r: string) => ({ user_id: "u-1", access_token: a, refresh_token: r, token_type: "bearer", expires_in: 900 });
+
+/** Signed-out visitors land on the demo choice; the sign-in form is behind "I have an account". */
+async function toSignIn() {
+  fireEvent.click(await screen.findByRole("button", { name: "I have an account" }));
+  return screen.findByRole("heading", { name: "Welcome back" });
+}
 
 function fillLogin(email: string, pw: string) {
   fireEvent.change(screen.getByLabelText("Email"), { target: { value: email } });
@@ -20,14 +26,15 @@ describe("AuthProvider", () => {
       "GET /api/v1/today": { body: today },
     });
     render(<App initialPath="/" />);
-    expect(await screen.findByRole("heading", { name: "Welcome back" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "Explore Perigee" })).toBeTruthy();
+    expect(await toSignIn()).toBeTruthy();
     fillLogin("ada@example.invalid", "long enough password");
     expect(await screen.findByRole("heading", { name: "Today" })).toBeTruthy();
     expect(api.called("POST /api/v1/auth/login")[0].body).toEqual({ email: "ada@example.invalid", password: "long enough password" });
     expect(sessionStorage.getItem("ahm.access")).toBe("at-9");
   });
 
-  it("Try the demo signs in, marks setup done and lands on Today", async () => {
+  it("picking an ISS crew member signs in, marks setup done and lands on Today", async () => {
     const api = mockApi({
       "POST /api/v1/auth/demo": { body: tokens("at-d", "rt-d") },
       "GET /api/v1/me": (c) => (c.auth === "Bearer at-d" ? { body: me } : { status: 401, body: { error: "unauthorized", message: "x" } }),
@@ -35,22 +42,42 @@ describe("AuthProvider", () => {
     });
     localStorage.removeItem("setup.done");
     render(<App initialPath="/login" />);
-    fireEvent.click(await screen.findByRole("button", { name: "Try the demo" }));
+    fireEvent.click(await screen.findByRole("button", { name: /^Circadian-aligned/ }));
     expect(await screen.findByRole("heading", { name: "Today" })).toBeTruthy();
-    expect(api.called("POST /api/v1/auth/demo")).toHaveLength(1);
+    expect(api.called("POST /api/v1/auth/demo").map((c) => c.body)).toEqual([{ crew: "iss-aligned" }]);
     expect(sessionStorage.getItem("ahm.access")).toBe("at-d");
     expect(localStorage.getItem("setup.done")).toBe("true");
     expect(localStorage.getItem("ahm.demo.refresh")).toBe("rt-d");
     localStorage.removeItem("ahm.demo.refresh");
   });
 
-  it("Try the demo shows a loading state, then the full message on 503 demo_full", async () => {
+  it("make your own: five answers build the visitor's nights, with a loading state", async () => {
+    const api = mockApi({
+      "POST /api/v1/auth/demo": { body: tokens("at-p", "rt-p") },
+      "GET /api/v1/me": (c) => (c.auth === "Bearer at-p" ? { body: me } : { status: 401, body: { error: "unauthorized", message: "x" } }),
+      "GET /api/v1/today": { body: today },
+    });
+    render(<App initialPath="/" />);
+    fireEvent.change(await screen.findByRole("slider"), { target: { value: "5.5" } });
+    fireEvent.click(screen.getByRole("radio", { name: "Very irregular" }));
+    fireEvent.click(within(screen.getByRole("group", { name: "Stress lately" })).getByRole("radio", { name: "High" }));
+    fireEvent.click(within(screen.getByRole("group", { name: "Mood lately" })).getByRole("radio", { name: "Low" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: /travel or illness/ }));
+    expect(screen.getByText("Synthetic data for exploring the app, not a health assessment.")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Build my nights" }));
+    expect(screen.getByRole("button", { name: "Building your 14 nights…" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "Today" })).toBeTruthy();
+    expect(api.called("POST /api/v1/auth/demo")[0].body).toEqual({ profile: { sleep_hours: 5.5, regularity: 0, stress: 3, mood: 1, recent_change: true } });
+    localStorage.removeItem("ahm.demo.refresh");
+  });
+
+  it("shows a loading state, then the full message on 503 demo_full", async () => {
     mockApi({ "POST /api/v1/auth/demo": { status: 503, body: { error: "demo_full", message: "demo is full" } } });
     render(<App initialPath="/login" />);
-    fireEvent.click(await screen.findByRole("button", { name: "Try the demo" }));
-    expect(screen.getByRole("button", { name: "Preparing your demo…" })).toBeTruthy();
+    fireEvent.click(await screen.findByRole("button", { name: /^In flight/ }));
+    expect(screen.getByText("Preparing your crew member…")).toBeTruthy();
     await waitFor(() => expect(screen.getByRole("alert").textContent).toBe("The demo is full right now."));
-    expect(screen.getByRole("button", { name: "Try the demo" })).toBeTruthy();
+    expect((screen.getByRole("button", { name: /^In flight/ }) as HTMLButtonElement).disabled).toBe(false);
   });
 
   it("a return demo visitor reuses the stored demo copy instead of making a new one", async () => {
@@ -74,6 +101,7 @@ describe("AuthProvider", () => {
       "GET /api/v1/today": { body: today },
     });
     render(<App initialPath="/login" />);
+    await toSignIn();
     fillLogin("ada@example.invalid", "long enough password");
     expect(await screen.findByRole("heading", { name: "Today" })).toBeTruthy();
     expect(localStorage.getItem("ahm.demo.refresh")).toBeNull();
@@ -88,12 +116,19 @@ describe("AuthProvider", () => {
     await waitFor(() => expect(screen.getByRole("alert").textContent).toBe("Sign-ups are closed for this demo."));
   });
 
-  it("hides Try the demo when the server has demo access off (404)", async () => {
+  it("falls back to the sign-in form when the server has demo access off (404)", async () => {
     mockApi({ "POST /api/v1/auth/demo": { status: 404, body: { error: "not_found", message: "Not Found" } } });
     render(<App initialPath="/login" />);
-    fireEvent.click(await screen.findByRole("button", { name: "Try the demo" }));
-    await waitFor(() => expect(screen.queryByRole("button", { name: "Try the demo" })).toBeNull());
+    fireEvent.click(await screen.findByRole("button", { name: /^In flight/ }));
+    expect(await screen.findByRole("heading", { name: "Welcome back" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Back to the demo" })).toBeNull();
     expect(screen.getByRole("alert").textContent).toBe("");
+  });
+
+  it("skips the choice when the health check says the demo is off", async () => {
+    mockApi({ "GET /api/v1/health": { body: { status: "ok", demo: false } } });
+    render(<App initialPath="/" />);
+    expect(await screen.findByRole("heading", { name: "Welcome back" })).toBeTruthy();
   });
 
   it("shows the throttling message with the Retry-After wait", async () => {
@@ -105,6 +140,7 @@ describe("AuthProvider", () => {
       },
     });
     render(<App initialPath="/login" />);
+    await toSignIn();
     fillLogin("ada@example.invalid", "wrong password!!");
     expect((await screen.findByRole("alert")).textContent).toBe("Too many failed sign-ins. Try again in about 2 minutes.");
   });
@@ -130,7 +166,7 @@ describe("AuthProvider", () => {
       "GET /api/v1/me": { status: 401, body: { error: "unauthorized", message: "x" } },
     });
     render(<App initialPath="/sleep" />);
-    expect(await screen.findByRole("heading", { name: "Welcome back" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "Explore Perigee" })).toBeTruthy();
     expect(sessionStorage.getItem("ahm.access")).toBeNull();
     expect(sessionStorage.getItem("ahm.refresh")).toBeNull();
   });
@@ -144,7 +180,7 @@ describe("AuthProvider", () => {
     });
     render(<App initialPath="/" />);
     fireEvent.click(await screen.findByRole("button", { name: "Log out" }));
-    expect(await screen.findByRole("heading", { name: "Welcome back" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "Explore Perigee" })).toBeTruthy();
     await waitFor(() => expect(api.called("POST /api/v1/auth/logout")).toHaveLength(1));
     expect(api.called("POST /api/v1/auth/logout")[0].body).toEqual({ refresh_token: "rt-1" });
     expect(sessionStorage.getItem("ahm.refresh")).toBeNull();

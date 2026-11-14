@@ -15,8 +15,10 @@ export interface paths {
         put?: never;
         /**
          * Demo
-         * @description A private copy of the synthetic demo persona, no password. 404 unless DEMO_ACCESS=1;
-         *     503 demo_full once DEMO_MAX_USERS visitors exist.
+         * @description A private demo account, no password. Body optional: {} or none = copy of the default
+         *     persona; {"crew": "iss-flight"|"iss-aligned"|"iss-misaligned"} = copy of that NASA-calibrated
+         *     crew member; {"profile": {...5 answers}} = the visitor's own synthetic 14 nights (~5 s).
+         *     404 unless DEMO_ACCESS=1; 503 demo_full once DEMO_MAX_USERS visitors exist.
          */
         post: operations["demo_api_v1_auth_demo_post"];
         delete?: never;
@@ -727,6 +729,28 @@ export interface components {
                 [key: string]: boolean;
             };
         };
+        /** DemoIn */
+        DemoIn: {
+            /** Crew */
+            crew?: ("iss-flight" | "iss-aligned" | "iss-misaligned") | null;
+            profile?: components["schemas"]["DemoProfileIn"] | null;
+        };
+        /**
+         * DemoProfileIn
+         * @description The visitor's own synthetic data: 5 answers, synthetic knobs only (not clinical).
+         */
+        DemoProfileIn: {
+            /** Mood */
+            mood: number;
+            /** Recent Change */
+            recent_change: boolean;
+            /** Regularity */
+            regularity: number;
+            /** Sleep Hours */
+            sleep_hours: number;
+            /** Stress */
+            stress: number;
+        };
         /** ErrorOut */
         ErrorOut: {
             /** Error */
@@ -1408,7 +1432,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["DemoIn"] | null;
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {

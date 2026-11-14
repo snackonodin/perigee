@@ -3,6 +3,9 @@ import { Navigate, useLocation, useNavigate } from "react-router";
 import { api, errorText, refreshSession, setUnauthorizedHandler } from "../api/client";
 import { tokens } from "../api/tokens";
 import type { MeOut } from "../api/types";
+import type { components } from "../api/schema";
+
+type DemoIn = components["schemas"]["DemoIn"];
 
 type Status = "checking" | "signed-in" | "signed-out";
 
@@ -11,8 +14,9 @@ interface AuthState {
   me: MeOut | null;
   /** Returns an error message, or null on success. */
   login(email: string, password: string, signup?: boolean): Promise<string | null>;
-  /** Public demo sign-in (synthetic persona). Returns "unavailable" on 404, an error message, or null. */
-  demo(): Promise<string | null>;
+  /** Public demo sign-in (synthetic persona, an ISS crew member or a visitor-built profile).
+   *  Returns "unavailable" on 404/405, an error message, or null. */
+  demo(body?: DemoIn): Promise<string | null>;
   logout(): Promise<void>;
   reloadMe(): Promise<void>;
 }
@@ -73,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [reloadMe],
   );
 
-  const demo = useCallback(async () => {
+  const demo = useCallback(async (body?: DemoIn) => {
     const markSetupDone = () => {
       // The demo copy already has a baseline: skip first-run setup and land on Today.
       try { window.localStorage.setItem("setup.done", "true"); } catch { /* Login re-checks the baseline */ }
@@ -85,7 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return null;
     }
     // Each call makes a new private copy (~2 s) and uses one of the capped visitor slots.
-    const { data, error, response } = await api.POST("/api/v1/auth/demo");
+    const { data, error, response } = await api.POST("/api/v1/auth/demo", body ? { body } : {});
     // 404: demo access off; 405: an older server without the route. Either way, hide the button.
     if (response?.status === 404 || response?.status === 405) return "unavailable";
     if (!data) return errorText(error, response?.status, response?.headers.get("Retry-After"));

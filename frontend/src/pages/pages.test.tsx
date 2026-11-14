@@ -144,7 +144,7 @@ describe("Settings", () => {
     fireEvent.change(screen.getByLabelText("Confirmation"), { target: { value: "DELETE" } });
     expect(confirm.disabled).toBe(false);
     fireEvent.click(confirm);
-    expect(await screen.findByRole("heading", { name: "Welcome back" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "Explore Perigee" })).toBeTruthy();
     expect(api.called("DELETE /api/v1/me")).toHaveLength(1);
   });
 

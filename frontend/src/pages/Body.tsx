@@ -71,7 +71,7 @@ export function Body() {
             systems={Object.fromEntries(SYSTEMS.map(n=>[REGION[n],regionInfo(details[n])]))}
             activeRegion={REGION[selected]} onSelect={r=>setSelected(SYSTEM_OF[r])}/></div>
         </section>
-        <section className="body-detail" aria-live="polite" aria-labelledby="body-detail-title" key={selected}>
+        <section className="body-detail" data-pet-perch aria-live="polite" aria-labelledby="body-detail-title" key={selected}>
           <div className="system-switch" role="group" aria-label="Choose a system">{SYSTEMS.map(name=><button key={name} type="button" className={`system-pill system-pill-${COLORS[name]}`} aria-pressed={selected===name} onClick={()=>setSelected(name)}><i aria-hidden="true"/>{name}</button>)}</div>
           {current.value==="No reading"?<VitalCard label={selected} icon={selected} headingId="body-detail-title" empty={current.copy} footer={footer}/>:
           <VitalCard label={selected} value={current.value} unit={current.unit} icon={selected} state={current.state} headingId="body-detail-title" footer={footer}>

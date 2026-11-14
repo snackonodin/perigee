@@ -181,3 +181,29 @@ export function hopSpeed(phase: number): number {
   const p = ((phase % 1) + 1) % 1;
   return p >= HOP_TAKEOFF && p < HOP_LAND ? 1 / (HOP_LAND - HOP_TAKEOFF) : 0;
 }
+
+// ---- Fixed perch spots: the pet only moves between designated spots and home ---------------
+
+const far = (p: Point, pointer: Point | null) => !pointer || Math.hypot(p.x - pointer.x, p.y - pointer.y) >= FOLLOW_MIN_DIST_PX;
+const same = (a: Point, b?: Point | null) => !!b && Math.hypot(a.x - b.x, a.y - b.y) < 8;
+
+/** Escape or settle: the spot nearest `from` that keeps the minimum distance from the pointer. */
+export function nearestSpot(spots: readonly Point[], from: Point, pointer: Point | null, except?: Point | null): Point | null {
+  let best: Point | null = null, bd = Infinity;
+  for (const p of spots) {
+    if (same(p, except) || !far(p, pointer)) continue;
+    const d = Math.hypot(p.x - from.x, p.y - from.y);
+    if (d < bd) { bd = d; best = p; }
+  }
+  return best;
+}
+
+/** "Follow" between fixed spots: the spot closest to the pointer that is still a card's width away. */
+export const spotTowardPointer = (spots: readonly Point[], pointer: Point, current?: Point | null): Point | null =>
+  nearestSpot(spots, pointer, pointer, current);
+
+/** "Wander": any other spot that keeps the minimum distance from the pointer. */
+export function otherSpot(spots: readonly Point[], current: Point | null, pointer: Point | null, rnd: () => number = Math.random): Point | null {
+  const ok = spots.filter((p) => !same(p, current) && far(p, pointer));
+  return ok.length ? ok[Math.floor(rnd() * ok.length)] : null;
+}

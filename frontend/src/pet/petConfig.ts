@@ -28,7 +28,7 @@ export const RESLEEP_MS = 30000;
 export const Z_EVERY_MS = 2500;
 
 export const WALK_MIN_WIDTH_PX = 768;
-export const WALK_SPEED_PX_S = 60;
+export const WALK_SPEED_PX_S = 95;
 export const WALK_IDLE_MS = 20000;
 export const WALK_COOLDOWN_MS = 45000;
 export const SIT_SETTLE_MS = 1000;
@@ -68,7 +68,7 @@ export const FOLLOW_COOLDOWN_MS = 6000;
 /** wander: hop to a free spot, sit and look around */
 export const WANDER_MIN_MS = 5000;
 export const WANDER_MAX_MS = 9000;
-export const WANDER_SPEED_PX_S = 160;
+export const WANDER_SPEED_PX_S = 95;
 /** a wander spot keeps at least this far from the pointer */
 export const WANDER_POINTER_CLEAR_PX = 380;
 export const WANDER_TRIES = 16;
@@ -76,12 +76,12 @@ export const IGNORE_MIN_MS = 4000;
 export const IGNORE_MAX_MS = 8000;
 /** moods only run while the pointer moved within this window */
 export const MOOD_ACTIVE_MS = 10000;
-/** One travel hop, chibi style: crouch, spring up, ~0.3 s airborne arc, soft landing with a
+/** One travel hop, calm chibi style (about 7 px high, a ~45 px stride at 95 px/s): crouch, spring up, ~0.3 s airborne arc, soft landing with a
  *  tiny settle bounce, then a short pause. The pet only moves while airborne. */
-export const HOP_MS = 560;
+export const HOP_MS = 480;
 /** a server speech bubble stays this long unless dismissed */
 export const SERVER_BUBBLE_MS = 14000;
-export const HOP_HEIGHT_PX = 12;
+export const HOP_HEIGHT_PX = 7;
 /** fraction of the hop cycle: crouch ends / take-off, landing, settle ends (rest = pause) */
 export const HOP_TAKEOFF = 0.14;
 export const HOP_LAND = 0.68;

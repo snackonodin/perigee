@@ -8,7 +8,7 @@ import { unlocked } from "./accessories";
 import { PetArt } from "./PetArt";
 import {
   BLINK_MAX_MS, BLINK_MIN_MS, BREATHE_IN_S, BREATHE_MAX_CYCLES, BREATHE_OUT_S, IDLE_LONG_MS, SAFETY_QUIET_MS, DEFAULT_NAMES, DOUBLE_BLINK_CHANCE, EAR_TWITCH_MAX_MS, EAR_TWITCH_MIN_MS,
-  FOLLOW_LAG_MS, HOP_MS, MOOD_ACTIVE_MS, SERVER_BUBBLE_MS, SIT_SETTLE_MS, WANDER_SPEED_PX_S, TAIL_FLICK_MAX_MS, TAIL_FLICK_MIN_MS, WALK_COOLDOWN_MS, WALK_IDLE_MS, WALK_SPEED_PX_S, YAWN_MIN_GAP_MS,
+  FOLLOW_MIN_DIST_PX, HOP_MS, MOOD_ACTIVE_MS, SERVER_BUBBLE_MS, SIT_SETTLE_MS, WANDER_SPEED_PX_S, TAIL_FLICK_MAX_MS, TAIL_FLICK_MIN_MS, WALK_COOLDOWN_MS, WALK_IDLE_MS, WALK_SPEED_PX_S, YAWN_MIN_GAP_MS,
 } from "./petConfig";
 import { createScheduler, type Scheduler } from "./scheduler";
 import type { PetProps } from "./types";
@@ -24,13 +24,12 @@ import { petStore, usePetPrefs } from "./store";
 import type { DialogCache, PetEvent, PetEventName } from "./types";
 import { useRig } from "./useRig";
 import { canWalk, perchTargets, stepToward, type Box, type Point } from "./walk";
-import { advanceMood, clampToViewport, createFollow, createMoods, fleeTarget, hopPose, hopSpeed, notePointer, pickWanderSpot, stepFollow } from "./follow";
+import { advanceMood, createMoods, hopPose, hopSpeed, nearestSpot, otherSpot, spotTowardPointer } from "./follow";
 import "./pet.css";
 
 const CACHE = cacheJson as unknown as DialogCache;
-/** never stops on controls; avoids headings and text where it can (extra avoid selectors) */
-const CONTROLS = ", a, button, [role=button], label";
-const TEXT = ", h1, h2, h3, h4, p, li, dt, dd, th, td, figcaption, .meta-label, .section-meta";
+/** perch spots skip headings, text and controls (extra avoid selectors) */
+const TEXT = ", a, button, [role=button], label, h1, h2, h3, h4, p, li, dt, dd, th, td, figcaption, .meta-label, .section-meta";
 
 export function Pet(props: PetProps) {
   const { hidden } = usePetPrefs();
@@ -192,11 +191,11 @@ export function PetLive({ species, personaId, timeOfDay, reducedMotion, nightsLo
   useEffect(() => {
     // playful:false (server bubble, e.g. a support or safety moment): calm idle only, no roaming
     if (placement !== "stage" || reduced || playful === false) return;
-    let raf = 0, last = 0, mode: "none" | "perch" | "follow" | "wander" | "flee" = "none", following = false, hopPhase = 0;
+    // The pet moves only between FIXED spots (the top edge of [data-pet-perch] cards on this tab)
+    // and its home corner, in small hops. During a check-in or quiz it sits on the form's top edge.
+    let raf = 0, last = 0, mode: "none" | "hop" = "none", hopPhase = 0, sitting = false;
     const viewport = () => ({ width: window.innerWidth, height: window.innerHeight });
     const fine = (() => { try { return window.matchMedia?.("(pointer: fine)").matches ?? false; } catch { return false; } })();
-    const f = createFollow(homeCenter());
-    // moods while the pointer is active: chase for a while, wander off, or ignore it
     const moods = createMoods(Date.now());
     let pointer: Point | null = null;
     const svg = () => root.current?.querySelector<SVGElement>(".pet-svg") ?? null;
@@ -213,35 +212,42 @@ export function PetLive({ species, personaId, timeOfDay, reducedMotion, nightsLo
     const restPose = () => { hopPhase = 0; const el = svg(); if (el) for (const v of ["--hop", "--squash", "--ear-l", "--ear-r", "--tail"]) el.style.removeProperty(v); };
     const stop = () => {
       if (raf) cancelAnimationFrame(raf); raf = 0;
-      const travelling = mode === "wander" || mode === "flee"; mode = "none";
-      if (following || travelling) { following = false; dispatch({ type: "followStop" }); }
-      restPose();
+      if (mode === "hop") dispatch({ type: "followStop" });
+      mode = "none"; restPose();
     };
     const step = (p: Point) => { place(p); if (trail.add(p.x, p.y + size / 2 - 4, performance.now())) frostKick.current?.(); hooksRef.current?.onStep?.(p); };
     const leavePerch = () => { if (!perchedRef.current) return; setPerched(false); dispatch({ type: "leavePerch" }); };
-    const goHome = () => {
-      if (mode !== "none") stop();
-      if (perchedRef.current || pos.current) { place(null); leavePerch(); }
-    };
+    const goHome = () => { if (mode !== "none") stop(); sitting = false; if (perchedRef.current || pos.current) { place(null); leavePerch(); } };
+    const box = (el: Element): Box => { const r = el.getBoundingClientRect(); return { left: r.left, top: r.top, width: r.width, height: r.height }; };
     const avoidBoxes = (extra = ""): Box[] => {
-      const box = (el: Element): Box => { const r = el.getBoundingClientRect(); return { left: r.left, top: r.top, width: r.width, height: r.height }; };
       const out = [...document.querySelectorAll(`[data-pet-avoid], form, input, textarea, select, [role=dialog]${extra}`)].map(box);
       if (document.activeElement && document.activeElement !== document.body) out.push(box(document.activeElement));
       return out;
     };
+    /** this tab's designated spots (pet centres), never on text or controls */
+    const spots = (): Point[] => perchTargets([...document.querySelectorAll("[data-pet-perch]")].map(box), viewport(), size, avoidBoxes(TEXT))
+      .map((p) => ({ x: p.x, y: p.y - size / 2 }));
     const busy = () => ["sleeping", "yawning", "waking", "petting", "playful"].includes(stateRef.current);
-    /** Hop to a point (wander, flee, perch), then run onArrive. */
-    const hopTo = (target: Point, kind: "wander" | "flee" | "perch", speed: number, onArrive: () => void) => {
-      stop(); if (kind !== "perch") leavePerch();
+    /** Hop to a point (or home when null), then sit. */
+    const hopTo = (target: Point | null, speed = WANDER_SPEED_PX_S, onArrive?: () => void) => {
+      stop(); leavePerch();
+      const goal = target ?? homeCenter();
       let p = pos.current ?? homeCenter();
-      dispatch({ type: kind === "perch" ? "perchFound" : "followStart" });
-      mode = kind; last = performance.now();
+      if (Math.hypot(goal.x - p.x, goal.y - p.y) < 4) return;
+      dispatch({ type: "followStart" });
+      mode = "hop"; last = performance.now();
       const frame = (t: number) => {
         if (busy()) { stop(); return; }
         const dt = Math.min(.05, (t - last) / 1000); last = t;
-        const r = stepToward(p, target, speed * hopFrame(dt), dt);
+        const r = stepToward(p, goal, speed * hopFrame(dt), dt);
         p = r.pos; step(p);
-        if (r.arrived) { raf = 0; mode = "none"; restPose(); onArrive(); return; }
+        if (r.arrived) {
+          raf = 0; mode = "none"; restPose();
+          if (!target) { place(null); dispatch({ type: "followStop" }); }
+          else { setPerched(true); dispatch({ type: "arrived" }); }
+          onArrive?.();
+          return;
+        }
         raf = requestAnimationFrame(frame);
       };
       raf = requestAnimationFrame(frame);
@@ -250,69 +256,54 @@ export function PetLive({ species, personaId, timeOfDay, reducedMotion, nightsLo
       const look = (x: number) => root.current?.style.setProperty("--look-x", x.toFixed(2));
       scheduler.after(700, () => look(-.8)); scheduler.after(1700, () => look(.8)); scheduler.after(2600, () => look(0));
     };
-    const startFollow = () => {
-      if (mode === "follow" || mode === "flee") return;
-      if (mode !== "none") stop();
-      leavePerch();
-      f.pos = pos.current ?? homeCenter(); f.vel = { x: 0, y: 0 }; f.detour = undefined;
-      mode = "follow"; last = performance.now();
-      raf = requestAnimationFrame(followFrame);
+    // check-in or quiz open: walk to the top edge of the form card and sit quietly until it closes
+    const formSpot = (): Point | null => {
+      const form = document.querySelector("[data-pet-sit]");
+      if (!form) return null;
+      const r = form.getBoundingClientRect();
+      const p = { x: Math.min(r.right - size / 2 - 8, r.left + r.width * 0.85), y: r.top - size / 2 + 6 };
+      return p.y - size / 2 >= 0 && p.x + size / 2 <= window.innerWidth ? p : null;
     };
-    // wander: hop to a free spot (never on forms, controls, dialogs or the focused element), sit, look around
-    const wander = () => {
-      const spot = pickWanderSpot(viewport(), size, avoidBoxes(CONTROLS + TEXT), pointer);
-      if (spot) hopTo(spot, "wander", WANDER_SPEED_PX_S, () => { dispatch({ type: "arrived" }); lookAround(); });
+    const sitCheck = (): boolean => {
+      const form = document.querySelector("[data-pet-sit]");
+      if (!form) { sitting = false; return false; }
+      if (!sitting && mode === "none") { sitting = true; hopTo(formSpot()); }
+      return true;
     };
-    // keep away: once out of its corner it never lets the cursor within FOLLOW_MIN_DIST_PX
+    // keep away: never let the cursor within FOLLOW_MIN_DIST_PX while out of the corner; escape
+    // to the nearest designated spot that is far enough, else home
     const keepAway = () => {
-      if (!pointer || !pos.current || mode === "flee" || busy()) return;
-      const target = fleeTarget(pos.current, pointer, size, viewport(), avoidBoxes(CONTROLS + TEXT));
-      if (target) hopTo(target, "flee", WANDER_SPEED_PX_S * 1.6, () => { dispatch({ type: "arrived" }); lookAround(); });
+      if (!pointer || !pos.current || mode !== "none" || busy() || sitting) return;
+      if (Math.hypot(pos.current.x - pointer.x, pos.current.y - pointer.y) >= FOLLOW_MIN_DIST_PX) return;
+      hopTo(nearestSpot(spots(), pos.current, pointer, pos.current), WANDER_SPEED_PX_S * 1.5, lookAround);
     };
     const moodTick = () => {
-      if (!fine || !canWalk(window.innerWidth, reduced) || busy()) return;
-      if (Date.now() - lastPointer.current > MOOD_ACTIVE_MS || mode === "flee") return;
+      if (sitCheck()) return;
+      if (!fine || !canWalk(window.innerWidth, reduced) || busy() || mode !== "none") return;
+      if (Date.now() - lastPointer.current > MOOD_ACTIVE_MS) return;
       if (!advanceMood(moods, Date.now())) return;
-      if (moods.mood === "follow") startFollow();
-      else if (moods.mood === "wander") wander();
-      else if (mode === "follow") stop(); // ignore: settle where it is
-    };
-
-    // cursor follow: chase a lagged pointer from a card's width away, wobble and detour, in hops
-    const followFrame = (t: number) => {
-      const dt = Math.min(.05, (t - last) / 1000); last = t;
-      if (busy()) { stop(); return; }
-      const r = stepFollow(f, Date.now(), dt * (following ? hopFrame(dt) : 1), { size, viewport: viewport() });
-      step(f.pos);
-      if (r.moving !== following) { following = r.moving; dispatch({ type: following ? "followStart" : "followStop" }); if (!following) restPose(); }
-      if (!r.moving && Date.now() - lastPointer.current > FOLLOW_LAG_MS + 250) { raf = 0; mode = "none"; restPose(); return; }
-      raf = requestAnimationFrame(followFrame);
+      if (moods.mood === "follow" && pointer) { const s = spotTowardPointer(spots(), pointer, pos.current); if (s) hopTo(s); }
+      else if (moods.mood === "wander") { const s = otherSpot(spots(), pos.current, pointer); if (s) hopTo(s, WANDER_SPEED_PX_S, lookAround); }
+      // ignore: stay where it is
     };
     const move = (e: PointerEvent) => {
       if (!fine || (e.pointerType !== "mouse" && e.pointerType !== "pen")) return;
       if (!canWalk(window.innerWidth, reduced) || busy()) return;
       lastPointer.current = Date.now();
       pointer = { x: e.clientX, y: e.clientY };
-      notePointer(f, e.clientX, e.clientY, Date.now());
       keepAway();
-      if (moods.mood !== "follow" || mode !== "none") return;
-      startFollow();
     };
-
-    // idle walk to a perch card (after 20 s without pet input or pointer movement)
+    // idle: hop to a designated spot after 20 s without pet input or pointer movement
     const tryWalk = () => {
-      if (!canWalk(window.innerWidth, reduced) || mode !== "none" || perchedRef.current || stateRef.current !== "idle") return;
+      if (sitCheck() || !canWalk(window.innerWidth, reduced) || mode !== "none" || perchedRef.current || stateRef.current !== "idle") return;
       const now = Date.now();
       if (now - lastInput.current < WALK_IDLE_MS || now - lastPointer.current < WALK_IDLE_MS || now - lastWalk.current < WALK_COOLDOWN_MS) return;
-      const box = (el: Element): Box => { const r = el.getBoundingClientRect(); return { left: r.left, top: r.top, width: r.width, height: r.height }; };
-      const spots = perchTargets([...document.querySelectorAll("[data-pet-perch]")].map(box), viewport(), size, avoidBoxes(TEXT));
-      if (!spots.length) return;
+      const s = otherSpot(spots(), pos.current, null);
+      if (!s) return;
       lastWalk.current = now;
-      const spot = spots[Math.floor(Math.random() * spots.length)];
-      setPerched(true);
-      hopTo({ x: spot.x, y: spot.y - size / 2 }, "perch", WALK_SPEED_PX_S, () => scheduler.after(SIT_SETTLE_MS, () => dispatch({ type: "arrived" })));
+      hopTo(s, WALK_SPEED_PX_S, () => scheduler.after(SIT_SETTLE_MS, lookAround));
     };
-    const onResize = () => { goHome(); if (pos.current) place(clampToViewport(pos.current, size, viewport())); };
+    const onResize = () => { goHome(); };
     const stopCheck = scheduler.every(5000, 5000, tryWalk);
     const stopMoods = scheduler.every(1000, 1000, moodTick);
     window.addEventListener("pointermove", move, { passive: true });

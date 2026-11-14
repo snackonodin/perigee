@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { advanceMood, createFollow, createMoods, fleeTarget, hopPose, hopSpeed, laggedPointer, notePointer, pickMood, pickWanderSpot, stepFollow } from "../follow";
+import { advanceMood, createFollow, createMoods, fleeTarget, hopPose, hopSpeed, laggedPointer, nearestSpot, notePointer, otherSpot, pickMood, pickWanderSpot, spotTowardPointer, stepFollow } from "../follow";
 import {
   FOLLOW_COOLDOWN_MS, FOLLOW_DEADZONE_PX, FOLLOW_MIN_DIST_PX, HOP_HEIGHT_PX, HOP_LAND, HOP_SETTLE, HOP_TAKEOFF, FOLLOW_GAP_PX, FOLLOW_INTEREST_MAX_MS, FOLLOW_INTEREST_MIN_MS, FOLLOW_LAG_MS, WANDER_POINTER_CLEAR_PX,
 } from "../petConfig";
@@ -163,5 +163,34 @@ describe("chibi hop", () => {
     expect(hopSpeed((HOP_SETTLE + 1) / 2)).toBe(0);
     let sum = 0; const n = 1000; for (let i = 0; i < n; i++) sum += hopSpeed(i / n);
     expect(sum / n).toBeCloseTo(1, 1);
+  });
+});
+
+describe("fixed perch spots", () => {
+  const spots = [{ x: 300, y: 200 }, { x: 900, y: 200 }, { x: 900, y: 650 }];
+  it("hops are small: 6-8 px high", () => {
+    expect(HOP_HEIGHT_PX).toBeGreaterThanOrEqual(6);
+    expect(HOP_HEIGHT_PX).toBeLessThanOrEqual(8);
+  });
+  it("escapes to the nearest designated spot that keeps a card's width from the cursor", () => {
+    const ptr = { x: 320, y: 220 };
+    expect(nearestSpot(spots, { x: 300, y: 200 }, ptr, { x: 300, y: 200 })).toEqual({ x: 900, y: 200 });
+  });
+  it("returns null (go home) when every spot is too close to the cursor", () => {
+    expect(nearestSpot([{ x: 300, y: 200 }], { x: 300, y: 200 }, { x: 310, y: 210 }, null)).toBeNull();
+  });
+  it("'follow' picks the spot closest to the cursor that is still far enough, never its current one", () => {
+    const ptr = { x: 560, y: 200 };
+    const s = spotTowardPointer(spots, ptr, { x: 300, y: 200 })!;
+    expect(s).toEqual({ x: 900, y: 200 });
+    expect(Math.hypot(s.x - ptr.x, s.y - ptr.y)).toBeGreaterThanOrEqual(FOLLOW_MIN_DIST_PX);
+  });
+  it("'wander' only ever picks another designated spot", () => {
+    const rnd = seeded(2);
+    for (let i = 0; i < 50; i++) {
+      const s = otherSpot(spots, spots[0], null, rnd)!;
+      expect(spots.slice(1)).toContainEqual(s);
+    }
+    expect(otherSpot([spots[0]], spots[0], null)).toBeNull();
   });
 });

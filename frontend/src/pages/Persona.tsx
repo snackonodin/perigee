@@ -61,10 +61,10 @@ export function Persona() {
   const matrix = persona?.available && persona.source === QUIZ_ID ? persona.persona_matrix : null;
   return <div className="persona-page">{head}
     {!matrix
-      ? <section className="persona-empty"><h2>Your persona</h2><p>Your persona appears after the persona questions. It shapes how Perigee words things for you; it is not a score.</p>
+      ? <section className="persona-empty" data-pet-perch><h2>Your persona</h2><p>Your persona appears after the persona questions. It shapes how Perigee words things for you; it is not a score.</p>
           <button type="button" className="persona-take" onClick={() => setQuizOpen(true)}>Take the persona questions (about 8 min)</button></section>
       : <div className="persona-layout">
-          <section className="persona-quadrant-panel" aria-labelledby="quadrant-title">
+          <section className="persona-quadrant-panel" data-pet-perch aria-labelledby="quadrant-title">
             <h2 id="quadrant-title">{matrix.quadrant_name}</h2>
             <p className="muted">Your place on two everyday axes: how settled you tend to feel, and how much you like to steer. No place is better than another.</p>
             <Plane stability={matrix.stability_score} agency={matrix.agency_score} quadrant={matrix.quadrant_name} />

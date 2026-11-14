@@ -104,7 +104,7 @@ export function CheckinForm({ instrument, onDone, onSubmitted, submitLabel = "Se
   }
 
   return (
-    <form ref={formRef} onSubmit={submit} aria-label={friendlyName(instrument.id, instrument.name)}>
+    <form ref={formRef} data-pet-sit onSubmit={submit} aria-label={friendlyName(instrument.id, instrument.name)}>
       {instrument.timeframe && <p className="muted">{instrument.timeframe}</p>}
       <div className="checkin-progress" role="status">{pages.length === instrument.items.length ? `Question ${step + 1} of ${pages.length}` : `Page ${step + 1} of ${pages.length}`}
         <div className="progress-track" aria-hidden="true"><span style={{width:`${((step+1)/pages.length)*100}%`}}/></div>

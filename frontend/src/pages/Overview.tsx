@@ -66,7 +66,7 @@ export function Overview() {
             <div><dt className="meta-label">Next check-in</dt><dd className="tonight-next">{pending?(pending.slot==="pm"?"Evening":"Morning"):"None due"}</dd></div>
           </dl>
         </section>
-        {hasAdvice&&<div className="today-advice bento-wide"><AdviceList/></div>}
+        {hasAdvice&&<div className="today-advice bento-wide" data-pet-perch><AdviceList/></div>}
         <VitalsTiles night={night} baseline={baseline} status={status(physiology)}/>
         {health?.mental_fatigue_score==null?<VitalCard label="Mind and check-ins" icon="◌" to="/checkin" empty="Your check-ins add context here after the first few days."/>:
         <VitalCard label="Mind and check-ins" to="/checkin" icon="◌" state={status(mental)}>

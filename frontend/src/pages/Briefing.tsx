@@ -26,7 +26,7 @@ export function Briefing() {
   const nights = useLoad(() => api.GET("/api/v1/nights", { params: { query: { from, to } } }), [from, to]);
   const checkins = useLoad(() => api.GET("/api/v1/checkins", { params: { query: { from, to } } }), [from, to]);
   return <div className="screen-page briefing-page">
-    <header className="page-heading"><div><h1>Briefing</h1><p className="section-meta telemetry">{from} → {to}</p><p>A read-only summary of your last seven days, compared with your own usual.</p></div>
+    <header className="page-heading" data-pet-perch><div><h1>Briefing</h1><p className="section-meta telemetry">{from} → {to}</p><p>A read-only summary of your last seven days, compared with your own usual.</p></div>
       <button type="button" className="ghost briefing-print" onClick={() => window.print()}>Print</button></header>
     <LoadState state={today} label="your weekly briefing">{raw => {
       const t = raw as EngineToday, engine = t.context_engine;

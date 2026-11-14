@@ -66,9 +66,28 @@ config.yaml `monitor` (placeholders). Use it for tile durations; never copy the 
 
 ## Public demo sign-in, added 2026-11-14
 
-`POST /api/v1/auth/demo` (no body, no auth) → 200 `TokenOut` for the seeded **synthetic** persona
-`settings.demo_email` (default `persona-drift@example.invalid`), only when the server runs with
-`DEMO_ACCESS=1`; otherwise 404. A real (non-synthetic) account is never reachable this way.
-While demo access is on, `DELETE /api/v1/me` on a synthetic account returns 403 `demo_protected`
-(the shared demo cannot be deleted). Frontend: a "Try the demo" button on Login calls this route,
-stores the tokens like a normal login, and marks setup done.
+`POST /api/v1/auth/demo` (no body, no auth) → 200 `TokenOut` for a **fresh private copy** of the
+seeded synthetic persona `settings.demo_email` (default `persona-drift@example.invalid`), only when
+the server runs with `DEMO_ACCESS=1`; otherwise 404. Updated 2026-11-14 evening: every call creates a
+new visitor account (`demo-<hex>@example.invalid`, synthetic) holding a copy of the persona's 14
+nights, check-ins and surveys, so visitors never see each other's answers. Copy takes ~2 s.
+At most `DEMO_MAX_USERS` visitors (default 50): then 503 `{"error":"demo_full"}`. A visitor may
+`DELETE /api/v1/me` (frees a slot); the seeded template personas stay 403 `demo_protected`.
+The copy starts with **no personality traits**: the visitor takes the Mini-IPIP quiz.
+Frontend: a "Try the demo" button on Login calls this route once, stores the tokens like a
+normal login (re-use them on return visits; do not call /auth/demo again while a refresh token
+works), and marks setup done. On 503 show "The demo is full right now."
+`POST /api/v1/auth/signup`: 403 `{"error":"signup_closed"}` once `SIGNUP_MAX_USERS` real accounts
+exist (0 = no cap, the default).
+
+## Persona from the quiz, added 2026-11-14
+
+Instrument `mini_ipip` (20 items, values 1-5, keys `mini_ipip_1..20`, wording from context-v2 §2.2)
+is in `GET /api/v1/instruments`; submit it with `POST /api/v1/responses` like any survey. The
+response's `scores.traits` holds the five trait totals `{E,A,C,N,O}` (4-20 each), scored by the
+Context Engine. No bands, no alert, not part of weekly indices.
+`GET /api/v1/persona` (auth) → `{available, source, updated_at, traits, persona_matrix}` where
+`persona_matrix = {stability_score, agency_score, quadrant_name}` straight from the engine; ready
+as soon as the quiz is submitted, **no nights needed**. `available:false` (traits `{}`,
+persona_matrix null) until the quiz is taken. Retaking replaces the traits. The nightly engine run
+also receives the traits from then on (wording and layout only; traits never change scores).

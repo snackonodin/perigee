@@ -1050,6 +1050,82 @@
         "title": "PendingCheckin",
         "type": "object"
       },
+      "PersonaMatrixOut": {
+        "properties": {
+          "agency_score": {
+            "title": "Agency Score",
+            "type": "number"
+          },
+          "quadrant_name": {
+            "title": "Quadrant Name",
+            "type": "string"
+          },
+          "stability_score": {
+            "title": "Stability Score",
+            "type": "number"
+          }
+        },
+        "required": [
+          "stability_score",
+          "agency_score",
+          "quadrant_name"
+        ],
+        "title": "PersonaMatrixOut",
+        "type": "object"
+      },
+      "PersonaOut": {
+        "properties": {
+          "available": {
+            "title": "Available",
+            "type": "boolean"
+          },
+          "persona_matrix": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PersonaMatrixOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "traits": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Traits",
+            "type": "object"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          }
+        },
+        "required": [
+          "available",
+          "traits"
+        ],
+        "title": "PersonaOut",
+        "type": "object"
+      },
       "Posture": {
         "enum": [
           "supine",
@@ -1837,7 +1913,7 @@
   "paths": {
     "/api/v1/auth/demo": {
       "post": {
-        "description": "Sign in as the seeded synthetic demo persona, no password. 404 unless DEMO_ACCESS=1.",
+        "description": "A private copy of the synthetic demo persona, no password. 404 unless DEMO_ACCESS=1;\n503 demo_full once DEMO_MAX_USERS visitors exist.",
         "operationId": "demo_api_v1_auth_demo_post",
         "responses": {
           "200": {
@@ -4951,6 +5027,103 @@
         "summary": "Get Night",
         "tags": [
           "readouts"
+        ]
+      }
+    },
+    "/api/v1/persona": {
+      "get": {
+        "description": "The caller's persona from the Mini-IPIP quiz (instrument mini_ipip), ready as soon\nas it is submitted; no nights needed. available=false until the quiz is taken.\nTraits (E, A, C, N, O; 4-20 each) shape wording only, never scores or alerts.",
+        "operationId": "get_persona_api_v1_persona_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonaOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Persona",
+        "tags": [
+          "persona"
         ]
       }
     },

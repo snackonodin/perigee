@@ -29,3 +29,6 @@ DECIDED (2026-11-14, user, INTEGRATION_PLAN D1–D4): rates hidden by default wi
 
 DECIDED (2026-11-14, user): no Earth time zones. The app uses STATION TIME: an optional field where the person enters their station's clock time once; stored as `profiles.settings.station_time_offset_min` (minutes from UTC, -720..840). Blank = UTC (the atomic-time scale the ISS keeps). Night boundaries use it (`backend/services/station_time.py`); the legacy `profiles.timezone` column is no longer read. API: `station_time_offset_min` on GET/PATCH /api/v1/me.
 DECIDED (2026-11-14, coordinator): react-bits components are MIT + Commons Clause; in-app use is allowed, never sell/redistribute them standalone. Licence kept at frontend/src/vendor/react-bits/LICENSE.md.
+
+## D-name (2026-11-14)
+Product name is **Perigee** (user decision). Replaces "Astronaut Vitals" everywhere (frontend/src/brand.ts, index.html title, docs).

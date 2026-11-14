@@ -419,7 +419,7 @@ border-radius: var(--radius);`
 |---|---|
 | Vital card / section cards | `.glass`; pastel icon disc stays solid; on hover a 1px lift + `--shadow-2`, and a one-time light sheen sweeping across (a `linear-gradient` mask at 8% white, 600ms, once per hover; none under reduced motion) |
 | Tab bar | Floating glass pill (radius-pill) 16px above the bottom edge on phones, a glass top bar on desktop; the selected tab indicator is a solid `--mint` pill that slides 250ms between tabs |
-| Breathing orb | A solid mint orb inside a 200px glass ring (`.glass` circle) with a soft inner glow `inset 0 0 40px rgba(191,233,214,.8)`; it still breathes at the measured rate |
+| Breathing orb | A solid mint orb inside a 200px glass ring (`.glass` circle) with a neutral inset shadow (no coloured glow; changed 2026-11-14, commit 1cf70b0); it still breathes at the measured rate |
 | Sleep arc | Arc on a `.glass` card; the track uses `--glass-edge`, the arc stays `--sky` |
 | Pulse ("ECG") trace | On `--glass-strong` with faint gridlines; line `--text`; latest dot peach |
 | Status / calibrating chips | **Solid fills** (mint / butter / alert-soft / surface), never glass, so status always reads clearly |

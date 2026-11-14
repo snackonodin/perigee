@@ -60,4 +60,13 @@ describe("Body page", () => {
     fireEvent.click(await screen.findByRole("button", { name: /^Rest:/ }));
     expect((await screen.findByRole("heading", { name: "Rest" })).id).toBe("body-detail-title");
   });
+
+  it("Cabin says no sensor is connected, and nothing on the page shows z or a raw cut-off", async () => {
+    signIn();
+    mockApi({ "GET /api/v1/me": { body: me }, "GET /api/v1/today": { body: today }, "GET /api/v1/nights": { body: [] } });
+    render(<App initialPath="/body" />);
+    expect(await screen.findByRole("button", { name: "Cabin: No reading, No cabin sensor connected." })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /^Respiration: Changed from your usual/ })).toBeTruthy();
+    expect(document.body.textContent).not.toMatch(/\bz\b|2\.5|3\.29/);
+  });
 });

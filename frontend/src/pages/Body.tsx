@@ -8,6 +8,7 @@ import { VitalCard } from "../components/VitalCard";
 import type { Status } from "../components/StatusChip";
 import "./Body.css";
 import { BodyPanel, type Region, type Status as RegionState, type SystemInfo } from "../body/BodyPanel";
+import { baselineState, type BaselineState } from "../body/baselineState";
 
 type ScanToday=TodayOut&{context_engine?:{
   dashboard_visualization_data?:{dual_axis_timeline_point?:{respiration_bpm?:number|null}};
@@ -27,10 +28,12 @@ const MEANING:Record<System,string>={
 const COLORS:Record<System,string>={Respiration:"mint",Autonomic:"peach",Rest:"sky",Mind:"lavender",Cabin:"butter"};
 type Detail={unit?:string;value:string;copy:string;state?:Status;statusLabel:string};
 const REGION:Record<System,Region>={Respiration:"respiration",Autonomic:"autonomic",Rest:"rest",Mind:"mind",Cabin:"cabin"};
+/** usual -> normal (teal), changed -> watch (amber), none -> no status */
+const asStatus=(b:BaselineState):Status|undefined=>b==="changed"?"watch":b==="usual"?"normal":undefined;
 const SYSTEM_OF=Object.fromEntries(SYSTEMS.map(n=>[REGION[n],n])) as Record<Region,System>;
 /** Engine level -> the figure's baseline-relative state. A value without a comparison stays grey. */
 function regionInfo(d:Detail):SystemInfo {
-  if(d.value==="No reading")return {state:"none"};
+  if(d.value==="No reading")return d.copy==="No cabin sensor connected."?{state:"none",reading:d.copy}:{state:"none"};
   const reading=d.unit?`${d.value} ${d.unit}`:d.value;
   const state:RegionState|undefined=d.state==="normal"?"usual":d.state==="watch"||d.state==="alert"?"changed":undefined;
   return state?{state,reading}:{state:"none",reading,label:"Not compared yet"};
@@ -43,17 +46,18 @@ export function Body() {
   return <LoadState state={load} label="your systems map">{raw=>{
     const today=raw as ScanToday,engine=today.context_engine,night=today.latest_night;
     const respiration=engine?.dashboard_visualization_data?.dual_axis_timeline_point?.respiration_bpm??night?.rr_med;
-    const rrLevel=stateFor(engine?.scores_and_metrics?.phys_level??today.flags[0]?.phys_level);
+    // latest night vs the person's own usual, with the engine's own cut-off (no frontend thresholds)
+    const rrLevel=asStatus(baselineState(today,["rr_med"]));
+    const restLevel=asStatus(baselineState(today,["presence_hours","restless_frac"]));
     const mentalLevel=stateFor(engine?.scores_and_metrics?.mental_level??today.flags[0]?.mental_level);
     const baseline=today.baselines.find(b=>b.feature==="rr_med");
     const mind=engine?.fatigue_and_health_ratings?.mental_fatigue_score;
-    const cabinNote=engine?.user_facing_advisory?.environmental_note;
     const details:Record<System,Detail>={
       Respiration:{value:respiration==null?"No reading":fmt(respiration),unit:respiration==null?undefined:"br/min",copy:respiration==null?"No breathing estimate is available yet.":"This signal is shown against your own recent breathing range.",state:respiration==null?"none":rrLevel,statusLabel:respiration==null?"No reading":rrLevel??"Status unavailable"},
       Autonomic:{value:night?.rr_var==null?"No reading":fmt(night.rr_var),copy:night?.rr_var==null?"No overnight breathing-variation reading is available.":"Your overnight breathing variation. No separate status is returned for this measure.",statusLabel:night?.rr_var==null?"No reading":"Status unavailable"},
-      Rest:{value:night?.valid?fmt(night.presence_hours,1):"No reading",unit:night?.valid?"h":undefined,copy:night?.valid?"Sensed presence last night. No separate status is returned for this measure.":"No valid night is available yet.",state:night?.valid?undefined:"none",statusLabel:night?.valid?"Status unavailable":"No reading"},
+      Rest:{value:night?.valid?fmt(night.presence_hours,1):"No reading",unit:night?.valid?"h":undefined,copy:night?.valid?"Time sensed near the sensor last night, with how restless the night was, compared with your own usual.":"No valid night is available yet.",state:night?.valid?restLevel:"none",statusLabel:!night?.valid?"No reading":restLevel==="watch"?"Changed from your usual":restLevel==="normal"?"Usual":"Not compared yet"},
       Mind:{value:mind==null?"No reading":"From your check-ins",unit:undefined,copy:"Check-ins add personal context to this part of your picture.",state:mind==null?"none":mentalLevel,statusLabel:mind==null?"No reading":mentalLevel??"Status unavailable"},
-      Cabin:{value:"No reading",copy:cabinNote??"Cabin context is not included in this snapshot.",state:"none",statusLabel:"No reading"},
+      Cabin:{value:"No reading",copy:"No cabin sensor connected.",state:"none",statusLabel:"No reading"},
     };
     const current=details[selected];
     const nightsIn=Math.min(28,baseline?.n??0);

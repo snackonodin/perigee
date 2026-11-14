@@ -1,0 +1,29 @@
+{
+  "runner": "demo/run_demo.py",
+  "scenarios": [
+    {
+      "file": "crisis.json",
+      "name": "crisis",
+      "description": "PHQ-9 Item 9 > 0 only on night 6. Override must fire that night and never before.",
+      "nights": 8
+    },
+    {
+      "file": "single_night_spike.json",
+      "name": "single_night_spike",
+      "description": "One elevated night inside a stable week. Must not reach Alert on its own.",
+      "nights": 7
+    },
+    {
+      "file": "slow_drift.json",
+      "name": "slow_drift",
+      "description": "About three weeks of gradual respiratory-rate drift. Must reach Watch before Alert.",
+      "nights": 21
+    },
+    {
+      "file": "stable_week.json",
+      "name": "stable_week",
+      "description": "Seven steady nights around the personal baseline. Must never reach Alert.",
+      "nights": 7
+    }
+  ]
+}

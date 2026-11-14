@@ -157,8 +157,17 @@ EXEMPT: set[tuple[str, str]] = {
 
 
 @pytest.fixture
-def app_client(engine):
-    """The real app, minus the lifespan (the test DB is already bound by ``engine``)."""
+def app_client(engine, monkeypatch):
+    """The real app, minus the lifespan (the test DB is already bound by ``engine``).
+
+    Tokens live 4 h here: the ``world`` fixture seeds a lot of data and, on a loaded machine,
+    can take longer than the default 15-minute access token (overnight run 2026-11-14 hit
+    401 "invalid or expired token"). Expiry itself is tested in the accounts tests.
+    """
+    from backend.config import get_settings
+
+    monkeypatch.setenv("ACCESS_TOKEN_MINUTES", "240")
+    get_settings.cache_clear()
     with TestClient(create_app(with_lifespan=False), raise_server_exceptions=False) as c:
         yield c
 

@@ -7,7 +7,7 @@ import { Icon } from "../components/icons";
 import "./Login.css";
 
 export function Login({ signup = false }: { signup?: boolean }) {
-  const { status, login } = useAuth();
+  const { status, login, demo } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const from = (location.state as { from?: string } | null)?.from ?? "/";
@@ -16,7 +16,10 @@ export function Login({ signup = false }: { signup?: boolean }) {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [checkingSetup, setCheckingSetup] = useState(false);
+  // Hidden once the server says the public demo is off (404), for the rest of this tab.
+  const [demoOff, setDemoOff] = useState(() => { try { return sessionStorage.getItem("demo.off") === "1"; } catch { return false; } });
   const fogRef = useRef<HTMLDivElement>(null);
+  const demoLanding = useRef(false);
 
   useEffect(() => {
     const host = fogRef.current;
@@ -55,7 +58,7 @@ export function Login({ signup = false }: { signup?: boolean }) {
         } catch { /* no available baseline means continue through first-run setup */ }
       }
       if (active) {
-        navigate(setupDone ? from : "/setup", { replace: true });
+        navigate(demoLanding.current ? "/" : setupDone ? from : "/setup", { replace: true });
         setCheckingSetup(false);
       }
     })();
@@ -69,6 +72,19 @@ export function Login({ signup = false }: { signup?: boolean }) {
     const message = await login(email.trim(), password, signup);
     setBusy(false);
     if (message) setError(message);
+  }
+
+  async function tryDemo() {
+    setBusy(true);
+    setError(null);
+    demoLanding.current = true;
+    const message = await demo();
+    setBusy(false);
+    if (message === "unavailable") {
+      setDemoOff(true);
+      try { sessionStorage.setItem("demo.off", "1"); } catch { /* hidden for this render only */ }
+      demoLanding.current = false;
+    } else if (message) { setError(message); demoLanding.current = false; }
   }
 
   return (
@@ -87,6 +103,9 @@ export function Login({ signup = false }: { signup?: boolean }) {
             <button type="submit" disabled={busy || checkingSetup}>{busy ? (signup ? "Creating account…" : "Signing in…") : (signup ? "Create account" : "Sign in")}</button>
             <p className="error" role="alert">{error}</p>
           </form>
+          {!signup && !demoOff && (
+            <button type="button" className="login-demo" disabled={busy || checkingSetup} onClick={() => void tryDemo()}>Try the demo</button>
+          )}
           <p className="login-toggle">{signup ? "Already have an account?" : `New to ${BRAND}?`} <button type="button" className="link" onClick={() => navigate(signup ? "/login" : "/register")}>{signup ? "Sign in" : "Create an account"}</button></p>
           <p className="login-privacy"><span aria-hidden="true">◈</span> Your personal signals stay in your account.</p>
         </section>

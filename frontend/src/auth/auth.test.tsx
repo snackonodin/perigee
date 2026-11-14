@@ -27,6 +27,29 @@ describe("AuthProvider", () => {
     expect(sessionStorage.getItem("ahm.access")).toBe("at-9");
   });
 
+  it("Try the demo signs in, marks setup done and lands on Today", async () => {
+    const api = mockApi({
+      "POST /api/v1/auth/demo": { body: tokens("at-d", "rt-d") },
+      "GET /api/v1/me": (c) => (c.auth === "Bearer at-d" ? { body: me } : { status: 401, body: { error: "unauthorized", message: "x" } }),
+      "GET /api/v1/today": { body: today },
+    });
+    localStorage.removeItem("setup.done");
+    render(<App initialPath="/login" />);
+    fireEvent.click(await screen.findByRole("button", { name: "Try the demo" }));
+    expect(await screen.findByRole("heading", { name: "Today" })).toBeTruthy();
+    expect(api.called("POST /api/v1/auth/demo")).toHaveLength(1);
+    expect(sessionStorage.getItem("ahm.access")).toBe("at-d");
+    expect(localStorage.getItem("setup.done")).toBe("true");
+  });
+
+  it("hides Try the demo when the server has demo access off (404)", async () => {
+    mockApi({ "POST /api/v1/auth/demo": { status: 404, body: { error: "not_found", message: "Not Found" } } });
+    render(<App initialPath="/login" />);
+    fireEvent.click(await screen.findByRole("button", { name: "Try the demo" }));
+    await waitFor(() => expect(screen.queryByRole("button", { name: "Try the demo" })).toBeNull());
+    expect(screen.getByRole("alert").textContent).toBe("");
+  });
+
   it("shows the throttling message with the Retry-After wait", async () => {
     mockApi({
       "POST /api/v1/auth/login": {

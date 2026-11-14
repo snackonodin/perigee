@@ -11,6 +11,8 @@ interface AuthState {
   me: MeOut | null;
   /** Returns an error message, or null on success. */
   login(email: string, password: string, signup?: boolean): Promise<string | null>;
+  /** Public demo sign-in (synthetic persona). Returns "unavailable" on 404, an error message, or null. */
+  demo(): Promise<string | null>;
   logout(): Promise<void>;
   reloadMe(): Promise<void>;
 }
@@ -71,6 +73,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [reloadMe],
   );
 
+  const demo = useCallback(async () => {
+    const { data, error, response } = await api.POST("/api/v1/auth/demo");
+    if (response?.status === 404) return "unavailable";
+    if (!data) return errorText(error, response?.status, response?.headers.get("Retry-After"));
+    tokens.set(data);
+    // The demo persona already has a baseline: skip first-run setup and land on Today.
+    try { window.localStorage.setItem("setup.done", "true"); } catch { /* Login re-checks the baseline */ }
+    await reloadMe();
+    return null;
+  }, [reloadMe]);
+
   const logout = useCallback(async () => {
     const rt = tokens.refresh;
     signedOut();
@@ -78,7 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     navigate("/login", { replace: true });
   }, [navigate, signedOut]);
 
-  const value = useMemo(() => ({ status, me, login, logout, reloadMe }), [status, me, login, logout, reloadMe]);
+  const value = useMemo(() => ({ status, me, login, demo, logout, reloadMe }), [status, me, login, demo, logout, reloadMe]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 

@@ -18,3 +18,4 @@ screenshots. Fixing starts after 10:00. Owner: claude (backend/infra), claude-fe
 | V7 | 04:11 shots (dip) | Today breathing tile | "Your usual range 15.0–15.5" bar shows no marker for tonight's value | dip/390_.png | claude-fe | open |
 | V8 | 04:11 shots (drift, dip) | Today hero | "58 resilience index" / "92 resilience index" floats under the button with no label or explanation | drift/1440_.png | claude-fe (label as a mono stat with a one-line meaning, or move into the telemetry strip) | open |
 | V9 | 04:11 shots (drift) | Body | Detail card says "Personal baseline · 28 nights" and "Building · 10 / 28 nights" in the same card (contradiction) | drift/1440_body.png | claude-fe | open |
+| N5 | 05:50 cycle | tooling | Loop reported frontend 'Tests 104 passed (104)' (117 expected): a test file failed to load under load and the loop only grepped the Tests line | night.sh | claude | FIXED 06:25 (Test Files line + full log saved; takes effect on next loop start) |

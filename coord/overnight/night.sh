@@ -80,7 +80,8 @@ while ! stop; do
   be_pass=$(grep -oE '[0-9]+ passed' coord/last_suite.txt | tail -1)
   stop && break
 
-  fe=$(cd frontend && nicer npx vitest run --reporter=dot 2>&1 | grep -E '^ +Tests ' | tr -s ' ')
+  (cd frontend && nicer npx vitest run --reporter=dot > "../$OUT/frontend_tests.log" 2>&1)
+  fe=$(grep -E '^ +(Test Files|Tests) ' "$OUT/frontend_tests.log" | tr -s ' ' | tr '\n' ';')
   stop && break
 
   PYTHONPATH=waiwai1 nicer "$PY" demo/run_demo.py > "$OUT/engine_demo.log" 2>&1 && eng=ok || eng=FAIL

@@ -6,6 +6,7 @@ import { TABS } from "../routes/tabs";
 import { Icon, ROUTE_ICON } from "./icons";
 import { BRAND } from "../brand";
 import { CompanionHost } from "./CompanionHost";
+import { PersonaProvider } from "../persona/PersonaProvider";
 
 /** Header name: display name, else the e-mail's local part, else "Crew member" (never the full address). */
 export function crewName(displayName?:string|null,email?:string|null):string {
@@ -78,6 +79,7 @@ export function AppShell() {
     return()=>window.removeEventListener("resize",measure);
   },[pathname]);
   return (
+    <PersonaProvider>
     <div className="shell">
       <div className="aurora-backdrop" aria-hidden="true"><i/><i/><i/><i/></div>
       <a className="skip" href="#main">Skip to content</a>
@@ -106,6 +108,7 @@ export function AppShell() {
       <div id="companion-slot" />
       <CompanionHost />
     </div>
+    </PersonaProvider>
   );
 }
 

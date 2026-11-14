@@ -486,9 +486,10 @@ export interface paths {
         };
         /**
          * Get Persona
-         * @description The caller's persona from the Mini-IPIP quiz (instrument mini_ipip), ready as soon
-         *     as it is submitted; no nights needed. available=false until the quiz is taken.
-         *     Traits (E, A, C, N, O; 4-20 each) shape wording only, never scores or alerts.
+         * @description The caller's persona, ready as soon as a persona quiz is submitted (no nights needed).
+         *     psyche60 (preferred): quadrant + feedback-style flags + advice matched to the latest
+         *     night and recent check-ins (empty while a safety screen is pending). mini_ipip: traits.
+         *     available=false until a quiz is taken. Never changes scores, alerts or the safety path.
          */
         get: operations["get_persona_api_v1_persona_get"];
         put?: never;
@@ -611,6 +612,13 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AdviceOut */
+        AdviceOut: {
+            /** Tag */
+            tag: string;
+            /** Text */
+            text: string;
+        };
         /** BaselineOut */
         BaselineOut: {
             /** Feature */
@@ -1004,11 +1012,23 @@ export interface components {
         };
         /** PersonaOut */
         PersonaOut: {
+            /**
+             * Advice
+             * @default []
+             */
+            advice: components["schemas"]["AdviceOut"][];
             /** Available */
             available: boolean;
             persona_matrix?: components["schemas"]["PersonaMatrixOut"] | null;
             /** Source */
             source?: string | null;
+            /**
+             * Style
+             * @default {}
+             */
+            style: {
+                [key: string]: boolean;
+            };
             /** Traits */
             traits: {
                 [key: string]: number;

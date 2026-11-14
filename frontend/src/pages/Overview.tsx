@@ -12,6 +12,8 @@ import { LoadState } from "../components/LoadState";
 import { VitalsTiles } from "../components/VitalsTiles";
 import { BreathingOrb } from "../components/BreathingOrb";
 import { VitalCard } from "../components/VitalCard";
+import { AdviceList } from "../persona/AdviceList";
+import { usePersona } from "../persona/PersonaProvider";
 import type { Status } from "../components/StatusChip";
 
 type EngineToday = TodayOut & { context_engine?: {
@@ -27,6 +29,8 @@ function stationClock(offset?:number|null):string { const d=new Date(Date.now()+
 function status(level?:number):Status { if(level==null)return "none"; if(level>=2)return "alert"; if(level===1)return "watch"; return "normal"; }
 
 export function Overview() {
+  const { persona } = usePersona();
+  const hasAdvice = !!(persona?.available && persona.advice?.length);
   const { me }=useAuth();
   const load=useLoad(()=>api.GET("/api/v1/today"));
   return <LoadState state={load} label="today's personal snapshot">{raw=>{
@@ -62,6 +66,7 @@ export function Overview() {
             <div><dt className="meta-label">Next check-in</dt><dd className="tonight-next">{pending?(pending.slot==="pm"?"Evening":"Morning"):"None due"}</dd></div>
           </dl>
         </section>
+        {hasAdvice&&<div className="today-advice bento-wide"><AdviceList/></div>}
         <VitalsTiles night={night} baseline={baseline} status={status(physiology)}/>
         {health?.mental_fatigue_score==null?<VitalCard label="Mind and check-ins" icon="◌" to="/checkin" empty="Your check-ins add context here after the first few days."/>:
         <VitalCard label="Mind and check-ins" to="/checkin" icon="◌" state={status(mental)}>

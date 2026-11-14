@@ -29,6 +29,8 @@ export interface InstrumentItem {
   text: string;
   options: InstrumentOption[];
   safety_trigger?: { min_value: number };
+  /** psyche60: the module this statement belongs to (m1..m10) */
+  module?: string;
 }
 export interface Instrument {
   id: string;

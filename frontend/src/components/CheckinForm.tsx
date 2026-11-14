@@ -1,16 +1,19 @@
 import { emit } from "../pet";
-import { type FormEvent, useEffect, useState } from "react";
+import { type FormEvent, useEffect, useRef, useState } from "react";
 import { api, errorText } from "../api/client";
-import type { Instrument, ResponseOut } from "../api/types";
+import type { Instrument, InstrumentItem, ResponseOut } from "../api/types";
 import { contentFromServer, localSafetyTriggered, SAFETY_FALLBACK } from "../safety/safety";
 import { useSafety } from "../safety/SafetyProvider";
+import { announceCheckinSaved } from "../persona/PersonaProvider";
 import { friendlyName } from "./instrumentNames";
 
 /** A questionnaire rendered from its catalog JSON. Safety comes first, always:
  *  1) local safety_trigger check → safety screen before the request is even sent;
  *  2) the server's safety result (also on a 500) → before any score is shown. */
-export function CheckinForm({ instrument, onDone, onSubmitted, submitLabel = "Send check-in" }: {
+export function CheckinForm({ instrument, onDone, onSubmitted, submitLabel = "Send check-in", groupBy }: {
   instrument: Instrument;
+  /** Show several questions per page: items with the same group key share a page (e.g. a module). */
+  groupBy?(item: InstrumentItem): string;
   onDone?(): void;
   /** Called with a stored, non-crisis result instead of showing the score card (e.g. the personality quiz). */
   onSubmitted?(out: ResponseOut): void;
@@ -23,15 +26,23 @@ export function CheckinForm({ instrument, onDone, onSubmitted, submitLabel = "Se
   const [result, setResult] = useState<ResponseOut | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const item = instrument.items[step];
+  const formRef = useRef<HTMLFormElement>(null);
+  // pages: one item each, or one group (module) each
+  const pages: InstrumentItem[][] = [];
+  for (const it of instrument.items) {
+    const last = pages[pages.length - 1];
+    if (groupBy && last && groupBy(last[0]) === groupBy(it)) last.push(it); else pages.push([it]);
+  }
+  const page = pages[step];
 
   function next() {
-    if (answers[item.key] === undefined) {
-      setError("Choose one response to continue.");
+    if (page.some((q) => answers[q.key] === undefined)) {
+      setError(page.length > 1 ? "Choose one response for each statement to continue." : "Choose one response to continue.");
       return;
     }
     setError(null);
-    setStep((current) => Math.min(current + 1, instrument.items.length - 1));
+    setStep((current) => Math.min(current + 1, pages.length - 1));
+    if (page.length > 1) formRef.current?.scrollIntoView?.({ block: "start" });
   }
 
   function previous() {
@@ -69,6 +80,7 @@ export function CheckinForm({ instrument, onDone, onSubmitted, submitLabel = "Se
       showSafety(contentFromServer(out.safety ?? {}));
       setResult(null);
     } else if (out.ok) {
+      if (out.stored) announceCheckinSaved();
       // companion: completion only, never on a safety response, never with any data
       if (!localSafety && out.safety_screen_required === false) emit("quiz_complete");
       if (onSubmitted) onSubmitted(out);
@@ -92,11 +104,12 @@ export function CheckinForm({ instrument, onDone, onSubmitted, submitLabel = "Se
   }
 
   return (
-    <form onSubmit={submit} aria-label={friendlyName(instrument.id, instrument.name)}>
+    <form ref={formRef} onSubmit={submit} aria-label={friendlyName(instrument.id, instrument.name)}>
       {instrument.timeframe && <p className="muted">{instrument.timeframe}</p>}
-      <div className="checkin-progress" role="status">Question {step + 1} of {instrument.items.length}
-        <div className="progress-track" aria-hidden="true"><span style={{width:`${((step+1)/instrument.items.length)*100}%`}}/></div>
+      <div className="checkin-progress" role="status">{pages.length === instrument.items.length ? `Question ${step + 1} of ${pages.length}` : `Page ${step + 1} of ${pages.length}`}
+        <div className="progress-track" aria-hidden="true"><span style={{width:`${((step+1)/pages.length)*100}%`}}/></div>
       </div>
+      {page.map((item) => (
       <fieldset className="checkin-question-card" key={item.key}>
         <legend>{item.text}</legend>
         <div className="checkin-question-options">{item.options.map((o) => (
@@ -111,9 +124,10 @@ export function CheckinForm({ instrument, onDone, onSubmitted, submitLabel = "Se
           </label>
         ))}</div>
       </fieldset>
+      ))}
       <div className="checkin-actions">
         {step>0&&<button type="button" className="ghost" onClick={previous}>Previous</button>}
-        {step<instrument.items.length-1
+        {step<pages.length-1
           ? <button type="button" onClick={next}>Next <span aria-hidden="true">→</span></button>
           : <button type="submit" disabled={busy}>{submitLabel}</button>}
       </div>

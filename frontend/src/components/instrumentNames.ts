@@ -7,7 +7,7 @@ const FRIENDLY: Record<string, string> = {
   who5: "Wellbeing, five questions",
   daily_am: "Morning check-in",
   daily_pm: "Evening check-in",
-  mini_ipip: "Personality questions",
+  psyche60: "Persona questions",
 };
 
 export function friendlyName(id: string, fallback?: string): string {

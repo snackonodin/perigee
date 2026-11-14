@@ -213,3 +213,14 @@ h1,h2,h3 { font-family:var(--font-display);letter-spacing:-.01em; }
 
 /* Craft pass: glass only where something floats over moving content (tab bar, login card
    over the fog, header chrome, pet bubble). Content cards are solid surfaces. */
+/* Advice from the persona (Persona and Today): calm cards, or a numbered checklist. */
+.advice h2,.advice h3 { margin:0 0 12px;font-size:var(--fs-h3, 18px); }
+.advice-cards { display:grid;gap:8px;margin:0;padding:0;list-style:none; }
+.advice-card { padding:12px 16px;border-radius:var(--radius);background:color-mix(in srgb,var(--mint) 35%,var(--surface));border:1px solid var(--line);line-height:1.5; }
+.advice-checklist { display:grid;gap:8px;margin:0;padding-left:1.4em;line-height:1.5; }
+.advice-empty { margin:0; }
+.today-advice { padding:20px 24px;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);box-shadow:var(--shadow-1); }
+/* Calm tone (persona style flag): no red anywhere; alerts read amber. The safety screen keeps
+   its own colours. */
+html[data-calm="true"] { --alert:var(--warn);--alert-ink:var(--warn-ink);--alert-soft:var(--butter); }
+html[data-calm="true"] .safety { --alert:#D1495B;--alert-ink:#A3283A;--alert-soft:#FBD5DA; }

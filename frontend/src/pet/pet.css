@@ -1,2 +1,59 @@
-/* Pet root sizing. The art box is square; the drawing keeps its 256 viewBox. */
+/* Pet root sizing and motion (BRIEF §2). Only transform/opacity and rig variables animate.
+   Everything stops under reduced motion (prop or media query). */
 .pet-art { position:relative;width:var(--pet-size, 96px);height:var(--pet-size, 96px);flex:none; }
+
+.pet { position:fixed;right:calc(var(--companion-inset, 16px) + env(safe-area-inset-right, 0px));bottom:calc(var(--companion-inset, 16px) + env(safe-area-inset-bottom, 0px));
+  z-index:var(--z-companion, 500);width:var(--pet-size, 96px);height:var(--pet-size, 96px);
+  transition:--mouth 220ms var(--ease-soft, ease),--ear-l 220ms var(--ease-soft, ease),--ear-r 220ms var(--ease-soft, ease),--squash 260ms var(--ease-soft, ease),--blink 160ms ease,--look-x 300ms var(--ease-soft, ease),--look-y 300ms var(--ease-soft, ease),opacity 1200ms var(--ease-soft, ease); }
+.pet[data-perched] { transition:opacity 1200ms ease; }
+.pet-hit { all:unset;position:relative;display:block;width:100%;height:100%;min-width:64px;min-height:64px;cursor:pointer;border-radius:50%;touch-action:none;-webkit-tap-highlight-color:transparent; }
+.pet-hit:focus-visible { outline:3px solid var(--teal, #1E7F6E);outline-offset:2px; }
+
+/* breathing: 4 s awake, 6 s asleep */
+@keyframes pet-breathe { 0%,100% { --breathe:0; } 50% { --breathe:1; } }
+.pet .pet-art { animation:pet-breathe 4s var(--ease-soft, ease-in-out) infinite; }
+.pet[data-state="sleeping"] .pet-art { animation-duration:6s; }
+
+/* blink 60 ms close + 80 ms open */
+@keyframes pet-blink { 0%,100% { --blink:0; } 43% { --blink:1; } }
+.pet[data-blink] .pet-svg [data-part="eyes"] { animation:pet-blink 140ms linear; }
+
+/* ear twitch to 0.6 and back, 220 ms */
+@keyframes pet-twitch-l { 0%,100% { --ear-l:0; } 50% { --ear-l:.6; } }
+@keyframes pet-twitch-r { 0%,100% { --ear-r:0; } 50% { --ear-r:.6; } }
+.pet[data-twitch="l"] [data-part="ear-l"] { animation:pet-twitch-l 220ms var(--ease-soft, ease); }
+.pet[data-twitch="r"] [data-part="ear-r"] { animation:pet-twitch-r 220ms var(--ease-soft, ease); }
+
+/* tails: cat sway, fox flick, bunny wiggle x3 */
+@keyframes pet-sway-tail { 0%,100% { --tail:-.3; } 50% { --tail:.3; } }
+@keyframes pet-flick { 0%,100% { --tail:0; } 35% { --tail:.8; } }
+@keyframes pet-wiggle { 0%,100% { --tail:0; } 25% { --tail:.4; } 75% { --tail:-.4; } }
+.pet[data-species="cat"] [data-part="tail"] { animation:pet-sway-tail 3.2s var(--ease-soft, ease-in-out) infinite; }
+.pet[data-species="fox"][data-flick] [data-part="tail"] { animation:pet-flick 600ms var(--ease-soft, ease); }
+.pet[data-species="bunny"][data-flick] [data-part="tail"] { animation:pet-wiggle 300ms linear 3; }
+
+/* states (on the svg so they never fight the breathing animation) */
+@keyframes pet-hop { 0%,100% { --squash:0;--hop:0; } 10% { --squash:.6;--hop:0; } 35% { --squash:-.5;--hop:-14; } 60% { --squash:.4;--hop:0; } 75% { --squash:0; } }
+@property --hop { syntax:"<number>";inherits:true;initial-value:0; }
+.pet[data-state="happy"] .pet-svg { transform:translateY(calc(var(--hop) * 1px)) scaleY(calc(1 - .12 * var(--squash))) scaleX(calc(1 + .08 * var(--squash))); }
+@keyframes pet-spin { 0% { transform:rotate(0); } 15% { transform:translateY(4px) scale(1.04,.94); } 60% { transform:translateY(-12px) rotate(200deg); } 100% { transform:rotate(360deg); } }
+@keyframes pet-yawn { 0%,100% { --mouth:0;--blink:0; } 40%,70% { --mouth:1;--blink:.5; } }
+@keyframes pet-stretch { 0%,100% { --squash:0; } 25%,80% { --squash:-.4; } }
+@keyframes pet-pet-sway { 0%,100% { transform:rotate(-2deg); } 50% { transform:rotate(2deg); } }
+@keyframes pet-tilt { 0%,100% { transform:rotate(0); } 50% { transform:rotate(10deg); } }
+.pet[data-state="happy"] .pet-svg { animation:pet-hop 640ms var(--ease-bounce, ease) 1; }
+.pet[data-state="playful"] .pet-svg { animation:pet-spin 900ms var(--ease-soft, ease) 1; transform-origin:50% 60%; }
+.pet[data-state="yawning"] .pet-svg { animation:pet-yawn 1400ms var(--ease-soft, ease) 1; }
+.pet:is([data-state="stretching"],[data-state="waking"]) .pet-svg { animation:pet-stretch 1800ms var(--ease-soft, ease) 1; }
+.pet[data-state="petting"] .pet-svg { animation:pet-pet-sway 1s var(--ease-soft, ease-in-out) infinite; transform-origin:50% 94%; }
+.pet[data-state="petting"] [data-part="blush"] { opacity:1.35; }
+.pet[data-state="sleeping"] { opacity:.85; }
+.pet[data-state="sleeping"] .pet-svg { transform:translateY(5px) scale(1.02,.94); transition:transform 1200ms var(--ease-soft, ease); }
+
+/* sleeping "z": every 2.5 s, rising 24 px and fading over 2 s */
+@keyframes pet-z { 0% { opacity:0;transform:translate(0,0) scale(.8); } 15% { opacity:1; } 80%,100% { opacity:0;transform:translate(8px,-24px) scale(1.1); } }
+.pet-z { position:absolute;top:4%;right:6%;font:700 18px/1 var(--font, system-ui);color:var(--pet-zzz, #5B6B7A);pointer-events:none;animation:pet-z 2.5s var(--ease-soft, ease) infinite; }
+
+/* reduced motion: static pose, no loops */
+.pet[data-reduced], .pet[data-reduced] * { animation:none !important;transition:none !important; }
+@media (prefers-reduced-motion: reduce) { .pet, .pet * { animation:none !important;transition:none !important; } }

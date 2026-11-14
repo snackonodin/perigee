@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import subprocess
+from pathlib import Path
 from datetime import UTC, date, datetime
 from typing import Any
 
@@ -35,8 +36,13 @@ def engine_revision() -> str:
             return result.stdout.strip()
     except (OSError, subprocess.SubprocessError):
         pass
-    path = ROOT / "waiwai1" / "engine" / "api.py"
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    # Hash the engine file actually imported (waiwai1/engine locally, deploy/vendor/engine in a
+    # deployment), so the revision is recorded even where there is no git checkout.
+    try:
+        from engine import api as engine_api
+    except ModuleNotFoundError:
+        from waiwai1.engine import api as engine_api
+    return hashlib.sha256(Path(engine_api.__file__).read_bytes()).hexdigest()
 
 
 def _prior(db: Session, user_id: str, day: date) -> ContextEngineNight | None:

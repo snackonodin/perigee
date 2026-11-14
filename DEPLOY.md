@@ -42,3 +42,37 @@
 - Option A or B.
 - For A: a Vercel account plus a Render, Railway or Fly account (free tiers are fine for a demo). For B: a Vercel account only.
 - I never deploy or push anything without your go-ahead. Deploying publishes the app.
+
+## Option A: prepared and tested locally (2026-11-14, 13:00 IST)
+
+The user chose Option A. In the repo:
+- `deploy/vendor/engine/`: byte-identical Context Engine copy with sha256 hashes (`scripts/sync_engine.sh`; re-run after any engine change).
+- `deploy/start.sh`: migrates, optionally seeds the demo personas **in the background**, then serves on `$PORT`. It refuses to start without `SECRET_KEY`, `FIELD_KEY` and `DATA_DIR`.
+- `Procfile` (`web: bash deploy/start.sh`) and `.python-version` (3.12) for Railway/Render native Python builds; no Docker needed.
+- `frontend/vercel.json`: build to `dist`, SPA fallback, `/api/*` rewritten to the backend.
+- Backend `engine_revision()` hashes the imported engine file, so it works without the waiwai1 checkout.
+
+Verified locally in deploy mode: `env -i` with fresh keys, `DATA_DIR` in a temp folder, `SEED_DEMO=1`. Migrations ran, 3 personas seeded (14 nights each, about 8 min on first boot), health 200, persona login 200, `/today` 200 with engine output, `/nights`, `/monitor/modes` and the `/body` deep link 200. The isolation suite passes 32/32.
+
+### Steps (about 30 min once the accounts exist)
+
+1. **Backend on Railway** (volumes available on the trial; on Render a persistent disk needs a paid plan):
+   1. New project → Deploy from GitHub repo → root of this repo.
+   2. Add a **Volume** mounted at `/data`.
+   3. Variables:
+      - `DATA_DIR=/data`
+      - `SECRET_KEY`: a new random value.
+      - `FIELD_KEY`: a new Fernet key.
+      - `SEED_DEMO=1` and `DEMO_PERSONA_PASSWORD`: for the judges' demo accounts.
+   4. Start command: `bash deploy/start.sh` (the Procfile already says so).
+   5. Copy the public URL, e.g. `https://astro-api.up.railway.app`.
+2. **Frontend on Vercel:**
+   1. New project → same repo → Root Directory `frontend`. Keep "include files outside the root directory" on: the build reads `../seeds/safety_resources.json`.
+   2. In `frontend/vercel.json`, replace `REPLACE_WITH_BACKEND_HOST` with the backend host. Commit.
+   3. Deploy.
+3. **Smoke test:** `BASE=https://<vercel-app> node coord/ui-audit/shots.mjs ...` plus the persona API checks.
+
+Caveats:
+- `/api/v1/live/vitals` (SSE) may be buffered or cut by the Vercel proxy. The Monitor page polls, so it is unaffected.
+- No ESP in the cloud, so Monitor shows "No sensor is set up on this device".
+- The repo must be on GitHub for both hosts. Pushing is your call.

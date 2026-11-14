@@ -92,7 +92,8 @@
   .monitor-header { flex-wrap:wrap; }
   .monitor-modes { grid-template-columns:1fr; }
   .monitor-mode { min-height:0;grid-template-columns:44px minmax(0,1fr);column-gap:12px; }
-  .monitor-mode-icon { grid-row:span 2; }
+  .monitor-mode-icon { grid-row:1 / span 3;align-self:start; }
+  .monitor-mode>strong,.monitor-mode-time,.monitor-mode-line { grid-column:2; }
   .monitor-start-row .monitor-go { width:100%; }
   .monitor-session { grid-template-columns:1fr;justify-items:center;text-align:center;padding:20px; }
   .monitor-session-copy { justify-items:center; }

@@ -41,7 +41,7 @@ describe("Consent", () => {
   it("shows the consent switches, policy version and data controls", async () => {
     render(<App initialPath="/consent" />);
     expect(await screen.findByRole("switch", { name: /Raw sensor recordings/ })).toBeTruthy();
-    expect(screen.getByText(/Policy · demo-1/)).toBeTruthy();
+    expect(screen.getByText(/version demo-1/)).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Your data" })).toBeTruthy();
   });
 });

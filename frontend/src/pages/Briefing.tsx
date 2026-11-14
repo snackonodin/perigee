@@ -77,7 +77,7 @@ function WeekBreathing({ nights, baseline, from }: { nights: NightOut[]; baselin
   const inside = band ? rows.filter(r => r.n && r.n.rr_med! >= band[0] && r.n.rr_med! <= band[1]).length : 0;
   return <>
     <p className="briefing-summary">{recorded} of {WEEK} nights recorded{band ? ` · ${inside} within your usual range (${fmt(band[0])}–${fmt(band[1])} br/min)` : " · your usual range is still building"}</p>
-    <table className="briefing-table"><thead><tr><th scope="col">Night</th><th scope="col">Breathing</th><th scope="col">Compared with your usual</th></tr></thead>
+    <table className="briefing-table"><thead><tr><th scope="col">Night</th><th scope="col">Breathing</th><th scope="col">Vs your usual</th></tr></thead>
       <tbody>{rows.map(({ d, n }) => {
         const v = n?.rr_med;
         const where = v == null ? "No reading" : !band ? "Range building" : v < band[0] ? "Below your usual" : v > band[1] ? "Above your usual" : "Within your usual";

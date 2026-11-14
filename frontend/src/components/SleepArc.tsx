@@ -22,7 +22,7 @@ export function SleepArc({night,status,explanation,coverage}:{night?:NightOut;st
       {partial&&<path className="sleep-arc-uncovered" d="M18 100 A82 82 0 0 1 182 100" strokeDasharray={`${(1-coverage!)*258} 258`} strokeDashoffset={`${-coverage!*258}`}/>}
       {x!=null&&y!=null&&<circle className="sleep-arc-midpoint" cx={x} cy={y} r="5"/>}
     </svg>
-    <div className="sleep-arc-metrics"><strong>{fmtHours(night.presence_hours)}</strong><span>hours present</span></div>
+    <div className="sleep-arc-metrics"><strong>{typeof night.presence_hours==="number"?<>{night.presence_hours.toFixed(1)}<small>h</small></>:"No reading"}</strong><span>present overnight</span></div>
     <div className="sleep-arc-times"><span><small>Onset</small>{time(night.onset)}</span><span><small>Midsleep</small>{night.midsleep?time(night.midsleep):"No reading"}</span><span><small>Wake</small>{time(night.wake)}</span></div>
     {partial&&<p className="sleep-coverage-label">Partial coverage</p>}
     {status!=="none"&&<StatusChip state={status}/>}<p className="sleep-arc-explanation">{explanation}</p>

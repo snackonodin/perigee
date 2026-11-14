@@ -5,6 +5,8 @@ const FRIENDLY: Record<string, string> = {
   phq2: "Mood, two questions",
   phq9: "Mood, nine questions",
   who5: "Wellbeing, five questions",
+  daily_am: "Morning check-in",
+  daily_pm: "Evening check-in",
 };
 
 export function friendlyName(id: string, fallback?: string): string {

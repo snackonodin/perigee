@@ -1,6 +1,7 @@
 /* Briefing + Consent tabs (V2). */
 .briefing-page,.consent-page { padding-bottom:calc(var(--companion-size) + var(--companion-inset)); }
 .briefing-grid,.consent-grid { display:grid;grid-template-columns:minmax(0,1fr);gap:var(--gutter);align-items:start; }
+.briefing-grid { align-items:stretch; }
 @media (min-width:768px) { .briefing-grid,.consent-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 .briefing-wide { grid-column:1 / -1; }
 .briefing-grid .card h2 { margin:4px 0 16px;font-size:var(--fs-h3);line-height:var(--lh-h3); }
@@ -18,7 +19,8 @@
 .briefing-table th { text-align:left;font-family:var(--font-mono);font-size:var(--fs-micro);font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--muted); }
 .briefing-table th,.briefing-table td { padding:8px 4px;border-bottom:1px solid var(--line); }
 .briefing-list { display:grid;gap:8px;margin:0;padding:0;list-style:none; }
-.briefing-list li { display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line); }
+.briefing-list li .telemetry { font-size:var(--fs-small);color:var(--muted); }
+.briefing-list li { display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line); }
 .briefing-print { min-height:44px; }
 
 @media print {
@@ -28,3 +30,5 @@
   .briefing-page { padding:0 !important; }
   .briefing-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
 }
+.briefing-table td:nth-child(-n+2),.briefing-table th { white-space:nowrap; }
+@media (max-width:479px) { .briefing-table { font-size:13px; } .briefing-table th,.briefing-table td { padding:8px 2px; } }

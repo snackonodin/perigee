@@ -67,7 +67,7 @@ export function Body() {
     };
     const current=details[selected];
     const nightsIn=Math.min(28,baseline?.n??0);
-    const footer=<><p className="system-meaning">{MEANING[selected]}</p><div className="system-usual"><span className="telemetry">vs your 28-night usual</span><span>{selected==="Cabin"?"Not compared":nightsIn>=28?"Baseline ready":`Building · ${nightsIn} / 28 nights`}</span></div></>;
+    const footer=<><p className="system-meaning">{MEANING[selected]}</p><div className="system-usual"><span className="telemetry">Personal baseline</span><span>{selected==="Cabin"?"Not compared":nightsIn>=28?"Baseline ready":`Building · ${nightsIn} / 28 nights`}</span></div></>;
     return <div className="screen-page body-page">
       <header className="page-heading"><div><p className="eyebrow">Personal systems · your recent signals</p><TitleReveal text="Body"/><p>Choose a system to see the available reading.</p></div></header>
       {load.apiMock&&<p className="api-mock-note" role="status">Showing sample data: live service unavailable</p>}

@@ -1,5 +1,5 @@
 /* Today, Orbit Pop (P2): bento grid. 4 columns desktop: 2x2 hero, four 1x1 tiles, a full-width note. */
-.today-bento { display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-flow:row dense;gap:var(--gutter);align-items:stretch; }
+.today-bento { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-flow:row dense;gap:var(--gutter);align-items:stretch; }
 .today-bento>* { min-width:0; }
 .today-bento .bento-hero { grid-column:span 2;grid-row:span 2; }
 .today-bento .bento-wide { grid-column:1 / -1; }
@@ -76,3 +76,4 @@
 .range-bar-band { position:absolute;top:0;bottom:0;border-radius:inherit;background:var(--mint);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--teal) 35%,transparent); }
 .range-bar-marker { position:absolute;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:var(--surface);border:3px solid var(--teal); }
 .range-bar-marker.outside { border-color:var(--uv); }
+.tonight-panel dt { white-space:nowrap; }

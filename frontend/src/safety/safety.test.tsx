@@ -5,7 +5,7 @@ import { CheckinForm } from "../components/CheckinForm";
 import { phq9, responseOut, SERVER_SAFETY } from "../test/fixtures";
 import { mockApi } from "../test/mockApi";
 import { contentFromServer, localSafetyTriggered, SAFETY_ACK_DELAY_MS, SAFETY_FALLBACK } from "./safety";
-import { SafetyProvider, useSafety } from "./SafetyProvider";
+import { SafetyProvider, useSafety, useSafetyActive } from "./SafetyProvider";
 
 describe("safety rules", () => {
   it("offline fallback is the seed file's text (one source of truth with the server)", () => {
@@ -51,6 +51,25 @@ describe("SafetyOverlay", () => {
     expect(ready.disabled).toBe(false);
     fireEvent.click(ready);
     expect(screen.queryByRole("alertdialog")).toBeNull();
+  });
+
+  it("exposes a read-only active flag: true while shown, false after acknowledgement", () => {
+    vi.useFakeTimers();
+    function Flag() { return <span data-testid="flag">{String(useSafetyActive())}</span>; }
+    render(<SafetyProvider><Raise /><Flag /></SafetyProvider>);
+    expect(screen.getByTestId("flag").textContent).toBe("false");
+    fireEvent.click(screen.getByText("raise"));
+    expect(screen.getByTestId("flag").textContent).toBe("true");
+    act(() => vi.advanceTimersByTime(SAFETY_ACK_DELAY_MS + 300));
+    fireEvent.click(screen.getByRole("button", { name: "I have read this" }));
+    expect(screen.getByTestId("flag").textContent).toBe("false");
+    vi.useRealTimers();
+  });
+
+  it("useSafetyActive is false outside a provider", () => {
+    function Flag() { return <span data-testid="flag2">{String(useSafetyActive())}</span>; }
+    render(<Flag />);
+    expect(screen.getByTestId("flag2").textContent).toBe("false");
   });
 
   it("renders in a portal on <body>, above the page, with the resources", () => {

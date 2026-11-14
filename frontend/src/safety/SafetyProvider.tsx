@@ -5,9 +5,16 @@ import { SAFETY_ACK_DELAY_MS, type SafetyContent } from "./safety";
 interface SafetyApi {
   /** Show the safety screen now (or update its text if it is already showing). */
   showSafety(content: SafetyContent): void;
+  /** Read-only: true while the safety screen is open. Lets the companion pet stand down. */
+  readonly active: boolean;
 }
 
 const SafetyContext = createContext<SafetyApi | null>(null);
+
+/** Read-only safety flag for decorative layers (the pet). False outside a provider. */
+export function useSafetyActive(): boolean {
+  return useContext(SafetyContext)?.active ?? false;
+}
 
 export function useSafety(): SafetyApi {
   const ctx = useContext(SafetyContext);
@@ -27,7 +34,7 @@ export function SafetyProvider({ children }: { children: ReactNode }) {
     setUntil((u) => (u > Date.now() ? u : Date.now() + SAFETY_ACK_DELAY_MS));
   }, []);
   return (
-    <SafetyContext.Provider value={{ showSafety }}>
+    <SafetyContext.Provider value={{ showSafety, active: content !== null }}>
       {children}
       {content &&
         createPortal(<SafetyScreen content={content} until={until} onAck={() => setContent(null)} />, document.body)}

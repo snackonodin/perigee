@@ -41,3 +41,15 @@ body { min-height:100vh; color:var(--text); background:var(--bg); font:400 var(-
 @media (prefers-reduced-motion:reduce) {
   *,*::before,*::after { animation-duration:.01ms!important; animation-iteration-count:1!important; transition-duration:.01ms!important; scroll-behavior:auto!important; }
 }
+
+/* pet: companion tokens adopted from pet-handoff/TOKENS.css (species palettes, shared pet, frost). App tokens above unchanged. */
+:root {
+  --ease-bounce:cubic-bezier(.34,1.56,.64,1); --ease-soft:cubic-bezier(.45,0,.55,1);
+  --pet-ink:#1F2A37; --pet-cheek:#FFD9C7; --pet-cheek-on-peach:#FBD5DA; --pet-bubble:#FFFFFF; --pet-star:#FFF1B8;
+  --pet-cat-fur:#FFF4D6; --pet-cat-shade:#F2DDB0; --pet-cat-deep:#D9BC86; --pet-cat-inner:#FBD5DA;
+  --pet-fox-fur:#FFC9A8; --pet-fox-shade:#F4A882; --pet-fox-deep:#D9875F; --pet-fox-cream:#FFF1E6; --pet-fox-tip:#6B4A3A;
+  --pet-bunny-fur:#F3EEFF; --pet-bunny-shade:#DCD2F5; --pet-bunny-deep:#BDB0E3; --pet-bunny-inner:#FBD5DA;
+  --pet-eye:#1F2A37; --pet-eye-shine:#FFFFFF; --pet-nose:#E8909C; --pet-mouth:#8A5A5A; --pet-blush:#FBB8C2;
+  --pet-rim:#BFE0F5; --pet-shadow:rgba(31,42,55,.14); --pet-zzz:#5B6B7A;
+  --frost-tint:#EAF4FB; --frost-tint-alpha:.55; --frost-crystal:rgba(255,255,255,.25); --frost-reform-s:30; --frost-brush-r0:28px;
+}

@@ -8,9 +8,9 @@
 .today-bento .vital-card { display:flex;flex-direction:column;margin:0; }
 .today-bento .vital-card-value { margin:auto 0 8px;padding-top:16px; }
 
-/* Hero: orb stage on top, copy, then the tonight panel. Soft colored glow under the tile. */
+/* Hero: orb stage on top, copy, then the tonight panel. Neutral elevation shadow. */
 .today-bento .today-hero-card { position:relative;display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto auto;align-items:center;gap:24px 32px;margin:0;padding:32px;text-align:left;overflow:hidden;
-  box-shadow:var(--glass-highlight),0 0 0 1px var(--glass-edge),0 24px 48px -24px color-mix(in srgb,var(--uv) 35%,transparent),0 8px 32px color-mix(in srgb,var(--mint) 60%,transparent); }
+  box-shadow:var(--glass-highlight),0 0 0 1px var(--glass-edge),var(--shadow-2); }
 .today-bento .today-hero-card::before { content:"";position:absolute;inset:auto -10% -40% 30%;height:70%;z-index:-1;border-radius:50%;background:radial-gradient(closest-side,color-mix(in srgb,var(--lavender) 70%,transparent),transparent);pointer-events:none; }
 .hero-orb-stage { width:200px;height:200px;display:grid;place-items:center;margin:24px; }
 .hero-orb-stage .breathing-orb { width:200px;height:200px;margin:0;animation:none;will-change:transform; }

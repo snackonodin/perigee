@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Icon } from "../components/icons";
+import { Reveal, TitleReveal } from "../components/motion";
 import { useLoad } from "../api/useLoad";
 import { api, errorText } from "../api/client";
 import "./Monitor.css";
@@ -99,20 +100,20 @@ export function Monitor() {
   return (
     <section className="monitor-page" aria-labelledby="monitor-title">
       <header className="monitor-header">
-        <div><p className="eyebrow">On-demand sensor session</p><h1 id="monitor-title">Monitor</h1></div>
+        <div><p className="eyebrow">On-demand sensor session</p><TitleReveal id="monitor-title" text="Monitor"/></div>
         <StatusIsland state={session?.state} noSensor={noSensor && !session} />
       </header>
 
       {!active && <section className="card glass monitor-start" aria-labelledby="monitor-start-title">
         <h2 id="monitor-start-title">Choose a session</h2>
         <p className="muted">The sensor connects only for the session you choose. Every session starts with a short empty-room check.</p>
-        <div className="monitor-modes" role="radiogroup" aria-labelledby="monitor-start-title">
+        <Reveal className="monitor-modes" role="radiogroup" aria-labelledby="monitor-start-title">
           {(Object.keys(MODE_LABELS) as Mode[]).map((m) => <label key={m} className={`monitor-mode tile-press${mode === m ? " selected" : ""}`}>
             <input type="radio" name="monitor-mode" value={m} checked={mode === m} onChange={() => setMode(m)} />
             <span className="monitor-mode-icon" aria-hidden="true"><Icon name={MODE_INFO[m].icon} /></span>
             <strong>{MODE_LABELS[m]}</strong>{timing.get(m) && <span className="telemetry monitor-mode-time">{duration(timing.get(m)!.total_s)} · incl. {duration(timing.get(m)!.calibration_s)} room check</span>}<span className="monitor-mode-line">{MODE_INFO[m].line}</span>
           </label>)}
-        </div>
+        </Reveal>
         <div className="monitor-start-row"><button type="button" className="btn-uv monitor-go" disabled={starting} onClick={() => void start(mode)}>{starting ? "Connecting…" : `Start ${MODE_LABELS[mode].toLowerCase()}`}</button></div>
         {noSensor && <p className="monitor-nosensor" role="status"><Icon name="monitor" size={20} /><span>No sensor is set up on this device. Connect the receiver, then start again.</span></p>}
       </section>}

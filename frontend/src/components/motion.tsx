@@ -25,10 +25,11 @@ export function useMotionOK(): boolean {
 }
 
 /** Staggered first-view enter: children rise 8 px in 40 ms steps. */
-export function Reveal({ children, className }: { children: ReactNode; className?: string }) {
+type RevealA11y = { role?: string; "aria-labelledby"?: string; "aria-label"?: string };
+export function Reveal({ children, className, ...a11y }: { children: ReactNode; className?: string } & RevealA11y) {
   const ok = useMotionOK();
-  if (!ok) return <div className={className}>{children}</div>;
-  return <Suspense fallback={<div className={className}>{children}</div>}><AnimatedContent className={className} trigger="mount" distance={8} duration={0.35} stagger={0.04} ease="power2.out">{children}</AnimatedContent></Suspense>;
+  if (!ok) return <div className={className} {...a11y}>{children}</div>;
+  return <Suspense fallback={<div className={className} {...a11y}>{children}</div>}><AnimatedContent className={className} trigger="mount" distance={8} duration={0.35} stagger={0.04} ease="power2.out" {...a11y}>{children}</AnimatedContent></Suspense>;
 }
 
 /** Page title split-reveal by words, 250 ms, once. */

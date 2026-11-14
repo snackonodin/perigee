@@ -183,3 +183,15 @@ h1,h2,h3 { font-family:var(--font-display);letter-spacing:-.01em; }
 .trend svg,.sleep-timeline svg { display:block;width:100%;height:auto; }
 .trend .label,.sleep-timeline .label { fill:var(--muted);font-family:var(--font-mono);font-size:12px;letter-spacing:.02em; }
 .sleep-metric-value small,.vital-number small,.vital-card-value small { margin-left:6px;font-size:.4em;font-weight:500;color:var(--muted); }
+
+/* Polish: hover lift + sheen on the remaining tiles (Monitor modes, Briefing cards). Off under reduced motion (global rules above). */
+.monitor-mode,.briefing-page .card.glass { overflow:hidden;transition:transform var(--dur-fast) var(--ease),box-shadow var(--dur-fast) var(--ease); }
+.monitor-mode::after,.briefing-page .card.glass::after { content:"";position:absolute;inset:0;pointer-events:none;opacity:0;transform:translateX(-100%);background:linear-gradient(110deg,transparent 42%,rgba(255,255,255,.1) 50%,transparent 58%); }
+.briefing-page .card.glass { position:relative; }
+@media (hover:hover) and (pointer:fine) {
+  .monitor-mode:hover,.briefing-page .card.glass:hover { transform:translateY(-2px);box-shadow:var(--shadow-2); }
+  .monitor-mode:hover::after,.briefing-page .card.glass:hover::after { animation:glass-sheen 600ms var(--ease) 1; }
+}
+.monitor-mode:active { transform:scale(.98); }
+@media (prefers-reduced-motion:reduce) { .monitor-mode,.briefing-page .card.glass { transition:none; }.monitor-mode:hover,.briefing-page .card.glass:hover,.monitor-mode:active { transform:none; }.monitor-mode::after,.briefing-page .card.glass::after { display:none; } }
+@media print { .briefing-page .card.glass::after { display:none; } }

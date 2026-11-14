@@ -70,7 +70,7 @@ export function Settings() {
     <header className="page-heading"><div><h1>Settings</h1><p>Profile, what is stored, and how the app moves.</p></div></header>
     <div className="settings-grid">
       <div className="settings-col">
-      <section className="card glass settings-section" aria-labelledby="settings-profile-title">
+      <section className="card settings-section" aria-labelledby="settings-profile-title">
         <h2 id="settings-profile-title">Profile</h2>
         <p className="muted">Signed in as {me?.email ?? ""}</p>
         <form className="settings-form" onSubmit={saveProfile}>
@@ -82,23 +82,23 @@ export function Settings() {
           <p className="error" role="alert">{profileError}</p>
         </form>
       </section>
-      <section className="card glass settings-section" aria-labelledby="settings-data-title">
+      <section className="card settings-section" aria-labelledby="settings-data-title">
         <h2 id="settings-data-title">Data</h2>
         <ExportData />
         <hr />
         <DeleteAccount />
       </section>
-      <section className="card glass settings-section" aria-labelledby="settings-companion-title">
+      <section className="card settings-section" aria-labelledby="settings-companion-title">
         <h2 id="settings-companion-title">Companion</h2>
         <CompanionSettings />
       </section>
       </div>
       <div className="settings-col">
-      <section className="card glass settings-section" aria-labelledby="settings-consents-title">
+      <section className="card settings-section" aria-labelledby="settings-consents-title">
         <h2 id="settings-consents-title">Consents</h2>
         <Consents />
       </section>
-      <section className="card glass settings-section" aria-labelledby="settings-accessibility-title">
+      <section className="card settings-section" aria-labelledby="settings-accessibility-title">
         <h2 id="settings-accessibility-title">Accessibility</h2>
         <label className="settings-switch-row consent-switch-row"><span className="settings-consent-copy"><span className="consent-label">Reduce motion</span><span className="muted">Stop animated effects and see-through surfaces throughout the app.</span><span className="settings-saved" role="status">{motionSaved ? "Saved" : ""}</span></span><input type="checkbox" role="switch" aria-label="Reduce motion" checked={reduceMotion} onChange={(event) => changeReducedMotion(event.target.checked)} /></label>
       </section>

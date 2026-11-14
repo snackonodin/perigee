@@ -8,11 +8,11 @@ export function Consent() {
   return <div className="screen-page consent-page">
     <header className="page-heading"><div><h1>Consent</h1><p>Choose what may be stored about you.</p></div></header>
     <div className="consent-grid">
-      <section className="card glass settings-section" aria-labelledby="consent-scopes-title">
+      <section className="card settings-section" aria-labelledby="consent-scopes-title">
         <h2 id="consent-scopes-title">What may be stored</h2>
         <Consents />
       </section>
-      <section className="card glass settings-section" aria-labelledby="consent-data-title">
+      <section className="card settings-section" aria-labelledby="consent-data-title">
         <h2 id="consent-data-title">Your data</h2>
         <ExportData />
         <hr />

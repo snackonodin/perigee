@@ -82,7 +82,7 @@ export function CheckinForm({ instrument, onDone, onSubmitted, submitLabel = "Se
 
   if (result) {
     return (
-      <div className="checkin-result glass" role="status">
+      <div className="checkin-result" role="status">
         {/* `stored` = a response row was written. Whether the individual answers were kept
             depends on the survey_answers consent, which this result does not report. */}
         <p>{result.stored ? "Saved. Thank you." : "Scored only: nothing was stored (check-ins are off in Settings)."}</p>
@@ -98,7 +98,7 @@ export function CheckinForm({ instrument, onDone, onSubmitted, submitLabel = "Se
       <div className="checkin-progress" role="status">Question {step + 1} of {instrument.items.length}
         <div className="progress-track" aria-hidden="true"><span style={{width:`${((step+1)/instrument.items.length)*100}%`}}/></div>
       </div>
-      <fieldset className="checkin-question-card glass" key={item.key}>
+      <fieldset className="checkin-question-card" key={item.key}>
         <legend>{item.text}</legend>
         <div className="checkin-question-options">{item.options.map((o) => (
           <label key={o.value} className={answers[item.key] === o.value ? "checkin-question-option selected" : "checkin-question-option"}>

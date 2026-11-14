@@ -51,9 +51,9 @@ function BreathingTile({ latest, baseline }: { latest?: NightOut; baseline?: Bas
   const high=baseline?.median!=null&&baseline.mad!=null?baseline.median+baseline.mad:undefined;
   const spread=low!=null&&high!=null?Math.max(high-low,1):undefined;
   const position=typeof value==="number"&&low!=null&&spread!=null?Math.max(2,Math.min(98,((value-(low-spread))/(3*spread))*100)):undefined;
-  if(value==null)return <section className="card glass sleep-metric" aria-labelledby="rr-tile-title"><h2 id="rr-tile-title">Night breathing rate</h2><p className="section-meta">Latest valid night</p>
+  if(value==null)return <section className="card sleep-metric" aria-labelledby="rr-tile-title"><h2 id="rr-tile-title">Night breathing rate</h2><p className="section-meta">Latest valid night</p>
     <p className="vital-empty"><Icon name="breath" size={24}/><span>Your night breathing rate appears after your first full night near the sensor.</span></p></section>;
-  return <section className="card glass sleep-metric" aria-labelledby="rr-tile-title"><h2 id="rr-tile-title">Night breathing rate</h2><p className="section-meta">Latest valid night</p>
+  return <section className="card sleep-metric" aria-labelledby="rr-tile-title"><h2 id="rr-tile-title">Night breathing rate</h2><p className="section-meta">Latest valid night</p>
     <strong className="sleep-metric-value">{fmt(value)}<small>br/min</small></strong>
     {position!=null?<><div className="sleep-baseline" aria-label={`Personal median range ${fmt(low)} to ${fmt(high)}`}><div className="sleep-baseline-band"/><span className="sleep-baseline-marker" style={{left:`${position}%`}}/></div><div className="sleep-baseline-caption"><span>{fmt(low)}</span><span>Your median ± MAD range</span><span>{fmt(high)}</span></div></>:<p className="muted">Your personal range will appear as valid nights build.</p>}
     <p className="footnote">The shaded range is your own median ± MAD. A difference is described as unusual for you.</p>
@@ -64,9 +64,9 @@ function Regularity({ nights }: { nights: NightOut[] }) {
   const lastSeven=nights.filter(n=>n.valid).sort((a,b)=>a.date.localeCompare(b.date)).slice(-7);
   const recent=lastSeven.filter(n=>n.midsleep);
   const newest=recent.at(-1)?.midsleep;
-  if(recent.length<2)return <section className="card glass regularity-card" aria-labelledby="regularity-title"><h2 id="regularity-title">Regularity</h2>
+  if(recent.length<2)return <section className="card regularity-card" aria-labelledby="regularity-title"><h2 id="regularity-title">Regularity</h2>
     <p className="vital-empty"><Icon name="clock" size={24}/><span>Your rhythm shows after two nights with a midsleep time.</span></p></section>;
-  return <section className="card glass regularity-card" aria-labelledby="regularity-title"><h2 id="regularity-title">Regularity</h2>
+  return <section className="card regularity-card" aria-labelledby="regularity-title"><h2 id="regularity-title">Regularity</h2>
     <p>{`${recent.length} of the latest ${lastSeven.length} valid nights include a midsleep estimate.`}</p>
     {newest&&<p className="muted">Latest midsleep: {new Date(newest).toISOString().slice(11,16)} UTC</p>}
   </section>;
@@ -92,12 +92,12 @@ export function Sleep() {
     <div className="sleep-bento">
       <div className="sleep-bento-arc"><SleepArc night={latestValid} status={status} explanation={explanation}/></div>
       <BreathingTile latest={latestValid} baseline={baseline}/>
-      {nights.data?<Regularity nights={nights.data}/>:<section className="card glass regularity-card"><h2>Regularity</h2><p className="muted">Available when the recent nights load.</p></section>}
-      <section className="card glass wide sleep-hero" data-pet-perch aria-labelledby="timeline-heading"><div className="row"><div><h2 id="timeline-heading">Time present overnight</h2></div><span className="telemetry nights-count">{validCount??"—"} / {DAYS} nights with readings</span></div>
+      {nights.data?<Regularity nights={nights.data}/>:<section className="card regularity-card"><h2>Regularity</h2><p className="muted">Available when the recent nights load.</p></section>}
+      <section className="card wide sleep-hero" data-pet-perch aria-labelledby="timeline-heading"><div className="row"><div><h2 id="timeline-heading">Time present overnight</h2></div><span className="telemetry nights-count">{validCount??"—"} / {DAYS} nights with readings</span></div>
         <LoadState state={nights} label="nightly timeline">{data=><SleepTimeline nights={data}/>}</LoadState></section>
-      {(validCount??0)>0&&<section className="card glass wide sleep-trend-card" data-pet-perch aria-labelledby="rr-trend-title"><h2 id="rr-trend-title">Breathing-rate trend</h2><LoadState state={nights} label="breathing trend">{data=><RrTrend nights={data} baseline={baseline} days={DAYS}/>}</LoadState>
+      {(validCount??0)>0&&<section className="card wide sleep-trend-card" data-pet-perch aria-labelledby="rr-trend-title"><h2 id="rr-trend-title">Breathing-rate trend</h2><LoadState state={nights} label="breathing trend">{data=><RrTrend nights={data} baseline={baseline} days={DAYS}/>}</LoadState>
         {today.error&&<p className="muted">Personal baseline could not be loaded. Showing night data without its band.</p>}
       </section>}
-      <section className="card glass wide sleep-details"><button className="sleep-details-toggle" type="button" aria-expanded={detailsOpen} aria-controls="sleep-night-details" onClick={()=>setDetailsOpen(v=>!v)}><span>Night-by-night details</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>{detailsOpen&&<div id="sleep-night-details" className="sleep-night-table">{nights.data&&<NightsTable nights={nights.data}/>}</div>}</section>
+      <section className="card wide sleep-details"><button className="sleep-details-toggle" type="button" aria-expanded={detailsOpen} aria-controls="sleep-night-details" onClick={()=>setDetailsOpen(v=>!v)}><span>Night-by-night details</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>{detailsOpen&&<div id="sleep-night-details" className="sleep-night-table">{nights.data&&<NightsTable nights={nights.data}/>}</div>}</section>
     </div></div>;
 }

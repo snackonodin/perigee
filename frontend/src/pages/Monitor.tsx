@@ -103,7 +103,7 @@ export function Monitor() {
         <StatusIsland state={session?.state} noSensor={noSensor && !session} />
       </header>
 
-      {!active && <section className="card glass monitor-start" data-pet-avoid aria-labelledby="monitor-start-title">
+      {!active && <section className="card monitor-start" data-pet-avoid aria-labelledby="monitor-start-title">
         <h2 id="monitor-start-title">Choose a session</h2>
         <p className="muted">The sensor connects only for the session you choose. Every session starts with a short empty-room check.</p>
         <div className="monitor-modes" role="radiogroup" aria-labelledby="monitor-start-title">
@@ -117,7 +117,7 @@ export function Monitor() {
         {noSensor && <p className="monitor-nosensor" role="status"><Icon name="monitor" size={20} /><span>No sensor is set up on this device. Connect the receiver, then start again.</span></p>}
       </section>}
 
-      {active && session && <section className="card glass monitor-session" aria-live="polite">
+      {active && session && <section className="card monitor-session" aria-live="polite">
         <ProgressRing session={session} totalRef={phaseTotal} />
         <div className="monitor-session-copy">
           {session.state === "calibrating" ? <><h2>Please leave the room for 60 s</h2><p className="section-meta">Room check</p><p className="muted">The sensor is checking the empty room before measuring.</p></>
@@ -129,7 +129,7 @@ export function Monitor() {
       {error && <p className="error monitor-error" role="alert">{error}</p>}
       {session?.state === "link_error" && session.error && <p className="error monitor-error" role="alert">{session.error}</p>}
 
-      {session?.state === "complete" && <section className="card glass monitor-results" aria-labelledby="monitor-results-title">
+      {session?.state === "complete" && <section className="card monitor-results" aria-labelledby="monitor-results-title">
         <h2 id="monitor-results-title">Session results</h2>
         {summary ? <>
           {session.mode === "sleep_analysis" && <SessionScore summary={summary} />}

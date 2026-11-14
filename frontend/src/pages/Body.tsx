@@ -71,7 +71,7 @@ export function Body() {
       <header className="page-heading"><div><h1>Body</h1><p>Choose a system to see the available reading.</p></div></header>
       {load.apiMock&&<p className="api-mock-note" role="status">Showing sample data: live service unavailable</p>}
       <div className="body-layout">
-        <section className="body-map-card glass" aria-label="Body systems map"><span className="body-orbit" aria-hidden="true"/><BodyMap selected={selected} details={details} onSelect={setSelected}/></section>
+        <section className="body-map-card" aria-label="Body systems map"><span className="body-orbit" aria-hidden="true"/><BodyMap selected={selected} details={details} onSelect={setSelected}/></section>
         <section className="body-detail" aria-live="polite" aria-labelledby="body-detail-title" key={selected}>
           <div className="system-switch" role="group" aria-label="Choose a system">{SYSTEMS.map(name=><button key={name} type="button" className={`system-pill system-pill-${COLORS[name]}`} aria-pressed={selected===name} onClick={()=>setSelected(name)}><i aria-hidden="true"/>{name}</button>)}</div>
           {current.value==="No reading"?<VitalCard label={selected} icon={selected} headingId="body-detail-title" empty={current.copy} footer={footer}/>:

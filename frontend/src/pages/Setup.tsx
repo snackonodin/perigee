@@ -78,7 +78,7 @@ export function Setup() {
   return (
     <main className="setup-layout">
       <div className="aurora-backdrop" aria-hidden="true"><i /><i /><i /><i /></div>
-      <section className="card glass setup-card" aria-labelledby="setup-title">
+      <section className="card setup-card" aria-labelledby="setup-title">
         <h1 id="setup-title">Set up your account</h1>
         <p className="setup-progress" role="status">Step {step} of 3</p>
         {step === 1 && <div className="setup-step"><h2>Choose what to store</h2><p className="muted">You can change these preferences any time in Settings.</p><Consents /><button type="button" onClick={() => setStep(2)}>Continue</button></div>}

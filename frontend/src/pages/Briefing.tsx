@@ -35,7 +35,7 @@ export function Briefing() {
       const mind = levelStatus(engine?.scores_and_metrics?.mental_level ?? t.flags[0]?.mental_level);
       const advisory = engine?.user_facing_advisory;
       return <div className="briefing-grid">
-        <section className="card glass briefing-status" aria-labelledby="brief-status-title">
+        <section className="card briefing-status" aria-labelledby="brief-status-title">
 <h2 id="brief-status-title">Where things stand</h2>
           <dl className="briefing-chips">
             <div><dt>Body signals</dt><dd><StatusChip state={body}/></dd></div>
@@ -44,11 +44,11 @@ export function Briefing() {
           {advisory?.headline && <p className="briefing-note"><strong>{plainHeadline(advisory.headline)}</strong>{advisory.personality_tailored_message && <> {plainMessage(advisory.personality_tailored_message)}</>}</p>}
         </section>
         <LatestNight night={t.latest_night ?? undefined}/>
-        <section className="card glass briefing-wide" aria-labelledby="brief-rr-title">
+        <section className="card briefing-wide" aria-labelledby="brief-rr-title">
           <h2 id="brief-rr-title">Night breathing vs your usual range</h2><p className="section-meta">Last 7 nights</p>
           <LoadState state={nights} label="the last seven nights">{data => <WeekBreathing nights={data} baseline={baseline} from={from}/>}</LoadState>
         </section>
-        <section className="card glass briefing-wide" aria-labelledby="brief-ci-title">
+        <section className="card briefing-wide" aria-labelledby="brief-ci-title">
           <h2 id="brief-ci-title">Check-ins completed</h2><p className="section-meta">This week</p>
           <LoadState state={checkins} label="this week's check-ins">{data => <WeekCheckins items={data as Checkin[]}/>}</LoadState>
         </section>
@@ -59,7 +59,7 @@ export function Briefing() {
 }
 
 function LatestNight({ night }: { night?: NightOut }) {
-  return <section className="card glass" aria-labelledby="brief-night-title">
+  return <section className="card" aria-labelledby="brief-night-title">
     <h2 id="brief-night-title">Last recorded night</h2>{night && <p className="section-meta telemetry">{night.date}</p>}
     {night?.valid ? <dl className="briefing-stats">
       <div><dt>Breathing</dt><dd>{fmt(night.rr_med)}<small>br/min</small></dd></div>

@@ -34,11 +34,13 @@ import numpy as np
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from backend import security
 from backend.config import get_settings
 from backend.models import (
     CaptureSession,
     NightFeaturesRow,
     PipelineRun,
+    Profile,
     SurveyResponseRow,
     User,
     WindowEstimateRow,
@@ -91,7 +93,7 @@ def _answers(*vals: int) -> list[int]:
 PERSONAS: tuple[Persona, ...] = (
     Persona(
         key="steady",
-        email="persona-steady@example.invalid",
+        email="steady@ex.com",
         seed=101,
         demo_rr=14.0,
         demo_restless=0.05,
@@ -106,7 +108,7 @@ PERSONAS: tuple[Persona, ...] = (
     ),
     Persona(
         key="breath-drift",
-        email="persona-drift@example.invalid",
+        email="drift@ex.com",
         seed=202,
         demo_rr=16.0,
         demo_restless=0.20,
@@ -120,7 +122,7 @@ PERSONAS: tuple[Persona, ...] = (
     ),
     Persona(
         key="mental-dip",
-        email="persona-dip@example.invalid",
+        email="dip@ex.com",
         seed=303,
         demo_rr=15.0,
         demo_restless=0.05,
@@ -150,7 +152,13 @@ def _ensure_user(db: Session, p: Persona, password: str | None) -> tuple[str, st
         pw = password or os.environ.get(PASSWORD_ENV) or os.environ.get("DEMO_PASSWORD")
         if not pw:
             pw = generated = secrets.token_urlsafe(18)
-        uid = accounts.signup(db, p.email, pw).user_id
+        # Direct insert, not accounts.signup: the shared demo password may be shorter than
+        # the sign-up minimum (synthetic demo accounts only; real sign-ups keep the rule).
+        user = User(email=p.email, password_hash=security.hash_password(pw), is_synthetic=True)
+        db.add(user)
+        db.flush()
+        db.add(Profile(user_id=user.id))
+        uid = user.id
     user = db.get(User, uid)
     user.is_synthetic = True
     db.commit()

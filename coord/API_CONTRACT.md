@@ -67,7 +67,7 @@ config.yaml `monitor` (placeholders). Use it for tile durations; never copy the 
 ## Public demo sign-in, added 2026-11-14
 
 `POST /api/v1/auth/demo` (no body, no auth) → 200 `TokenOut` for a **fresh private copy** of the
-seeded synthetic persona `settings.demo_email` (default `persona-drift@example.invalid`), only when
+seeded synthetic persona `settings.demo_email` (default `drift@ex.com`), only when
 the server runs with `DEMO_ACCESS=1`; otherwise 404. Updated 2026-11-14 evening: every call creates a
 new visitor account (`demo-<hex>@example.invalid`, synthetic) holding a copy of the persona's 14
 nights, check-ins and surveys, so visitors never see each other's answers. Copy takes ~2 s.

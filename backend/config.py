@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     # Public no-login demo (Space Apps: judges must open the demo without registering).
     # Off unless DEMO_ACCESS=1; signs in only as a seeded synthetic persona.
     demo_access: bool = False
-    demo_email: str = "persona-drift@example.invalid"
+    demo_email: str = "drift@ex.com"
     # Each demo visitor gets a private copy of the persona; at most this many (0 = no cap).
     demo_max_users: int = 50
     # Cap on self-registered real accounts for a public deployment (0 = no cap).

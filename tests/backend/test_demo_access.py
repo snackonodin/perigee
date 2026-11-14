@@ -11,7 +11,7 @@ from backend.services import accounts as acc
 from tests.api.conftest import api, data_dir, db, engine  # noqa: F401  (fixtures)
 
 PW = "long enough password"
-DEMO = "persona-drift@example.invalid"
+DEMO = "drift@ex.com"
 
 
 @pytest.fixture

@@ -74,7 +74,7 @@ Always pass `motion_bursts` explicitly. The synth default of 6 does not scale wi
 
 | | P1 `steady` | P2 `breath-drift` | P3 `mental-dip` |
 |---|---|---|---|
-| email | `persona-steady@example.invalid` | `persona-drift@example.invalid` | `persona-dip@example.invalid` |
+| email | `steady@ex.com` | `drift@ex.com` | `dip@ex.com` |
 | persona_seed | 101 | 202 | 303 |
 | rr_base (bpm), history | 14.0 all nights | 13.0 for D-14…D-6; then 13.6, 14.0, 14.4, 14.8 (D-5…D-2) | 15.0 all nights |
 | σ_rr (bpm) | 0.5 | 0.5 | 0.5 |

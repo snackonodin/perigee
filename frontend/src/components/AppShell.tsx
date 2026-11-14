@@ -6,6 +6,12 @@ import { TABS } from "../routes/tabs";
 import { Icon, ROUTE_ICON } from "./icons";
 import { BRAND } from "../brand";
 
+/** Header name: display name, else the e-mail's local part, else "Crew member" (never the full address). */
+export function crewName(displayName?:string|null,email?:string|null):string {
+  const name=displayName?.trim(); if(name)return name;
+  const local=email?.split("@")[0]?.trim(); return local||"Crew member";
+}
+
 export function AppShell() {
   const { me, logout } = useAuth();
   const { pathname } = useLocation();
@@ -76,9 +82,9 @@ export function AppShell() {
       <a className="skip" href="#main">Skip to content</a>
       <header className="topbar">
         <span className="brand"><span className="brand-mark" aria-hidden="true"><BrandIcon/></span>{BRAND}</span>
-        {me?.is_synthetic && <span className="badge">Simulated data</span>}
+        {me?.is_synthetic && <span className="sim-chip telemetry" data-short="Sim"><span className="sim-chip-text">Simulated data</span></span>}
         <span className="spacer" />
-        <span className="muted who">{me?.display_name || me?.email}</span>
+        <span className="muted who" title={me?.email}>{crewName(me?.display_name,me?.email)}</span>
         <NavLink className="header-link" to="/monitor" aria-label="Monitor"><Icon name="monitor" size={22}/><span className="header-link-label">Monitor</span></NavLink>
         <NavLink className="header-link" to="/settings" aria-label="Settings"><Icon name="settings" size={22}/><span className="header-link-label">Settings</span></NavLink>
         <button type="button" className="ghost header-logout" aria-label="Log out" onClick={() => void logout()}><Icon name="logout" size={20}/><span className="header-link-label">Log out</span></button>

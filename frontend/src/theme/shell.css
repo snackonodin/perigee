@@ -170,3 +170,11 @@ h1,h2,h3 { font-family:var(--font-display);letter-spacing:-.01em; }
 .consents legend { position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap; }
 .settings-station { margin:-4px 0 0; }
 @media (max-width:767px) { .settings-page .settings-grid { grid-template-columns:minmax(0,1fr); } }
+
+/* V5: "Simulated data" as a tiny mono chip that never wraps; short form under 480 px. */
+.brand { white-space:nowrap; }
+.sim-chip { display:inline-flex;align-items:center;flex:none;padding:2px 8px;border:1px solid var(--line);border-radius:var(--radius-pill);background:var(--surface);color:var(--muted);font-size:10px;line-height:16px;white-space:nowrap; }
+@media (max-width:479px) {
+  .sim-chip::after { content:attr(data-short); }
+  .sim-chip-text { position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap; }
+}

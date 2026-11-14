@@ -45,7 +45,7 @@ export function Overview() {
       <header className="page-heading"><div><p className="eyebrow">Your personal snapshot</p><TitleReveal text="Today"/><p>{night?`Last signal · ${night.date}`:"Your next quiet check-in"}</p></div></header>
       {load.apiMock&&<p className="api-mock-note" role="status">Showing sample data: live service unavailable</p>}
       <Reveal className="today-bento">
-        <section className="today-hero-card glass bento-hero" aria-labelledby="today-hero-title">
+        <section className="today-hero-card glass bento-hero" data-pet-perch aria-labelledby="today-hero-title">
           <div className="hero-orb-stage orbit" style={{"--orbit-inset":"-18px"} as CSSProperties}>
             <BreathingOrb rate={respiration} pace={pace} state={status(physiology)}/>
             <span className="satellite" style={{"--sat-a":`${-90+nights/BASELINE_NIGHTS*360}deg`} as CSSProperties} aria-hidden="true"/>
@@ -71,7 +71,7 @@ export function Overview() {
         {night?.valid?<VitalCard label="Rest" to="/sleep" value={fmt(night.presence_hours,1)} unit="h" icon="◔">
           <p className="vital-caption">Sensed presence last night.</p>
         </VitalCard>:<VitalCard label="Rest" icon="◔" to="/sleep" empty="Time at rest appears after your first full night near the sensor."/>}
-        <aside className="today-note-card glass-strong bento-wide"><span className="note-glyph" aria-hidden="true"><Icon name="briefing" size={20}/></span><div><p className="eyebrow">A quiet note</p><strong>{plainHeadline(advisory?.headline)??"Notice your own rhythm"}</strong><p>{plainMessage(advisory?.personality_tailored_message)??"Your patterns are compared with your own recent baseline."}</p></div></aside>
+        <aside className="today-note-card glass-strong bento-wide" data-pet-perch><span className="note-glyph" aria-hidden="true"><Icon name="briefing" size={20}/></span><div><p className="eyebrow">A quiet note</p><strong>{plainHeadline(advisory?.headline)??"Notice your own rhythm"}</strong><p>{plainMessage(advisory?.personality_tailored_message)??"Your patterns are compared with your own recent baseline."}</p></div></aside>
       </Reveal>
     </div>;
   }}</LoadState>;

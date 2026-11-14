@@ -1,0 +1,5 @@
+.pet-gallery { padding:24px;min-height:100vh;color:var(--text); }
+.pet-gallery h1 { margin:0 0 8px; }
+.pet-gallery p,.pet-gallery-cell > span { color:var(--muted);font-size:var(--fs-small); }
+.pet-gallery-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;max-width:1200px; }
+.pet-gallery-cell { display:grid;justify-items:center;gap:6px;padding:12px;border-radius:16px;background:var(--glass);border:1px solid var(--line); }

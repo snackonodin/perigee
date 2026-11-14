@@ -195,3 +195,19 @@ h1,h2,h3 { font-family:var(--font-display);letter-spacing:-.01em; }
 .monitor-mode:active { transform:scale(.98); }
 @media (prefers-reduced-motion:reduce) { .monitor-mode,.briefing-page .card.glass { transition:none; }.monitor-mode:hover,.briefing-page .card.glass:hover,.monitor-mode:active { transform:none; }.monitor-mode::after,.briefing-page .card.glass::after { display:none; } }
 @media print { .briefing-page .card.glass::after { display:none; } }
+
+/* Companion pet lives inside #companion-slot (above the phone tab bar); its own controls take pointer events. */
+#companion-slot .pet,#companion-slot .pet-shown-toggle { position:absolute;right:0;bottom:0;left:auto;top:auto;pointer-events:auto; }
+#companion-slot .pet-shown-toggle { width:max-content; }
+/* Settings -> Companion */
+.companion-picker { margin:0 0 16px;padding:0;border:0; }
+.companion-picker legend { margin-bottom:12px;font-size:var(--fs-small); }
+.companion-options { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px; }
+.companion-option { position:relative;display:grid;justify-items:center;gap:4px;padding:12px 8px;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);cursor:pointer;text-align:center;font-size:var(--fs-small);font-weight:600; }
+.companion-option[data-selected] { border-color:var(--uv);box-shadow:0 0 0 2px color-mix(in srgb,var(--uv) 25%,transparent); }
+.companion-option input { position:absolute;opacity:0;inset:0;margin:0;cursor:pointer; }
+.companion-option:has(input:focus-visible) { outline:3px solid var(--teal);outline-offset:2px; }
+.settings-section .pet-controls { flex-direction:row;flex-wrap:wrap;min-width:0; }
+.settings-section .pet-control-note { flex-basis:100%; }
+/* Keep the last card clear of the companion pet and its speech bubble on every page. */
+.screen-page,.monitor-page,.settings-page,.sleep-page,.checkin-page,.body-page,.persona-page,.briefing-page,.consent-page { padding-bottom:calc(var(--companion-size) + var(--companion-inset) + 56px); }

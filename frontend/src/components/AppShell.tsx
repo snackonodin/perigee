@@ -5,6 +5,7 @@ import { useAuth } from "../auth/AuthProvider";
 import { TABS } from "../routes/tabs";
 import { Icon, ROUTE_ICON } from "./icons";
 import { BRAND } from "../brand";
+import { CompanionHost } from "./CompanionHost";
 
 /** Header name: display name, else the e-mail's local part, else "Crew member" (never the full address). */
 export function crewName(displayName?:string|null,email?:string|null):string {
@@ -102,7 +103,8 @@ export function AppShell() {
         onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
         <div className="screen-transition" key={pathname}><Outlet /></div>
       </main>
-      <div id="companion-slot" aria-hidden="true" />
+      <div id="companion-slot" />
+      <CompanionHost />
     </div>
   );
 }

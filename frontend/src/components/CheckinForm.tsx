@@ -1,4 +1,5 @@
-import { type FormEvent, useState } from "react";
+import { emit } from "../pet";
+import { type FormEvent, useEffect, useState } from "react";
 import { api, errorText } from "../api/client";
 import type { Instrument, ResponseOut } from "../api/types";
 import { contentFromServer, localSafetyTriggered, SAFETY_FALLBACK } from "../safety/safety";
@@ -9,6 +10,7 @@ import { friendlyName } from "./instrumentNames";
  *  1) local safety_trigger check → safety screen before the request is even sent;
  *  2) the server's safety result (also on a 500) → before any score is shown. */
 export function CheckinForm({ instrument, onDone }: { instrument: Instrument; onDone?(): void }) {
+  useEffect(() => { emit("quiz_start"); }, []);
   const { showSafety } = useSafety();
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [step, setStep] = useState(0);
@@ -37,7 +39,8 @@ export function CheckinForm({ instrument, onDone }: { instrument: Instrument; on
       setError("Please answer each card before sending your check-in.");
       return;
     }
-    if (localSafetyTriggered(instrument, answers)) showSafety(SAFETY_FALLBACK);
+    const localSafety = localSafetyTriggered(instrument, answers);
+    if (localSafety) showSafety(SAFETY_FALLBACK);
     setBusy(true);
     setError(null);
     let out: ResponseOut | undefined;
@@ -59,7 +62,11 @@ export function CheckinForm({ instrument, onDone }: { instrument: Instrument; on
     if (crisis) {
       showSafety(contentFromServer(out.safety ?? {}));
       setResult(null);
-    } else if (out.ok) setResult(out);
+    } else if (out.ok) {
+      setResult(out);
+      // companion: completion only, never on a safety response, never with any data
+      if (!localSafety && out.safety_screen_required === false) emit("quiz_complete");
+    }
     else {
       const errs = out.errors ?? [];
       setError(`Not saved (${out.error ?? "error"})${errs.length ? `: ${errs.join(", ")}` : ""}.`);

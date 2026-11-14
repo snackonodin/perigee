@@ -1,18 +1,23 @@
-import "../companion/companion.css";
-import { CHARACTERS } from "../companion/characters";
-import { CompanionFace, type Mood } from "../companion/CompanionFace";
+import { CHARACTERS, CompanionFace, PetArt, type Mood, type PetMood, type Species } from "../pet";
+import "./CompanionGallery.css";
 
 const MOODS: Mood[] = ["neutral", "happy", "calm", "encouraging", "concerned", "tired", "sleeping"];
+const PET_MOODS: PetMood[] = ["neutral", "happy", "calm", "playful", "sleepy", "sleeping", "petting"];
+const SPECIES: Species[] = ["cat", "fox", "bunny"];
 
+/** Dev-only preview: the new species in every mood, plus the legacy CompanionFace mapping. */
 export function CompanionGallery() {
   return <main className="pet-gallery">
     <h1>Companion expressions</h1>
-    <p>Static character and expression preview.</p>
+    <p>Static species and expression preview (dev only).</p>
     <div className="pet-gallery-grid">
-      {MOODS.map((mood) => CHARACTERS.map((character) => <article className="pet-gallery-cell" key={`${character.id}-${mood}`}>
-        <CompanionFace character={character.id} mood={mood} />
-        <span>{character.name} · {mood}</span>
-      </article>))}
+      {SPECIES.map((s) => PET_MOODS.map((m) => <article className="pet-gallery-cell" key={`${s}-${m}`}>
+        <PetArt species={s} mood={m} size={120} /><span>{s} · {m}</span></article>))}
+    </div>
+    <h2>Legacy names</h2>
+    <div className="pet-gallery-grid">
+      {MOODS.map((mood) => CHARACTERS.map((c) => <article className="pet-gallery-cell" key={`${c.id}-${mood}`}>
+        <CompanionFace character={c.id} mood={mood} /><span>{c.name} · {mood}</span></article>))}
     </div>
   </main>;
 }

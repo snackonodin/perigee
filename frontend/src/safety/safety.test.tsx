@@ -1,11 +1,15 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import seed from "../../../seeds/safety_resources.json";
 import { CheckinForm } from "../components/CheckinForm";
 import { phq9, responseOut, SERVER_SAFETY } from "../test/fixtures";
 import { mockApi } from "../test/mockApi";
 import { contentFromServer, localSafetyTriggered, SAFETY_ACK_DELAY_MS, SAFETY_FALLBACK } from "./safety";
 import { SafetyProvider, useSafety, useSafetyActive } from "./SafetyProvider";
+import { emit } from "../pet";
+
+vi.mock("../pet", async (orig) => ({ ...(await orig<typeof import("../pet")>()), emit: vi.fn() }));
+const petCalls = () => vi.mocked(emit).mock.calls.map((c) => c[0]);
 
 describe("safety rules", () => {
   it("offline fallback is the seed file's text (one source of truth with the server)", () => {
@@ -102,6 +106,7 @@ function renderForm() {
 }
 
 describe("CheckinForm safety order", () => {
+  beforeEach(() => vi.mocked(emit).mockClear());
   it("shows safety before the request completes and keeps scores hidden when the server requires safety", async () => {
     let release!: () => void;
     const pending = new Promise<void>((r) => (release = r));
@@ -126,6 +131,7 @@ describe("CheckinForm safety order", () => {
       instrument_version: "1.0",
       answers: { phq9_1: 0, phq9_9: 1 },
     });
+    expect(petCalls()).not.toContain("quiz_complete"); // the companion never celebrates a safety response
   });
 
   it("a 500 from /responses still shows its safety result", async () => {
@@ -160,6 +166,8 @@ describe("CheckinForm safety order", () => {
     fireEvent.click(screen.getByRole("button", { name: "Send check-in" }));
     expect(await screen.findByText("Saved. Thank you.")).toBeTruthy();
     expect(screen.queryByRole("alertdialog")).toBeNull();
+    expect(petCalls()).toContain("quiz_start");
+    expect(petCalls()).toContain("quiz_complete");
   });
 });
 

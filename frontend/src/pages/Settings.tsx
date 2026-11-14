@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api, errorText } from "../api/client";
 import { useAuth } from "../auth/AuthProvider";
+import { CompanionSettings } from "../components/CompanionSettings";
 import { Consents } from "../components/Consents";
 import { DeleteAccount, ExportData } from "../components/DataControls";
 import { Reveal, TitleReveal } from "../components/motion";
@@ -90,7 +91,7 @@ export function Settings() {
       </section>
       <section className="card glass settings-section" aria-labelledby="settings-companion-title">
         <h2 id="settings-companion-title">Companion</h2>
-        <p className="settings-soon"><span className="tag-mono">Coming soon</span> A small crew companion that keeps you company.</p>
+        <CompanionSettings />
       </section>
       </div>
       <div className="settings-col">

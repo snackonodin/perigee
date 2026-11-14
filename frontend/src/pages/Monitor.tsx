@@ -104,7 +104,7 @@ export function Monitor() {
         <StatusIsland state={session?.state} noSensor={noSensor && !session} />
       </header>
 
-      {!active && <section className="card glass monitor-start" aria-labelledby="monitor-start-title">
+      {!active && <section className="card glass monitor-start" data-pet-avoid aria-labelledby="monitor-start-title">
         <h2 id="monitor-start-title">Choose a session</h2>
         <p className="muted">The sensor connects only for the session you choose. Every session starts with a short empty-room check.</p>
         <Reveal className="monitor-modes" role="radiogroup" aria-labelledby="monitor-start-title">

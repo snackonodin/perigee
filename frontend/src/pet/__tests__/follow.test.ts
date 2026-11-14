@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { advanceMood, createFollow, createMoods, laggedPointer, notePointer, pickMood, pickWanderSpot, stepFollow } from "../follow";
+import { advanceMood, createFollow, createMoods, fleeTarget, hopPose, hopSpeed, laggedPointer, notePointer, pickMood, pickWanderSpot, stepFollow } from "../follow";
 import {
-  FOLLOW_COOLDOWN_MS, FOLLOW_DEADZONE_PX, FOLLOW_GAP_PX, FOLLOW_INTEREST_MAX_MS, FOLLOW_INTEREST_MIN_MS, FOLLOW_LAG_MS, WANDER_POINTER_CLEAR_PX,
+  FOLLOW_COOLDOWN_MS, FOLLOW_DEADZONE_PX, FOLLOW_MIN_DIST_PX, HOP_HEIGHT_PX, HOP_LAND, HOP_SETTLE, HOP_TAKEOFF, FOLLOW_GAP_PX, FOLLOW_INTEREST_MAX_MS, FOLLOW_INTEREST_MIN_MS, FOLLOW_LAG_MS, WANDER_POINTER_CLEAR_PX,
 } from "../petConfig";
 
 /** Deterministic random (mulberry32). */
@@ -56,7 +56,8 @@ describe("cursor follow", () => {
     expect(s.pos).toEqual({ x: 500, y: 500 });
   });
   it("keeps a wide berth: at least the gap behind the cursor, stops inside the dead zone", () => {
-    expect(FOLLOW_GAP_PX).toBeGreaterThanOrEqual(160);
+    expect(FOLLOW_MIN_DIST_PX).toBeGreaterThanOrEqual(300);
+    expect(FOLLOW_GAP_PX).toBeGreaterThanOrEqual(FOLLOW_MIN_DIST_PX);
     expect(FOLLOW_DEADZONE_PX).toBeGreaterThan(FOLLOW_GAP_PX);
     const s = createFollow({ x: 1200, y: 720 });
     notePointer(s, 300, 300, 0);
@@ -110,5 +111,49 @@ describe("pet moods", () => {
       expect(Math.hypot(p.x - ptr.x, p.y - ptr.y)).toBeGreaterThanOrEqual(WANDER_POINTER_CLEAR_PX);
     }
     expect(pickWanderSpot(vp, 96, [{ left: 0, top: 0, width: 1280, height: 800 }], null, rnd)).toBeNull();
+  });
+});
+
+describe("keep away (one card width)", () => {
+  const vp = { width: 1440, height: 900 };
+  it("does nothing while the cursor is far enough", () => {
+    expect(fleeTarget({ x: 200, y: 200 }, { x: 200 + FOLLOW_MIN_DIST_PX, y: 200 }, 96, vp)).toBeNull();
+  });
+  it("hops straight away, clearing the minimum distance", () => {
+    const t = fleeTarget({ x: 700, y: 450 }, { x: 600, y: 450 }, 96, vp)!;
+    expect(t.x).toBeGreaterThan(700);
+    expect(Math.hypot(t.x - 600, t.y - 450)).toBeGreaterThanOrEqual(FOLLOW_MIN_DIST_PX);
+  });
+  it("when cornered, picks any free spot far enough from the cursor", () => {
+    const ptr = { x: 1300, y: 800 };
+    const t = fleeTarget({ x: 1380, y: 840 }, ptr, 96, vp, [], seeded(9))!;
+    expect(Math.hypot(t.x - ptr.x, t.y - ptr.y)).toBeGreaterThanOrEqual(FOLLOW_MIN_DIST_PX);
+  });
+});
+
+describe("chibi hop", () => {
+  const at = (p: number) => hopPose(p);
+  it("crouches about 10 % before take-off and stretches about 8 % on the way up", () => {
+    const crouch = at(HOP_TAKEOFF - 0.001), stretch = at(HOP_TAKEOFF + 0.001);
+    expect(1 - 0.12 * crouch.squash).toBeCloseTo(0.9, 1);
+    expect(1 - 0.12 * stretch.squash).toBeCloseTo(1.08, 1);
+  });
+  it("arcs about 12 px at mid-flight and lands with a squash, then pauses on the ground", () => {
+    expect(at((HOP_TAKEOFF + HOP_LAND) / 2).hop).toBeCloseTo(-HOP_HEIGHT_PX, 0);
+    expect(at(HOP_LAND + 0.001).squash).toBeGreaterThan(0.4);
+    const rest = at((HOP_SETTLE + 1) / 2);
+    expect(rest.hop).toBe(0);
+    expect(rest.squash).toBe(0);
+  });
+  it("ears and tail trail the body by a beat", () => {
+    const takeoff = at(HOP_TAKEOFF + 0.01);
+    expect(Math.abs(takeoff.ears)).toBeLessThan(0.05);
+    expect(Math.abs(at(HOP_LAND + 0.02).ears)).toBeGreaterThan(0.05);
+  });
+  it("covers ground only while airborne, at the same mean speed", () => {
+    expect(hopSpeed(HOP_TAKEOFF / 2)).toBe(0);
+    expect(hopSpeed((HOP_SETTLE + 1) / 2)).toBe(0);
+    let sum = 0; const n = 1000; for (let i = 0; i < n; i++) sum += hopSpeed(i / n);
+    expect(sum / n).toBeCloseTo(1, 1);
   });
 });

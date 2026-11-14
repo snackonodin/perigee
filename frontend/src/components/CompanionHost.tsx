@@ -2,14 +2,31 @@
 // allows (pet-handoff/contract.d.ts PetContext): species, persona tone, station time of
 // day, the safety flag, reduced motion and night counts. Never scores, levels, answers or
 // Watch/Alert status: the persona name is read from the engine output and nothing else.
-import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { api } from "../api/client";
 import { useLoad } from "../api/useLoad";
 import type { NightOut } from "../api/types";
 import { useAuth } from "../auth/AuthProvider";
-import { emit, Pet, type PersonaId, type Species, type TimeOfDay } from "../pet";
-import { useSafetyActive } from "../safety/SafetyProvider";
+import { emit, Pet, type PersonaId, type PetBubble, type Species, type TimeOfDay } from "../pet";
+import { CHECKIN_SAVED, usePersona } from "../persona/PersonaProvider";
+import { SAFETY_FALLBACK } from "../safety/safety";
+import { useSafety, useSafetyActive } from "../safety/SafetyProvider";
+import type { components } from "../api/schema";
+
+type PetBubbleOut = components["schemas"]["PetBubbleOut"];
+const ANIMATION: Record<string, PetBubble["animation"]> = {
+  calm_float: "calm", calm_present: "calm", curious_tilt: "tilt", cozy_listen: "cozy", cozy_support: "cozy", cozy_glow: "cozy",
+};
+/** Server bubble -> pet props. Badge is visual only and never red. */
+export function toPetBubble(b: PetBubbleOut): PetBubble | null {
+  if (!b.bubble) return null;
+  return {
+    id: b.id, text: b.bubble, tryLine: b.micro_try ?? null, playful: b.playful,
+    badge: b.badge === "green" ? "green" : b.badge === "amber" ? "amber" : "neutral",
+    animation: ANIMATION[b.pet_animation] ?? "calm",
+  };
+}
 
 const PERSONA: Record<string, PersonaId> = {
   "Autonomous Pioneer": "autonomous_pioneer", "Dynamic Explorer": "dynamic_explorer",
@@ -54,6 +71,8 @@ function useReducedMotionSwitch(): boolean {
 export function CompanionHost() {
   const { me } = useAuth();
   const safetyActive = useSafetyActive();
+  const { showSafety } = useSafety();
+  const { persona } = usePersona();
   const reducedMotion = useReducedMotionSwitch();
   const [slot, setSlot] = useState<HTMLElement | null>(null);
   const [species, setSpecies] = useState<Species>(speciesPref);
@@ -74,7 +93,24 @@ export function CompanionHost() {
   const nights = useLoad(() => api.GET("/api/v1/nights", { params: { query: { from, to } } }), [from, to]);
 
   const engine = (today.data as { context_engine?: { dashboard_visualization_data?: { persona_matrix?: { quadrant_name?: string } } } | null } | undefined)?.context_engine;
-  const personaId: PersonaId = PERSONA[engine?.dashboard_visualization_data?.persona_matrix?.quadrant_name ?? ""] ?? "default";
+  const quadrant = (persona?.available ? persona.persona_matrix?.quadrant_name : null) ?? engine?.dashboard_visualization_data?.persona_matrix?.quadrant_name ?? "";
+  const personaId: PersonaId = PERSONA[quadrant] ?? "default";
+
+  // one speech bubble chosen by the server: on app open and after every check-in or quiz.
+  // A pending safety screen comes back as HALT_AND_OPEN_CRISIS_SCREEN: open the existing one.
+  const [bubble, setBubble] = useState<PetBubble | null>(null);
+  const loadBubble = useCallback(() => {
+    api.GET("/api/v1/pet/bubble").then(({ data }) => {
+      if (!data) return;
+      if (data.ui_action === "HALT_AND_OPEN_CRISIS_SCREEN") { setBubble(null); showSafety(SAFETY_FALLBACK); return; }
+      setBubble(toPetBubble(data));
+    }).catch(() => { /* offline: the pet's own dialog cache still speaks */ });
+  }, [showSafety]);
+  useEffect(() => { loadBubble(); }, [loadBubble]);
+  useEffect(() => {
+    window.addEventListener(CHECKIN_SAVED, loadBubble);
+    return () => window.removeEventListener(CHECKIN_SAVED, loadBubble);
+  }, [loadBubble]);
   const minutes = stationMinutes(me?.station_time_offset_min, clock);
   const timeOfDay = timeOfDayAt(minutes);
   const counts = useMemo(() => nightCounts(nights.data ?? [], to), [nights.data, to]);
@@ -109,5 +145,5 @@ export function CompanionHost() {
   if (!slot) return null;
   return createPortal(<Pet species={species} personaId={personaId} timeOfDay={timeOfDay} safetyActive={safetyActive}
     reducedMotion={reducedMotion} streakDays={counts.streakDays} nightsLogged={counts.nightsLogged}
-    placement={wide ? "stage" : "corner"} size={wide ? 96 : 72} />, slot);
+    placement={wide ? "stage" : "corner"} size={wide ? 96 : 72} bubble={bubble} />, slot);
 }

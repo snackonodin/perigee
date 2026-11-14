@@ -8,13 +8,13 @@ import { unlocked } from "./accessories";
 import { PetArt } from "./PetArt";
 import {
   BLINK_MAX_MS, BLINK_MIN_MS, BREATHE_IN_S, BREATHE_MAX_CYCLES, BREATHE_OUT_S, IDLE_LONG_MS, SAFETY_QUIET_MS, DEFAULT_NAMES, DOUBLE_BLINK_CHANCE, EAR_TWITCH_MAX_MS, EAR_TWITCH_MIN_MS,
-  FOLLOW_LAG_MS, HOP_MS, MOOD_ACTIVE_MS, SIT_SETTLE_MS, WANDER_SPEED_PX_S, TAIL_FLICK_MAX_MS, TAIL_FLICK_MIN_MS, WALK_COOLDOWN_MS, WALK_IDLE_MS, WALK_SPEED_PX_S, YAWN_MIN_GAP_MS,
+  FOLLOW_LAG_MS, HOP_MS, MOOD_ACTIVE_MS, SERVER_BUBBLE_MS, SIT_SETTLE_MS, WANDER_SPEED_PX_S, TAIL_FLICK_MAX_MS, TAIL_FLICK_MIN_MS, WALK_COOLDOWN_MS, WALK_IDLE_MS, WALK_SPEED_PX_S, YAWN_MIN_GAP_MS,
 } from "./petConfig";
 import { createScheduler, type Scheduler } from "./scheduler";
 import type { PetProps } from "./types";
 import { useInteractions } from "./useInteractions";
 import cacheJson from "./dialog/cache.json";
-import { DialogBubble } from "./dialog/DialogBubble";
+import { DialogBubble, type BubbleLine } from "./dialog/DialogBubble";
 import { fill, pickLine } from "./dialog/picker";
 import { KEYS, readKey, writeKey } from "./dialog/storage";
 import { toneFor } from "./dialog/toneFor";
@@ -24,7 +24,7 @@ import { petStore, usePetPrefs } from "./store";
 import type { DialogCache, PetEvent, PetEventName } from "./types";
 import { useRig } from "./useRig";
 import { canWalk, perchTargets, stepToward, type Box, type Point } from "./walk";
-import { advanceMood, clampToViewport, createFollow, createMoods, laggedPointer, notePointer, pickWanderSpot, stepFollow } from "./follow";
+import { advanceMood, clampToViewport, createFollow, createMoods, fleeTarget, hopPose, hopSpeed, notePointer, pickWanderSpot, stepFollow } from "./follow";
 import "./pet.css";
 
 const CACHE = cacheJson as unknown as DialogCache;
@@ -49,7 +49,7 @@ function prefersReduced(): boolean {
 /** Optional hooks used by later phases (frost trail, dialog). */
 export interface PetLiveHooks { onStep?(p: Point): void; onTap?(): void; onState?(s: BehaviorState): void }
 
-export function PetLive({ species, personaId, timeOfDay, reducedMotion, nightsLogged, petName, placement = "corner", size = 96, onHiddenChange, hooks, quietUntil = 0 }: PetProps & { hooks?: PetLiveHooks; quietUntil?: number }) {
+export function PetLive({ species, personaId, timeOfDay, reducedMotion, nightsLogged, petName, placement = "corner", size = 96, onHiddenChange, hooks, quietUntil = 0, bubble }: PetProps & { hooks?: PetLiveHooks; quietUntil?: number }) {
   const reduced = reducedMotion || prefersReduced();
   const name = petName ?? DEFAULT_NAMES[species];
   const root = useRef<HTMLDivElement>(null);
@@ -66,17 +66,29 @@ export function PetLive({ species, personaId, timeOfDay, reducedMotion, nightsLo
   }, []);
   const hooksRef = useRef(hooks); hooksRef.current = hooks;
   // dialog: one line at a time, picked from the offline cache in the persona's tone
-  const [line, setLine] = useState<string | null>(null);
+  const [line, setLine] = useState<BubbleLine | null>(null);
+  // a server bubble wins: while it shows, offline cache lines wait
+  const serverShowing = useRef(false);
+  const [serverShown, setServerShown] = useState(false);
+  // playful:false (a support or context bubble) keeps the pet calm while that bubble shows
+  const playful = serverShown && bubble?.playful === false ? false : undefined;
   const lastShown = useRef<Partial<Record<PetEventName, number>>>({});
   const say = useCallback((event: PetEvent) => {
     if (Date.now() < quietUntil) return;
     const l = pickLine(CACHE, event.name, toneFor(personaId), timeOfDay, Date.now(), { lastShown: lastShown.current });
-    if (l) setLine(fill(l.text, name));
+    if (l && !serverShowing.current) setLine({ text: fill(l.text, name) });
     if (event.name === "quiz_complete") dispatch({ type: "cheer" });
   }, [quietUntil, personaId, timeOfDay, name, dispatch]);
   const sayRef = useRef(say); sayRef.current = say;
   useEffect(() => subscribe((e) => sayRef.current(e)), []);
-  const clearLine = useCallback(() => setLine(null), []);
+  const clearLine = useCallback(() => { serverShowing.current = false; setServerShown(false); setLine(null); }, []);
+  // the server bubble: shown once per id, dismissible, with its small "try" line
+  useEffect(() => {
+    if (!bubble?.text || Date.now() < quietUntil) return;
+    serverShowing.current = true;
+    setServerShown(true);
+    setLine({ text: bubble.text, sub: bubble.tryLine, badge: bubble.badge, dismissible: true, ms: SERVER_BUBBLE_MS });
+  }, [bubble?.id, bubble?.text]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (readKey(KEYS.firstRun) === "true") return;
     writeKey(KEYS.firstRun, "true");
@@ -175,24 +187,38 @@ export function PetLive({ species, personaId, timeOfDay, reducedMotion, nightsLo
     if (p && p.y < 220) el.setAttribute("data-vside", "below"); else el.removeAttribute("data-vside");
   }, [homeCenter]);
   useEffect(() => {
-    if (placement !== "stage" || reduced) return;
-    let raf = 0, last = 0, mode: "none" | "perch" | "follow" | "wander" = "none", following = false;
+    // playful:false (server bubble, e.g. a support or safety moment): calm idle only, no roaming
+    if (placement !== "stage" || reduced || playful === false) return;
+    let raf = 0, last = 0, mode: "none" | "perch" | "follow" | "wander" | "flee" = "none", following = false, hopPhase = 0;
     const viewport = () => ({ width: window.innerWidth, height: window.innerHeight });
     const fine = (() => { try { return window.matchMedia?.("(pointer: fine)").matches ?? false; } catch { return false; } })();
     const f = createFollow(homeCenter());
     // moods while the pointer is active: chase for a while, wander off, or ignore it
     const moods = createMoods(Date.now());
+    let pointer: Point | null = null;
+    const svg = () => root.current?.querySelector<SVGElement>(".pet-svg") ?? null;
+    // one hop clock drives the pose and the travel speed, so it only covers ground while airborne
+    const hopFrame = (dt: number): number => {
+      hopPhase = (hopPhase + dt * 1000 / HOP_MS) % 1;
+      const pose = hopPose(hopPhase), el = svg();
+      if (el) {
+        el.style.setProperty("--hop", pose.hop.toFixed(2)); el.style.setProperty("--squash", pose.squash.toFixed(3));
+        el.style.setProperty("--ear-l", pose.ears.toFixed(3)); el.style.setProperty("--ear-r", pose.ears.toFixed(3)); el.style.setProperty("--tail", pose.tail.toFixed(3));
+      }
+      return hopSpeed(hopPhase);
+    };
+    const restPose = () => { hopPhase = 0; const el = svg(); if (el) for (const v of ["--hop", "--squash", "--ear-l", "--ear-r", "--tail"]) el.style.removeProperty(v); };
     const stop = () => {
       if (raf) cancelAnimationFrame(raf); raf = 0;
-      const wasWander = mode === "wander"; mode = "none";
-      if (following || wasWander) { following = false; dispatch({ type: "followStop" }); }
+      const travelling = mode === "wander" || mode === "flee"; mode = "none";
+      if (following || travelling) { following = false; dispatch({ type: "followStop" }); }
+      restPose();
     };
     const step = (p: Point) => { place(p); if (trail.add(p.x, p.y + size / 2 - 4, performance.now())) frostKick.current?.(); hooksRef.current?.onStep?.(p); };
     const leavePerch = () => { if (!perchedRef.current) return; setPerched(false); dispatch({ type: "leavePerch" }); };
     const goHome = () => {
-      const roaming = mode === "perch" || mode === "wander";
-      if (roaming || mode === "follow") stop();
-      if (perchedRef.current || roaming || pos.current) { place(null); leavePerch(); }
+      if (mode !== "none") stop();
+      if (perchedRef.current || pos.current) { place(null); leavePerch(); }
     };
     const avoidBoxes = (extra = ""): Box[] => {
       const box = (el: Element): Box => { const r = el.getBoundingClientRect(); return { left: r.left, top: r.top, width: r.width, height: r.height }; };
@@ -200,8 +226,29 @@ export function PetLive({ species, personaId, timeOfDay, reducedMotion, nightsLo
       if (document.activeElement && document.activeElement !== document.body) out.push(box(document.activeElement));
       return out;
     };
+    const busy = () => ["sleeping", "yawning", "waking", "petting", "playful"].includes(stateRef.current);
+    /** Hop to a point (wander, flee, perch), then run onArrive. */
+    const hopTo = (target: Point, kind: "wander" | "flee" | "perch", speed: number, onArrive: () => void) => {
+      stop(); if (kind !== "perch") leavePerch();
+      let p = pos.current ?? homeCenter();
+      dispatch({ type: kind === "perch" ? "perchFound" : "followStart" });
+      mode = kind; last = performance.now();
+      const frame = (t: number) => {
+        if (busy()) { stop(); return; }
+        const dt = Math.min(.05, (t - last) / 1000); last = t;
+        const r = stepToward(p, target, speed * hopFrame(dt), dt);
+        p = r.pos; step(p);
+        if (r.arrived) { raf = 0; mode = "none"; restPose(); onArrive(); return; }
+        raf = requestAnimationFrame(frame);
+      };
+      raf = requestAnimationFrame(frame);
+    };
+    const lookAround = () => {
+      const look = (x: number) => root.current?.style.setProperty("--look-x", x.toFixed(2));
+      scheduler.after(700, () => look(-.8)); scheduler.after(1700, () => look(.8)); scheduler.after(2600, () => look(0));
+    };
     const startFollow = () => {
-      if (mode === "follow") return;
+      if (mode === "follow" || mode === "flee") return;
       if (mode !== "none") stop();
       leavePerch();
       f.pos = pos.current ?? homeCenter(); f.vel = { x: 0, y: 0 }; f.detour = undefined;
@@ -210,52 +257,42 @@ export function PetLive({ species, personaId, timeOfDay, reducedMotion, nightsLo
     };
     // wander: hop to a free spot (never on forms, controls, dialogs or the focused element), sit, look around
     const wander = () => {
-      const spot = pickWanderSpot(viewport(), size, avoidBoxes(", a, button, [role=button], label"), laggedPointer(f, Date.now()));
-      if (!spot) return;
-      stop(); leavePerch();
-      let p = pos.current ?? homeCenter();
-      dispatch({ type: "followStart" });
-      mode = "wander"; last = performance.now();
-      const frame = (t: number) => {
-        if (busy()) { stop(); return; }
-        const r = stepToward(p, spot, WANDER_SPEED_PX_S, Math.min(.05, (t - last) / 1000));
-        last = t; p = r.pos; step(p);
-        if (r.arrived) {
-          raf = 0; mode = "none"; dispatch({ type: "arrived" });
-          const look = (x: number) => root.current?.style.setProperty("--look-x", x.toFixed(2));
-          scheduler.after(700, () => look(-.8)); scheduler.after(1700, () => look(.8)); scheduler.after(2600, () => look(0));
-          return;
-        }
-        raf = requestAnimationFrame(frame);
-      };
-      raf = requestAnimationFrame(frame);
+      const spot = pickWanderSpot(viewport(), size, avoidBoxes(", a, button, [role=button], label"), pointer);
+      if (spot) hopTo(spot, "wander", WANDER_SPEED_PX_S, () => { dispatch({ type: "arrived" }); lookAround(); });
+    };
+    // keep away: once out of its corner it never lets the cursor within FOLLOW_MIN_DIST_PX
+    const keepAway = () => {
+      if (!pointer || !pos.current || mode === "flee" || busy()) return;
+      const target = fleeTarget(pos.current, pointer, size, viewport(), avoidBoxes(", a, button, [role=button], label"));
+      if (target) hopTo(target, "flee", WANDER_SPEED_PX_S * 1.6, () => { dispatch({ type: "arrived" }); lookAround(); });
     };
     const moodTick = () => {
       if (!fine || !canWalk(window.innerWidth, reduced) || busy()) return;
-      if (Date.now() - lastPointer.current > MOOD_ACTIVE_MS) return;
+      if (Date.now() - lastPointer.current > MOOD_ACTIVE_MS || mode === "flee") return;
       if (!advanceMood(moods, Date.now())) return;
       if (moods.mood === "follow") startFollow();
       else if (moods.mood === "wander") wander();
       else if (mode === "follow") stop(); // ignore: settle where it is
     };
 
-    // cursor follow: chase a lagged pointer, stop in the dead zone, wobble and detour
-    const busy = () => ["sleeping", "yawning", "waking", "petting", "playful"].includes(stateRef.current);
+    // cursor follow: chase a lagged pointer from a card's width away, wobble and detour, in hops
     const followFrame = (t: number) => {
       const dt = Math.min(.05, (t - last) / 1000); last = t;
       if (busy()) { stop(); return; }
-      const r = stepFollow(f, Date.now(), dt, { size, viewport: viewport() });
+      const r = stepFollow(f, Date.now(), dt * (following ? hopFrame(dt) : 1), { size, viewport: viewport() });
       step(f.pos);
-      if (r.moving !== following) { following = r.moving; dispatch({ type: following ? "followStart" : "followStop" }); }
-      if (!r.moving && Date.now() - lastPointer.current > FOLLOW_LAG_MS + 250) { raf = 0; mode = "none"; return; }
+      if (r.moving !== following) { following = r.moving; dispatch({ type: following ? "followStart" : "followStop" }); if (!following) restPose(); }
+      if (!r.moving && Date.now() - lastPointer.current > FOLLOW_LAG_MS + 250) { raf = 0; mode = "none"; restPose(); return; }
       raf = requestAnimationFrame(followFrame);
     };
     const move = (e: PointerEvent) => {
       if (!fine || (e.pointerType !== "mouse" && e.pointerType !== "pen")) return;
       if (!canWalk(window.innerWidth, reduced) || busy()) return;
       lastPointer.current = Date.now();
+      pointer = { x: e.clientX, y: e.clientY };
       notePointer(f, e.clientX, e.clientY, Date.now());
-      if (moods.mood !== "follow" || mode === "follow" || mode === "wander") return;
+      keepAway();
+      if (moods.mood !== "follow" || mode !== "none") return;
       startFollow();
     };
 
@@ -269,18 +306,8 @@ export function PetLive({ species, personaId, timeOfDay, reducedMotion, nightsLo
       if (!spots.length) return;
       lastWalk.current = now;
       const spot = spots[Math.floor(Math.random() * spots.length)];
-      const target = { x: spot.x, y: spot.y - size / 2 };
-      let p = pos.current ?? homeCenter();
-      dispatch({ type: "perchFound" });
       setPerched(true);
-      mode = "perch"; last = performance.now();
-      const frame = (t: number) => {
-        const r = stepToward(p, target, WALK_SPEED_PX_S, Math.min(.05, (t - last) / 1000));
-        last = t; p = r.pos; step(p);
-        if (r.arrived) { raf = 0; mode = "none"; scheduler.after(SIT_SETTLE_MS, () => dispatch({ type: "arrived" })); return; }
-        raf = requestAnimationFrame(frame);
-      };
-      raf = requestAnimationFrame(frame);
+      hopTo({ x: spot.x, y: spot.y - size / 2 }, "perch", WALK_SPEED_PX_S, () => scheduler.after(SIT_SETTLE_MS, () => dispatch({ type: "arrived" })));
     };
     const onResize = () => { goHome(); if (pos.current) place(clampToViewport(pos.current, size, viewport())); };
     const stopCheck = scheduler.every(5000, 5000, tryWalk);
@@ -289,10 +316,10 @@ export function PetLive({ species, personaId, timeOfDay, reducedMotion, nightsLo
     window.addEventListener("scroll", goHome, { passive: true });
     window.addEventListener("resize", onResize);
     return () => {
-      stopCheck(); stopMoods(); if (raf) cancelAnimationFrame(raf);
+      stopCheck(); stopMoods(); if (raf) cancelAnimationFrame(raf); restPose();
       window.removeEventListener("pointermove", move); window.removeEventListener("scroll", goHome); window.removeEventListener("resize", onResize);
     };
-  }, [placement, reduced, size, scheduler, dispatch, trail, place, homeCenter]);
+  }, [placement, reduced, playful, size, scheduler, dispatch, trail, place, homeCenter]);
   // any interaction while perched sends the pet home
   useEffect(() => {
     if (perched && (b.state === "happy" || b.state === "petting" || b.state === "playful")) { place(null); setPerched(false); }
@@ -301,10 +328,10 @@ export function PetLive({ species, personaId, timeOfDay, reducedMotion, nightsLo
   const handlers = useInteractions(scheduler, dispatch, onTap);
   const accessories = useMemo(() => unlocked(nightsLogged), [nightsLogged]);
   const mood = moodOf(b.state, timeOfDay);
-  const style = { "--pet-size": `${size}px`, "--buddy-s": `${BREATHE_IN_S + BREATHE_OUT_S}s`, "--hop-s": `${HOP_MS}ms` } as CSSProperties;
+  const style = { "--pet-size": `${size}px`, "--buddy-s": `${BREATHE_IN_S + BREATHE_OUT_S}s` } as CSSProperties;
   return <div ref={root} className="pet" data-state={b.state} data-species={species} data-placement={placement}
-    data-reduced={reduced ? "true" : undefined} data-perched={perched ? "true" : undefined} data-buddy={buddy ? "true" : undefined} style={style}>
-    <DialogBubble text={line} scheduler={scheduler} onDone={clearLine} />
+    data-reduced={reduced ? "true" : undefined} data-anim={bubble?.animation && bubble.animation !== "calm" ? bubble.animation : undefined} data-calm={playful === false ? "true" : undefined} data-perched={perched ? "true" : undefined} data-buddy={buddy ? "true" : undefined} style={style}>
+    <DialogBubble line={line} scheduler={scheduler} onDone={clearLine} />
     <button type="button" className="pet-hit" aria-label={`Pet ${name}`} {...handlers}>
       <PetArt species={species} mood={mood} size={size} accessories={accessories} animated />
     </button>

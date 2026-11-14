@@ -500,6 +500,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/pet/bubble": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Bubble
+         * @description The pet's single speech bubble for the caller. Safety first: while a safety screen is
+         *     pending it is the crisis card (playful=false, ui_action HALT_AND_OPEN_CRISIS_SCREEN). Voice
+         *     comes from the persona quadrant (traits never change thresholds). bubble=null before the
+         *     first night. Never contains scores.
+         */
+        get: operations["get_bubble_api_v1_pet_bubble_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/responses": {
         parameters: {
             query?: never;
@@ -1035,6 +1058,27 @@ export interface components {
             };
             /** Updated At */
             updated_at?: string | null;
+        };
+        /** PetBubbleOut */
+        PetBubbleOut: {
+            /** Badge */
+            badge: string;
+            /** Bubble */
+            bubble?: string | null;
+            /** Disclaimer */
+            disclaimer?: string | null;
+            /** Id */
+            id: string;
+            /** Micro Try */
+            micro_try?: string | null;
+            /** Pet Animation */
+            pet_animation: string;
+            /** Playful */
+            playful: boolean;
+            /** Ui Action */
+            ui_action?: string | null;
+            /** Voice */
+            voice: string;
         };
         /**
          * Posture
@@ -3804,6 +3848,89 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PersonaOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    get_bubble_api_v1_pet_bubble_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PetBubbleOut"];
                 };
             };
             /** @description Bad Request */

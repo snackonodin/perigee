@@ -52,6 +52,21 @@ export interface PetProps extends PetContext {
   size?: number;
   /** called after the user hides the pet with its own control */
   onHiddenChange?: (hidden: boolean) => void;
+  /** one speech bubble chosen by the server (GET /api/v1/pet/bubble); null = none. Never scores. */
+  bubble?: PetBubble | null;
+}
+
+/** A server-chosen bubble, already mapped by the host. `playful:false` = calm idle only. */
+export interface PetBubble {
+  id: string;
+  text: string;
+  /** a small optional second line ("micro try") */
+  tryLine?: string | null;
+  /** visual only: green or amber dot, otherwise neutral. Never red. */
+  badge?: "green" | "amber" | "neutral";
+  playful?: boolean;
+  /** calm = idle breathing; tilt = curious head tilt; cozy = settle close and soft */
+  animation?: "calm" | "tilt" | "cozy";
 }
 
 // ---------------------------------------------------------------- events

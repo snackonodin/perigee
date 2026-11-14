@@ -6,7 +6,8 @@ import {
   FOLLOW_ACCEL, FOLLOW_DEADZONE_PX, FOLLOW_DETOUR_CHANCE_S, FOLLOW_DETOUR_MAX_MS, FOLLOW_DETOUR_MAX_PX, FOLLOW_DETOUR_MIN_DIST_PX,
   FOLLOW_DETOUR_MIN_PX, FOLLOW_EASE, FOLLOW_EDGE_PX, FOLLOW_GAP_PX, FOLLOW_LAG_MS, FOLLOW_MAX_SPEED_PX_S, FOLLOW_STOP_SPEED_PX_S,
   FOLLOW_WOBBLE_HZ, FOLLOW_WOBBLE_PX, FOLLOW_COOLDOWN_MS, FOLLOW_INTEREST_MAX_MS, FOLLOW_INTEREST_MIN_MS, IGNORE_MAX_MS, IGNORE_MIN_MS,
-  MOOD_WEIGHTS, WANDER_MAX_MS, WANDER_MIN_MS, WANDER_POINTER_CLEAR_PX, WANDER_TRIES,
+  MOOD_WEIGHTS, WANDER_MAX_MS, WANDER_MIN_MS, WANDER_POINTER_CLEAR_PX, WANDER_TRIES, FOLLOW_MIN_DIST_PX,
+  HOP_CROUCH, HOP_HEIGHT_PX, HOP_LAND, HOP_SETTLE, HOP_STRETCH, HOP_TAKEOFF,
 } from "./petConfig";
 import { avoids, type Box, type Point } from "./walk";
 
@@ -127,4 +128,55 @@ export function pickWanderSpot(viewport: { width: number; height: number }, size
     if (avoids({ left: p.x - size / 2, top: p.y - size / 2, width: size, height: size }, avoid)) return p;
   }
   return null;
+}
+
+// ---- Keep away: never closer than FOLLOW_MIN_DIST_PX to the cursor -------------------------
+
+/** Where to hop when the pointer is too close: straight away from it, far enough to clear the
+ *  minimum distance; if the screen edge blocks that, any free spot that is far enough. Null when
+ *  the pointer is not too close (or no spot is free). */
+export function fleeTarget(pos: Point, pointer: Point, size: number, viewport: { width: number; height: number },
+  avoid: readonly Box[] = [], rnd: () => number = Math.random): Point | null {
+  const dx = pos.x - pointer.x, dy = pos.y - pointer.y, d = Math.hypot(dx, dy);
+  if (d >= FOLLOW_MIN_DIST_PX) return null;
+  const ux = d > 1 ? dx / d : 1, uy = d > 1 ? dy / d : 0, want = FOLLOW_MIN_DIST_PX + 60;
+  const straight = clampToViewport({ x: pointer.x + ux * want, y: pointer.y + uy * want }, size, viewport);
+  if (Math.hypot(straight.x - pointer.x, straight.y - pointer.y) >= FOLLOW_MIN_DIST_PX) return straight;
+  return pickWanderSpot(viewport, size, avoid, pointer, rnd);
+}
+
+// ---- Hop pose: one shared phase drives the body and the travel speed -----------------------
+
+export interface HopPose { hop: number; squash: number; ears: number; tail: number }
+const lerp = (a: number, b: number, t: number) => a + (b - a) * Math.max(0, Math.min(1, t));
+const ease = (t: number) => 0.5 - 0.5 * Math.cos(Math.PI * Math.max(0, Math.min(1, t)));
+
+/** Pose at phase 0..1 of a hop: crouch, take-off stretch, airborne arc, landing squash, settle, pause.
+ *  hop is px (negative = up); ears and tail trail the body by a beat. */
+export function hopPose(phase: number): HopPose {
+  const p = ((phase % 1) + 1) % 1;
+  let hop = 0, squash = 0;
+  if (p < HOP_TAKEOFF) squash = lerp(0, HOP_CROUCH, ease(p / HOP_TAKEOFF));
+  else if (p < HOP_LAND) {
+    const a = (p - HOP_TAKEOFF) / (HOP_LAND - HOP_TAKEOFF);
+    hop = -HOP_HEIGHT_PX * Math.sin(Math.PI * a);
+    squash = a < 0.35 ? lerp(HOP_STRETCH, -0.15, a / 0.35) : a > 0.85 ? lerp(-0.15, 0, (a - 0.85) / 0.15) : -0.15;
+  } else if (p < HOP_SETTLE) {
+    const a = (p - HOP_LAND) / (HOP_SETTLE - HOP_LAND);
+    squash = HOP_CROUCH * 0.7 * Math.cos(Math.PI * a * 1.5) * (1 - a);
+    hop = -2 * Math.sin(Math.PI * Math.min(1, a * 1.6)) * (a > 0.35 ? 1 : 0);
+  }
+  // ears and tail trail: they follow the body's vertical motion one beat later
+  const lag = hopHeightAt(p - 0.08);
+  return { hop, squash, ears: -lag / HOP_HEIGHT_PX * 0.6, tail: lag / HOP_HEIGHT_PX * 0.5 };
+}
+const hopHeightAt = (phase: number) => {
+  const p = ((phase % 1) + 1) % 1;
+  return p >= HOP_TAKEOFF && p < HOP_LAND ? -HOP_HEIGHT_PX * Math.sin(Math.PI * (p - HOP_TAKEOFF) / (HOP_LAND - HOP_TAKEOFF)) : 0;
+};
+
+/** Travel speed multiplier at a phase: it covers ground only while airborne (mean = 1 over a hop). */
+export function hopSpeed(phase: number): number {
+  const p = ((phase % 1) + 1) % 1;
+  return p >= HOP_TAKEOFF && p < HOP_LAND ? 1 / (HOP_LAND - HOP_TAKEOFF) : 0;
 }

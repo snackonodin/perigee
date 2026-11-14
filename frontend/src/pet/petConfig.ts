@@ -37,9 +37,11 @@ export const SIT_SETTLE_MS = 1000;
 /** the pet chases where the pointer was this long ago */
 export const FOLLOW_LAG_MS = 350;
 /** within this distance of the (lagged) pointer the pet stops: never covers what you click */
-export const FOLLOW_DEADZONE_PX = 220;
+export const FOLLOW_DEADZONE_PX = 380;
+/** never closer to the cursor than about one card width; if the cursor comes closer it hops away */
+export const FOLLOW_MIN_DIST_PX = 320;
 /** it aims to stand this far short of the pointer (>= pet radius + 24 px) */
-export const FOLLOW_GAP_PX = 180;
+export const FOLLOW_GAP_PX = 340;
 export const FOLLOW_MAX_SPEED_PX_S = 260;
 /** desired speed = distance x this (per second), so it lags more the farther it is */
 export const FOLLOW_EASE = 2.2;
@@ -68,14 +70,25 @@ export const WANDER_MIN_MS = 5000;
 export const WANDER_MAX_MS = 9000;
 export const WANDER_SPEED_PX_S = 160;
 /** a wander spot keeps at least this far from the pointer */
-export const WANDER_POINTER_CLEAR_PX = 220;
+export const WANDER_POINTER_CLEAR_PX = 380;
 export const WANDER_TRIES = 16;
 export const IGNORE_MIN_MS = 4000;
 export const IGNORE_MAX_MS = 8000;
 /** moods only run while the pointer moved within this window */
 export const MOOD_ACTIVE_MS = 10000;
-/** one hop of the travel animation (pet.css --hop-s) */
-export const HOP_MS = 350;
+/** One travel hop, chibi style: crouch, spring up, ~0.3 s airborne arc, soft landing with a
+ *  tiny settle bounce, then a short pause. The pet only moves while airborne. */
+export const HOP_MS = 560;
+/** a server speech bubble stays this long unless dismissed */
+export const SERVER_BUBBLE_MS = 14000;
+export const HOP_HEIGHT_PX = 12;
+/** fraction of the hop cycle: crouch ends / take-off, landing, settle ends (rest = pause) */
+export const HOP_TAKEOFF = 0.14;
+export const HOP_LAND = 0.68;
+export const HOP_SETTLE = 0.84;
+/** squash: + crouch/landing (~10 % shorter), - stretch (~8 % taller); rig: scaleY = 1 - .12 x squash */
+export const HOP_CROUCH = 0.85;
+export const HOP_STRETCH = -0.67;
 
 /** Bedtime window, station time (the host passes timeOfDay "night" inside it). */
 export const BEDTIME_START = "22:00";

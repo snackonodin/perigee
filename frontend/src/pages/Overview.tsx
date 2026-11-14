@@ -58,7 +58,7 @@ export function Overview() {
           </div>
           <dl className="tonight-panel" aria-label="Tonight">
             <div><dt className="telemetry">Station time</dt><dd>{stationClock(me?.station_time_offset_min)}<small>{stationLabel(me?.station_time_offset_min)}</small></dd></div>
-            <div><dt className="telemetry">Nights logged</dt><dd>{nights}<small> / {BASELINE_NIGHTS}</small></dd>
+            <div><dt className="telemetry">In your baseline</dt><dd>{nights}<small> / {BASELINE_NIGHTS}</small></dd>
               <span className="nights-track" aria-hidden="true"><i style={{width:`${nights/BASELINE_NIGHTS*100}%`}}/></span></div>
             <div><dt className="telemetry">Next check-in</dt><dd className="tonight-next">{pending?(pending.slot==="pm"?"Evening":"Morning"):"None due"}</dd></div>
           </dl>

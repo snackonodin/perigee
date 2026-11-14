@@ -92,7 +92,7 @@ export function Sleep() {
       <div className="sleep-bento-arc"><SleepArc night={latestValid} status={status} explanation={explanation}/></div>
       <BreathingTile latest={latestValid} baseline={baseline}/>
       {nights.data?<Regularity nights={nights.data}/>:<section className="card glass regularity-card"><p className="eyebrow">Your rhythm</p><h2>Regularity</h2><p className="muted">Available when the recent nights load.</p></section>}
-      <section className="card glass wide sleep-hero" aria-labelledby="timeline-heading"><div className="row"><div><p className="eyebrow">28-night view</p><h2 id="timeline-heading">Time present overnight</h2></div><span className="telemetry nights-count">{validCount??"—"} / {DAYS} nights</span></div>
+      <section className="card glass wide sleep-hero" aria-labelledby="timeline-heading"><div className="row"><div><p className="eyebrow">28-night view</p><h2 id="timeline-heading">Time present overnight</h2></div><span className="telemetry nights-count">{validCount??"—"} / {DAYS} nights with readings</span></div>
         <LoadState state={nights} label="nightly timeline">{data=><SleepTimeline nights={data}/>}</LoadState></section>
       {(validCount??0)>0&&<section className="card glass wide sleep-trend-card" aria-labelledby="rr-trend-title"><p className="eyebrow">Personal signal</p><h2 id="rr-trend-title">Breathing-rate trend</h2><LoadState state={nights} label="breathing trend">{data=><RrTrend nights={data} baseline={baseline} days={DAYS}/>}</LoadState>
         {today.error&&<p className="muted">Personal baseline could not be loaded. Showing night data without its band.</p>}

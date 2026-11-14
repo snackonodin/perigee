@@ -251,6 +251,82 @@
         "title": "ConsentsIn",
         "type": "object"
       },
+      "DemoIn": {
+        "additionalProperties": false,
+        "properties": {
+          "crew": {
+            "anyOf": [
+              {
+                "enum": [
+                  "iss-flight",
+                  "iss-aligned",
+                  "iss-misaligned"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Crew"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DemoProfileIn"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "title": "DemoIn",
+        "type": "object"
+      },
+      "DemoProfileIn": {
+        "additionalProperties": false,
+        "description": "The visitor's own synthetic data: 5 answers, synthetic knobs only (not clinical).",
+        "properties": {
+          "mood": {
+            "maximum": 4.0,
+            "minimum": 0.0,
+            "title": "Mood",
+            "type": "integer"
+          },
+          "recent_change": {
+            "title": "Recent Change",
+            "type": "boolean"
+          },
+          "regularity": {
+            "maximum": 4.0,
+            "minimum": 0.0,
+            "title": "Regularity",
+            "type": "integer"
+          },
+          "sleep_hours": {
+            "maximum": 10.0,
+            "minimum": 4.0,
+            "title": "Sleep Hours",
+            "type": "number"
+          },
+          "stress": {
+            "maximum": 4.0,
+            "minimum": 0.0,
+            "title": "Stress",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "sleep_hours",
+          "regularity",
+          "stress",
+          "mood",
+          "recent_change"
+        ],
+        "title": "DemoProfileIn",
+        "type": "object"
+      },
       "ErrorOut": {
         "properties": {
           "error": {
@@ -2024,8 +2100,25 @@
   "paths": {
     "/api/v1/auth/demo": {
       "post": {
-        "description": "A private copy of the synthetic demo persona, no password. 404 unless DEMO_ACCESS=1;\n503 demo_full once DEMO_MAX_USERS visitors exist.",
+        "description": "A private demo account, no password. Body optional: {} or none = copy of the default\npersona; {\"crew\": \"iss-flight\"|\"iss-aligned\"|\"iss-misaligned\"} = copy of that NASA-calibrated\ncrew member; {\"profile\": {...5 answers}} = the visitor's own synthetic 14 nights (~5 s).\n404 unless DEMO_ACCESS=1; 503 demo_full once DEMO_MAX_USERS visitors exist.",
         "operationId": "demo_api_v1_auth_demo_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/DemoIn"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "content": {

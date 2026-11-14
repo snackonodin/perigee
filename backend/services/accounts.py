@@ -512,26 +512,45 @@ def _raw_paths(db: Session, user_id: str, data_dir: Path) -> list[Path]:
     return paths
 
 
-def demo_login(db: Session) -> AuthResult:
-    """Tokens for a fresh private copy of the demo persona, no password (Space Apps rule).
+DEMO_CREW = {  # visitor choice -> seeded synthetic template
+    "iss-flight": "iss-flight@ex.com",
+    "iss-aligned": "iss-aligned@ex.com",
+    "iss-misaligned": "iss-misaligned@ex.com",
+}
 
-    Only when settings.demo_access is on. The template is the *synthetic* user with
-    settings.demo_email (seeded by `tools.cli seed-personas`); real accounts can never be
-    reached this way. Each call makes a new visitor account (backend.services.demo_pool)
-    so visitors never see each other's answers; at most settings.demo_max_users of them.
+
+def demo_login(
+    db: Session, crew: str | None = None, profile: dict[str, Any] | None = None
+) -> AuthResult:
+    """Tokens for a fresh private demo account, no password (Space Apps rule).
+
+    Only when settings.demo_access is on, at most settings.demo_max_users visitors.
+    - no choice: a copy of the default persona (settings.demo_email);
+    - ``crew``: a copy of one NASA-calibrated ISS crew member (DEMO_CREW);
+    - ``profile``: the visitor's own synthetic 14 nights from 5 answers (personas.seed_visitor).
+    Templates are synthetic users only; real accounts can never be reached this way.
     """
-    from backend.services import demo_pool
+    from backend.services import demo_pool, personas
 
     s = get_settings()
     if not s.demo_access:
         raise DemoDisabled("demo access is not enabled")
-    user = db.scalar(
-        select(User).where(User.email == s.demo_email, User.is_synthetic.is_(True))
-    )
-    if user is None or getattr(user, "deleted_at", None) is not None:
-        raise UserNotFound("demo persona is not seeded")
     try:
-        visitor = demo_pool.clone_user(db, user.id, s.demo_max_users)
+        if profile is not None:
+            visitor, email = demo_pool.create_visitor(db, s.demo_max_users)
+            db.add(Profile(user_id=visitor))
+            db.commit()
+            personas.seed_visitor(db, visitor, email, profile)
+        else:
+            email = DEMO_CREW.get(crew or "", s.demo_email)
+            if crew is not None and crew not in DEMO_CREW:
+                raise InvalidInput("unknown crew member")
+            user = db.scalar(
+                select(User).where(User.email == email, User.is_synthetic.is_(True))
+            )
+            if user is None or getattr(user, "deleted_at", None) is not None:
+                raise UserNotFound("demo persona is not seeded")
+            visitor = demo_pool.clone_user(db, user.id, s.demo_max_users)
     except demo_pool.DemoFull:
         db.rollback()
         raise DemoFull("the demo is full; please try again later") from None

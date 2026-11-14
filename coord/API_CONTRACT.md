@@ -114,3 +114,15 @@ four-state bubble in the persona voice (warm/bright/quiet/calm from the quadrant
 null before the first night (`id:"no_night_yet"`). `playful:false` → no playful pet animation.
 `badge` is green / amber / support / crisis / neutral; never render red for it. Never contains scores.
 Not wired (no data yet): cabin CO2 nudge, weekly reflection, exploratory pattern, severe somatic flag.
+
+## Demo choices, added 2026-11-15
+
+`POST /api/v1/auth/demo` now takes an optional JSON body (no body = as before, copy of drift):
+- `{"crew": "iss-flight" | "iss-aligned" | "iss-misaligned"}` → private copy of that NASA-calibrated
+  ISS crew member (~1.5 s). Sleep length from Barger 2014 / Flynn-Evans 2016; people synthetic.
+- `{"profile": {"sleep_hours": 4-10, "regularity": 0-4, "stress": 0-4, "mood": 0-4,
+  "recent_change": bool}}` → the visitor's own synthetic 14 nights + check-ins + weekly surveys
+  (~5 s; show a loading state). `regularity` 0 = very irregular .. 4 = very regular; `stress`
+  0 = none .. 4 = very high; `mood` 0 = very low .. 4 = very good; `recent_change` = new
+  schedule, travel or illness (adds a breathing drift). No PHQ-9 is ever simulated.
+- Both together → 422. Unknown crew → 422. Same 50-visitor cap (503 demo_full), same TokenOut.

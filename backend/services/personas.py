@@ -86,6 +86,8 @@ class Persona:
     mental_dip: bool = False
     # Sleep length per history night (mean, sd in hours). Default: the original generator.
     duration_h: tuple[float, float] = DURATION_H
+    # Daily check-in centre values (mood, energy, stress, sleep_quality), 0-4.
+    daily_base: tuple[int, int, int, int] = (3, 3, 1, 3)
 
 
 def _answers(*vals: int) -> list[int]:
@@ -278,7 +280,8 @@ def _daily_values(p: Persona, i: int, rng: np.random.Generator) -> dict[str, int
     def j(v: int) -> int:
         return int(np.clip(v + rng.integers(-1, 2), 0, 4))
 
-    return {"mood": j(3), "energy": j(3), "stress": j(1), "sleep_quality": j(3)}
+    mood, energy, stress, slept = p.daily_base
+    return {"mood": j(mood), "energy": j(energy), "stress": j(stress), "sleep_quality": j(slept)}
 
 
 def seed_surveys_for_day(db: Session, p: Persona, uid: str, anchor: date, i: int) -> int:
@@ -563,36 +566,108 @@ def seed(
                  "full_demo": not with_raw},
                 uid,
             )
-        raw_sid = (
-            seed_raw(db, p, uid, anchor, fs=raw_fs, n_sub=raw_n_sub, cache_root=cache_root)
-            if with_raw
-            else None
+        entry = _seed_rest(
+            db, p, uid, anchor, with_raw=with_raw, include_final_phq9=include_final_phq9,
+            raw_fs=raw_fs, raw_n_sub=raw_n_sub, cache_root=cache_root,
         )
-        # Chronological: a night only sees surveys submitted up to that day, so the
-        # backfill does not leak later answers into earlier nights.
-        done = set(db.scalars(scoped(select(NightFeaturesRow.date), NightFeaturesRow, uid)))
-        ran = n_surveys = 0
-        for i in range(14):
-            night = anchor - timedelta(days=14 - i)
-            n_surveys += seed_surveys_for_day(db, p, uid, anchor, i)
-            if night not in done:
-                _run_kind(db, "run_nightly", {"user_id": uid, "day": night.isoformat()}, uid)
-                ran += 1
-        if include_final_phq9:
-            n_surveys += seed_final_phq9(db, p, uid, anchor)
-        entry = {
-            "key": p.key,
-            "email": p.email,
-            "user_id": uid,
-            "raw_session_id": raw_sid,
-            "survey_submissions": n_surveys,
-            "nights_run": ran,
-        }
         if generated:
             entry["generated_password"] = generated  # shown once by the CLI, never logged
         out["personas"].append(entry)
-        log.info("persona seeded key=%s nights_run=%d", p.key, ran)
+        log.info("persona seeded key=%s nights_run=%d", p.key, entry["nights_run"])
     return out
+
+
+def _seed_rest(
+    db: Session,
+    p: Persona,
+    uid: str,
+    anchor: date,
+    *,
+    with_raw: bool,
+    include_final_phq9: bool = False,
+    raw_fs: float = RAW_FS,
+    raw_n_sub: int = RAW_N_SUB,
+    cache_root: Path | None = None,
+) -> dict[str, Any]:
+    """After the windows exist: raw capture (optional), surveys and nightly runs."""
+    raw_sid = (
+        seed_raw(db, p, uid, anchor, fs=raw_fs, n_sub=raw_n_sub, cache_root=cache_root)
+        if with_raw
+        else None
+    )
+    # Chronological: a night only sees surveys submitted up to that day, so the
+    # backfill does not leak later answers into earlier nights.
+    done = set(db.scalars(scoped(select(NightFeaturesRow.date), NightFeaturesRow, uid)))
+    ran = n_surveys = 0
+    for i in range(14):
+        night = anchor - timedelta(days=14 - i)
+        n_surveys += seed_surveys_for_day(db, p, uid, anchor, i)
+        if night not in done:
+            _run_kind(db, "run_nightly", {"user_id": uid, "day": night.isoformat()}, uid)
+            ran += 1
+    if include_final_phq9:
+        n_surveys += seed_final_phq9(db, p, uid, anchor)
+    return {
+        "key": p.key,
+        "email": p.email,
+        "user_id": uid,
+        "raw_session_id": raw_sid,
+        "survey_submissions": n_surveys,
+        "nights_run": ran,
+    }
+
+
+# ----------------------------------------------------------------- visitor's own synthetic data
+
+SLEEP_SD_BY_REGULARITY = (1.4, 1.1, 0.8, 0.5, 0.25)  # 0 very irregular .. 4 very regular
+
+
+def custom_persona(email: str, profile: dict[str, Any], seed: int) -> Persona:
+    """A synthetic persona from a demo visitor's 5 answers (synthetic data knobs only, never a
+    clinical judgement). No PHQ-9 is generated, so the safety item is never simulated."""
+    hours = float(min(10.0, max(4.0, profile["sleep_hours"])))
+    reg = int(min(4, max(0, profile["regularity"])))
+    stress = int(min(4, max(0, profile["stress"])))
+    mood = int(min(4, max(0, profile["mood"])))
+    change = bool(profile["recent_change"])
+    energy = int(round((mood + (4 - stress)) / 2))
+    base = 14.0
+    rr = (base,) * 9 + (base + 0.6, base + 1.0, base + 1.4, base + 1.8) if change \
+        else (base,) * HISTORY_NIGHTS
+    gad = (0, 0, 1, 2, 3)[stress]
+    phq = (2, 1, 1, 0, 0)[mood]
+    who = (1, 2, 3, 4, 5)[mood]
+    return Persona(
+        key=f"visitor-{seed}",
+        email=email,
+        seed=seed,
+        demo_rr=base + (3.0 if change else 0.0),
+        demo_restless=0.20 if change else 0.05,
+        raw_motion_bursts=1,
+        history_rr=rr,
+        weekly={
+            "phq2": (_answers(phq, phq), _answers(phq, phq)),
+            "gad2": (_answers(gad, gad), _answers(gad, gad)),
+            "who5": (_answers(*(who,) * 5), _answers(*(who,) * 5)),
+        },
+        mental_dip=mood <= 1 or stress >= 3,
+        duration_h=(hours, SLEEP_SD_BY_REGULARITY[reg]),
+        daily_base=(mood, energy, stress, max(0, min(4, round((hours - 4) / 1.25)))),
+    )
+
+
+def seed_visitor(db: Session, uid: str, email: str, profile: dict[str, Any]) -> None:
+    """Fill a fresh visitor account with 14 synthetic nights + check-ins from its answers."""
+    from backend.services import accounts, surveys
+
+    p = custom_persona(email, profile, seed=int(uuid.UUID(uid).int % 1_000_000) + 1000)
+    anchor = datetime.now(UTC).date()
+    accounts.set_consents(
+        db, uid, {"checkins": True, "survey_answers": True}, policy_version=POLICY_VERSION
+    )
+    surveys.load_catalog(db)
+    seed_windows(db, p, uid, anchor, None, get_config(), full_demo=True)
+    _seed_rest(db, p, uid, anchor, with_raw=False)
 
 
 RUN_KINDS = {"seed_persona_windows": seed_windows_handler}

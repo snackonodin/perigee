@@ -56,21 +56,28 @@ def _fk_targets(t: Table) -> dict[str, str]:
     return {fk.parent.name: fk.column.table.name for fk in t.foreign_keys}
 
 
-def clone_user(db: Session, template_id: str, cap: int) -> str:
-    """Create a visitor copy of ``template_id``; returns the new user id. Caller commits."""
+def create_visitor(db: Session, cap: int) -> tuple[str, str]:
+    """A new empty synthetic visitor account (id, email), within the cap. Caller commits."""
     if cap > 0 and visitor_count(db) >= cap:
         raise DemoFull
     new_uid = str(uuid.uuid4())
+    email = f"{VISITOR_PREFIX}{secrets.token_hex(6)}{VISITOR_DOMAIN}"
     db.add(
         User(
             id=new_uid,
-            email=f"{VISITOR_PREFIX}{secrets.token_hex(6)}{VISITOR_DOMAIN}",
+            email=email,
             # random, never shown: the account is reachable only through its own tokens
             password_hash=security.hash_password(secrets.token_urlsafe(32)),
             is_synthetic=True,
         )
     )
     db.flush()
+    return new_uid, email
+
+
+def clone_user(db: Session, template_id: str, cap: int) -> str:
+    """Create a visitor copy of ``template_id``; returns the new user id. Caller commits."""
+    new_uid, _ = create_visitor(db, cap)
     id_map: dict[str, dict[Any, Any]] = {"users": {template_id: new_uid}}
     copied = {t.name for t in _user_tables()}
     for t in _user_tables():

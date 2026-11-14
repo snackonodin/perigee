@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 from contextlib import contextmanager
+from typing import Literal
 
 from fastapi import APIRouter, Request, status
 from pydantic import BaseModel, ConfigDict, Field
@@ -90,12 +91,35 @@ def login(body: LoginIn, db: DbSession, request: Request) -> TokenOut:
         return _out(svc.login(db, body.email, body.password, client_ip=ip))
 
 
+class DemoProfileIn(_In):
+    """The visitor's own synthetic data: 5 answers, synthetic knobs only (not clinical)."""
+
+    sleep_hours: float = Field(ge=4, le=10)
+    regularity: int = Field(ge=0, le=4)  # 0 very irregular .. 4 very regular
+    stress: int = Field(ge=0, le=4)  # 0 none .. 4 very high
+    mood: int = Field(ge=0, le=4)  # 0 very low .. 4 very good
+    recent_change: bool  # new schedule, travel, illness
+
+
+class DemoIn(_In):
+    crew: Literal["iss-flight", "iss-aligned", "iss-misaligned"] | None = None
+    profile: DemoProfileIn | None = None
+
+
 @router.post("/auth/demo")
-def demo(db: DbSession) -> TokenOut:
-    """A private copy of the synthetic demo persona, no password. 404 unless DEMO_ACCESS=1;
-    503 demo_full once DEMO_MAX_USERS visitors exist."""
+def demo(db: DbSession, body: DemoIn | None = None) -> TokenOut:
+    """A private demo account, no password. Body optional: {} or none = copy of the default
+    persona; {"crew": "iss-flight"|"iss-aligned"|"iss-misaligned"} = copy of that NASA-calibrated
+    crew member; {"profile": {...5 answers}} = the visitor's own synthetic 14 nights (~5 s).
+    404 unless DEMO_ACCESS=1; 503 demo_full once DEMO_MAX_USERS visitors exist."""
+    if body is not None and body.crew and body.profile:
+        raise ApiError(422, "invalid", "choose a crew member or your own answers, not both")
     with account_errors():
-        return _out(svc.demo_login(db))
+        return _out(svc.demo_login(
+            db,
+            crew=body.crew if body else None,
+            profile=body.profile.model_dump() if body and body.profile else None,
+        ))
 
 
 @router.post("/auth/refresh")

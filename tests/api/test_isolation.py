@@ -59,6 +59,8 @@ class IsolationCase:
 ISOLATION_CASES: list[IsolationCase] = [
     # accounts: /me always means the caller, so B gets B's data and A's stays untouched
     IsolationCase("get", "/api/v1/me", 200),
+    # public demo sign-in: off in tests (DEMO_ACCESS unset) -> 404, touches nothing of A
+    IsolationCase("post", "/api/v1/auth/demo", 404),
     IsolationCase("patch", "/api/v1/me", 200, json={"display_name": "Bob"}),
     IsolationCase("get", "/api/v1/me/consents", 200),
     IsolationCase(

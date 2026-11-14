@@ -63,6 +63,14 @@ class UserNotFound(AccountError):
     code = "not_found"
 
 
+class DemoDisabled(AccountError):
+    code = "not_found"
+
+
+class DemoProtected(AccountError):
+    code = "demo_protected"
+
+
 class TooManyAttempts(AccountError):
     code = "too_many_attempts"
 
@@ -489,6 +497,27 @@ def _raw_paths(db: Session, user_id: str, data_dir: Path) -> list[Path]:
     return paths
 
 
+def demo_login(db: Session) -> AuthResult:
+    """Tokens for the public demo persona, with no password (Space Apps no-login rule).
+
+    Only when settings.demo_access is on, and only for a *synthetic* user with
+    settings.demo_email (seeded by `tools.cli seed-personas`). Real accounts can never be
+    reached this way.
+    """
+    s = get_settings()
+    if not s.demo_access:
+        raise DemoDisabled("demo access is not enabled")
+    user = db.scalar(
+        select(User).where(User.email == s.demo_email, User.is_synthetic.is_(True))
+    )
+    if user is None or getattr(user, "deleted_at", None) is not None:
+        raise UserNotFound("demo persona is not seeded")
+    result = _issue_tokens(db, user.id)
+    audit(db, user.id, "auth.demo_login")
+    db.commit()
+    return result
+
+
 def delete_user(db: Session, user_id: str, data_dir: Path | None = None) -> None:
     """Delete raw files, then every row of the user, then the user. Tokens die with the rows.
 
@@ -497,6 +526,11 @@ def delete_user(db: Session, user_id: str, data_dir: Path | None = None) -> None
     stay with user_id NULL, plus one anonymous "account.delete" row; pipeline_runs that
     mention the user (by user_id column or inside parameters/log) are deleted.
     """
+    s = get_settings()
+    if s.demo_access:
+        demo = db.scalar(select(User).where(User.id == user_id, User.is_synthetic.is_(True)))
+        if demo is not None:
+            raise DemoProtected("the shared demo account cannot be deleted")
     _active_user(db, user_id)
     data_dir = Path(data_dir if data_dir is not None else get_settings().data_dir)
     try:

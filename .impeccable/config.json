@@ -1,0 +1,20 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "space grotesk",
+        "createdAt": "2026-11-14T11:53:05.223Z",
+        "reason": "coordinator: deck mirrors the shipped app display face (Space Grotesk bundled in frontend since 2402c03)"
+      },
+      {
+        "rule": "overused-font",
+        "value": "inter",
+        "createdAt": "2026-11-14T11:53:05.297Z",
+        "reason": "coordinator: deck body face chosen to pair with the app's Space Grotesk; decision recorded in DESIGN.md §15"
+      }
+    ]
+  }
+}

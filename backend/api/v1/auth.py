@@ -18,6 +18,8 @@ _STATUS: dict[type[svc.AccountError], int] = {
     svc.InvalidInput: 422,
     svc.EmailTaken: 409,
     svc.UserNotFound: 404,
+    svc.DemoDisabled: 404,
+    svc.DemoProtected: 403,
 }
 
 
@@ -84,6 +86,13 @@ def login(body: LoginIn, db: DbSession, request: Request) -> TokenOut:
     ip = request.client.host if request.client else "unknown"
     with account_errors():
         return _out(svc.login(db, body.email, body.password, client_ip=ip))
+
+
+@router.post("/auth/demo")
+def demo(db: DbSession) -> TokenOut:
+    """Sign in as the seeded synthetic demo persona, no password. 404 unless DEMO_ACCESS=1."""
+    with account_errors():
+        return _out(svc.demo_login(db))
 
 
 @router.post("/auth/refresh")

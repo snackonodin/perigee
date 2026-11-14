@@ -64,6 +64,7 @@ Verified locally in deploy mode: `env -i` with fresh keys, `DATA_DIR` in a temp 
       - `SECRET_KEY`: a new random value.
       - `FIELD_KEY`: a new Fernet key.
       - `SEED_DEMO=1` and `DEMO_PERSONA_PASSWORD`: for the judges' demo accounts.
+      - `DEMO_ACCESS=1`: enables `POST /api/v1/auth/demo`, the no-login "Try the demo" sign-in (Space Apps requires a demo without registration).
    4. Start command: `bash deploy/start.sh` (the Procfile already says so).
    5. Copy the public URL, e.g. `https://astro-api.up.railway.app`.
 2. **Frontend on Vercel:**

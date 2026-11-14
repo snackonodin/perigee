@@ -24,6 +24,10 @@ class Settings(BaseSettings):
     refresh_token_days: int = 14
     # ESP receiver serial port for on-demand Monitor sessions (device-specific; .env only)
     monitor_serial_port: str = ""
+    # Public no-login demo (Space Apps: judges must open the demo without registering).
+    # Off unless DEMO_ACCESS=1; signs in only as a seeded synthetic persona.
+    demo_access: bool = False
+    demo_email: str = "persona-drift@example.invalid"
 
     @field_validator("data_dir")
     @classmethod

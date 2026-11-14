@@ -63,3 +63,12 @@ from the station clock time the person types (HH:MM) minus current UTC, rounded 
 
 `GET /api/v1/monitor/modes` (authenticated) → `[{mode, calibration_s, duration_s, total_s}]` from
 config.yaml `monitor` (placeholders). Use it for tile durations; never copy the numbers into the UI.
+
+## Public demo sign-in, added 2026-11-14
+
+`POST /api/v1/auth/demo` (no body, no auth) → 200 `TokenOut` for the seeded **synthetic** persona
+`settings.demo_email` (default `persona-drift@example.invalid`), only when the server runs with
+`DEMO_ACCESS=1`; otherwise 404. A real (non-synthetic) account is never reachable this way.
+While demo access is on, `DELETE /api/v1/me` on a synthetic account returns 403 `demo_protected`
+(the shared demo cannot be deleted). Frontend: a "Try the demo" button on Login calls this route,
+stores the tokens like a normal login, and marks setup done.

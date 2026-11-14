@@ -1,0 +1,48 @@
+/* Pet rig (BRIEF §1). Every variable is a registered <number> so CSS can animate it.
+   Parts pivot in viewBox units: each part sets --ox/--oy inline (transform-box: view-box). */
+@property --look-x { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --look-y { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --blink { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --breathe { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --ear-l { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --ear-r { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --tail { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --mouth { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --squash { syntax: "<number>"; inherits: true; initial-value: 0; }
+
+.pet-svg { display:block;width:100%;height:100%;overflow:visible; }
+.pet-svg [data-part] { transform-box:view-box;transform-origin:var(--ox,128px) var(--oy,128px); }
+.pet-svg > [data-part],.pet-svg .pet-rig { will-change:auto; }
+
+/* whole pet: squash (+) / stretch (-) from the bottom centre */
+.pet-svg { transform-origin:50% 94%;transform:scaleY(calc(1 - .12 * var(--squash))) scaleX(calc(1 + .08 * var(--squash))); }
+.pet-svg [data-part="body"] { transform:scaleY(calc(1 + .025 * var(--breathe))) scaleX(calc(1 - .01 * var(--breathe))); }
+.pet-svg [data-part="head"] { transform:translate(calc(var(--look-x) * 4px), calc(var(--look-y) * 2px)); }
+.pet-svg .pupil { transform:translate(calc(var(--look-x) * 6px), calc(var(--look-y) * 4px)); }
+.pet-svg [data-part="eye-l"],.pet-svg [data-part="eye-r"] { transform:scaleY(calc(1 - .92 * var(--blink))); }
+.pet-svg [data-part="ear-l"] { transform:rotate(calc(var(--ear-l) * -14deg)); }
+.pet-svg [data-part="ear-r"] { transform:rotate(calc(var(--ear-r) * 14deg)); }
+.pet-svg [data-part="tail"] { transform:rotate(calc(var(--tail) * 22deg)); }
+.pet-svg [data-part="mouth-open"] { transform:scale(var(--mouth));opacity:min(1, calc(var(--mouth) * 4)); }
+.pet-svg [data-part="mouth"] { opacity:calc(1 - var(--mouth) * 1.4); }
+
+/* eyes per mood: same elements in every mood, shown by data-mood on the art root */
+.pet-art .eye-happy,.pet-art .eye-closed { display:none; }
+.pet-art[data-mood="happy"] .eye-open,.pet-art[data-mood="playful"] .eye-open { display:none; }
+.pet-art[data-mood="happy"] .eye-happy,.pet-art[data-mood="playful"] .eye-happy { display:inline; }
+.pet-art:is([data-mood="sleeping"],[data-mood="petting"]) .eye-open { display:none; }
+.pet-art:is([data-mood="sleeping"],[data-mood="petting"]) .eye-closed { display:inline; }
+
+/* static art (gallery, CompanionFace): mood sets its pose once */
+.pet-art[data-static][data-mood="happy"] { --mouth:.6; }
+.pet-art[data-static][data-mood="sleeping"] { --ear-l:-.3;--ear-r:-.3; }
+.pet-art[data-static][data-mood="sleepy"] { --blink:.55; }
+.pet-art[data-static][data-mood="petting"] { --ear-l:-.5;--ear-r:-.5; }
+
+/* accessories: earned ones only */
+.pet-art .acc { display:none; }
+.pet-art[data-acc~="scarf"] .acc-scarf,.pet-art[data-acc~="star"] .acc-star,
+.pet-art[data-acc~="moon"] .acc-moon,.pet-art[data-acc~="crown"] .acc-crown { display:inline; }
+
+/* small renders skip the fur grain */
+.pet-art[data-size="sm"] .pet-grain { display:none; }

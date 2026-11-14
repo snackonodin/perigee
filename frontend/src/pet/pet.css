@@ -1,0 +1,2 @@
+/* Pet root sizing. The art box is square; the drawing keeps its 256 viewBox. */
+.pet-art { position:relative;width:var(--pet-size, 96px);height:var(--pet-size, 96px);flex:none; }

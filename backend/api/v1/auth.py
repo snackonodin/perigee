@@ -20,6 +20,8 @@ _STATUS: dict[type[svc.AccountError], int] = {
     svc.UserNotFound: 404,
     svc.DemoDisabled: 404,
     svc.DemoProtected: 403,
+    svc.DemoFull: 503,
+    svc.SignupClosed: 403,
 }
 
 
@@ -90,7 +92,8 @@ def login(body: LoginIn, db: DbSession, request: Request) -> TokenOut:
 
 @router.post("/auth/demo")
 def demo(db: DbSession) -> TokenOut:
-    """Sign in as the seeded synthetic demo persona, no password. 404 unless DEMO_ACCESS=1."""
+    """A private copy of the synthetic demo persona, no password. 404 unless DEMO_ACCESS=1;
+    503 demo_full once DEMO_MAX_USERS visitors exist."""
     with account_errors():
         return _out(svc.demo_login(db))
 

@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any, NoReturn
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from sqlalchemy import Table, Text, delete, or_, select, type_coerce, update
+from sqlalchemy import Table, Text, delete, func, or_, select, type_coerce, update
 from sqlalchemy.orm import Session
 
 from backend import security
@@ -69,6 +69,14 @@ class DemoDisabled(AccountError):
 
 class DemoProtected(AccountError):
     code = "demo_protected"
+
+
+class DemoFull(AccountError):
+    code = "demo_full"
+
+
+class SignupClosed(AccountError):
+    code = "signup_closed"
 
 
 class TooManyAttempts(AccountError):
@@ -162,6 +170,13 @@ def signup(db: Session, email: str, password: str) -> AuthResult:
     _check_password(password)
     if db.scalar(select(User.id).where(User.email == email)) is not None:
         raise EmailTaken("email already registered")
+    cap = get_settings().signup_max_users
+    if cap > 0:
+        real = db.scalar(
+            select(func.count()).select_from(User).where(User.is_synthetic.is_(False))
+        )
+        if (real or 0) >= cap:
+            raise SignupClosed("this deployment has reached its account limit")
     user = User(email=email, password_hash=security.hash_password(password))
     db.add(user)
     db.flush()
@@ -498,12 +513,15 @@ def _raw_paths(db: Session, user_id: str, data_dir: Path) -> list[Path]:
 
 
 def demo_login(db: Session) -> AuthResult:
-    """Tokens for the public demo persona, with no password (Space Apps no-login rule).
+    """Tokens for a fresh private copy of the demo persona, no password (Space Apps rule).
 
-    Only when settings.demo_access is on, and only for a *synthetic* user with
-    settings.demo_email (seeded by `tools.cli seed-personas`). Real accounts can never be
-    reached this way.
+    Only when settings.demo_access is on. The template is the *synthetic* user with
+    settings.demo_email (seeded by `tools.cli seed-personas`); real accounts can never be
+    reached this way. Each call makes a new visitor account (backend.services.demo_pool)
+    so visitors never see each other's answers; at most settings.demo_max_users of them.
     """
+    from backend.services import demo_pool
+
     s = get_settings()
     if not s.demo_access:
         raise DemoDisabled("demo access is not enabled")
@@ -512,8 +530,13 @@ def demo_login(db: Session) -> AuthResult:
     )
     if user is None or getattr(user, "deleted_at", None) is not None:
         raise UserNotFound("demo persona is not seeded")
-    result = _issue_tokens(db, user.id)
-    audit(db, user.id, "auth.demo_login")
+    try:
+        visitor = demo_pool.clone_user(db, user.id, s.demo_max_users)
+    except demo_pool.DemoFull:
+        db.rollback()
+        raise DemoFull("the demo is full; please try again later") from None
+    result = _issue_tokens(db, visitor)
+    audit(db, visitor, "auth.demo_login")
     db.commit()
     return result
 
@@ -526,10 +549,13 @@ def delete_user(db: Session, user_id: str, data_dir: Path | None = None) -> None
     stay with user_id NULL, plus one anonymous "account.delete" row; pipeline_runs that
     mention the user (by user_id column or inside parameters/log) are deleted.
     """
+    from backend.services import demo_pool
+
     s = get_settings()
     if s.demo_access:
         demo = db.scalar(select(User).where(User.id == user_id, User.is_synthetic.is_(True)))
-        if demo is not None:
+        # Seeded personas are shared templates; a visitor's own copy may be deleted.
+        if demo is not None and not demo_pool.is_visitor(demo.email):
             raise DemoProtected("the shared demo account cannot be deleted")
     _active_user(db, user_id)
     data_dir = Path(data_dir if data_dir is not None else get_settings().data_dir)

@@ -35,13 +35,14 @@ def test_demo_route_is_404_when_disabled(api, db) -> None:  # noqa: F811
     assert res.status_code == 404
 
 
-def test_demo_login_issues_tokens_for_the_synthetic_persona(api, db, demo_on) -> None:  # noqa: F811
+def test_demo_login_issues_tokens_for_a_private_synthetic_copy(api, db, demo_on) -> None:  # noqa: F811
     uid = _seed_demo(db)
     res = api.post("/api/v1/auth/demo")
     assert res.status_code == 200, res.text
     tok = res.json()["access_token"]
-    me = api.get("/api/v1/me", headers={"Authorization": f"Bearer {tok}"})
-    assert me.status_code == 200 and me.json()["id"] == uid
+    me = api.get("/api/v1/me", headers={"Authorization": f"Bearer {tok}"}).json()
+    assert me["id"] != uid and me["is_synthetic"] is True
+    assert me["email"].startswith("demo-") and me["email"].endswith("@example.invalid")
 
 
 def test_demo_never_reaches_a_real_account(api, db, demo_on) -> None:  # noqa: F811
@@ -53,12 +54,20 @@ def test_demo_404_when_persona_not_seeded(api, db, demo_on) -> None:  # noqa: F8
     assert api.post("/api/v1/auth/demo").status_code == 404
 
 
-def test_shared_demo_account_cannot_be_deleted(api, db, demo_on) -> None:  # noqa: F811
+def test_shared_demo_template_cannot_be_deleted(api, db, demo_on) -> None:  # noqa: F811
     _seed_demo(db)
-    tok = api.post("/api/v1/auth/demo").json()["access_token"]
+    tok = acc.login(db, DEMO, PW).access_token  # the template itself, not a visitor copy
     res = api.delete("/api/v1/me", headers={"Authorization": f"Bearer {tok}"})
     assert res.status_code == 403 and res.json()["error"] == "demo_protected"
     assert api.post("/api/v1/auth/demo").status_code == 200  # still there
+
+
+def test_a_visitor_may_delete_their_own_copy(api, db, demo_on) -> None:  # noqa: F811
+    _seed_demo(db)
+    tok = api.post("/api/v1/auth/demo").json()["access_token"]
+    res = api.delete("/api/v1/me", headers={"Authorization": f"Bearer {tok}"})
+    assert res.status_code == 204
+    assert api.post("/api/v1/auth/demo").status_code == 200  # template untouched
 
 
 def test_real_users_can_still_delete_themselves_with_demo_on(api, db, demo_on) -> None:  # noqa: F811

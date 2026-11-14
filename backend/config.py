@@ -28,6 +28,10 @@ class Settings(BaseSettings):
     # Off unless DEMO_ACCESS=1; signs in only as a seeded synthetic persona.
     demo_access: bool = False
     demo_email: str = "persona-drift@example.invalid"
+    # Each demo visitor gets a private copy of the persona; at most this many (0 = no cap).
+    demo_max_users: int = 50
+    # Cap on self-registered real accounts for a public deployment (0 = no cap).
+    signup_max_users: int = 0
 
     @field_validator("data_dir")
     @classmethod

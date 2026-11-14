@@ -40,6 +40,52 @@ describe("AuthProvider", () => {
     expect(api.called("POST /api/v1/auth/demo")).toHaveLength(1);
     expect(sessionStorage.getItem("ahm.access")).toBe("at-d");
     expect(localStorage.getItem("setup.done")).toBe("true");
+    expect(localStorage.getItem("ahm.demo.refresh")).toBe("rt-d");
+    localStorage.removeItem("ahm.demo.refresh");
+  });
+
+  it("Try the demo shows a loading state, then the full message on 503 demo_full", async () => {
+    mockApi({ "POST /api/v1/auth/demo": { status: 503, body: { error: "demo_full", message: "demo is full" } } });
+    render(<App initialPath="/login" />);
+    fireEvent.click(await screen.findByRole("button", { name: "Try the demo" }));
+    expect(screen.getByRole("button", { name: "Preparing your demo…" })).toBeTruthy();
+    await waitFor(() => expect(screen.getByRole("alert").textContent).toBe("The demo is full right now."));
+    expect(screen.getByRole("button", { name: "Try the demo" })).toBeTruthy();
+  });
+
+  it("a return demo visitor reuses the stored demo copy instead of making a new one", async () => {
+    localStorage.setItem("ahm.demo.refresh", "rt-demo");
+    const api = mockApi({
+      "POST /api/v1/auth/refresh": { body: tokens("at-r", "rt-r") },
+      "GET /api/v1/me": (c) => (c.auth === "Bearer at-r" ? { body: me } : { status: 401, body: { error: "unauthorized", message: "x" } }),
+      "GET /api/v1/today": { body: today },
+    });
+    render(<App initialPath="/" />);
+    expect(await screen.findByRole("heading", { name: "Today" })).toBeTruthy();
+    expect(api.called("POST /api/v1/auth/demo")).toHaveLength(0);
+    expect(localStorage.getItem("ahm.demo.refresh")).toBe("rt-r");
+    localStorage.removeItem("ahm.demo.refresh");
+  });
+
+  it("a normal sign-in never keeps a token in localStorage", async () => {
+    mockApi({
+      "POST /api/v1/auth/login": { body: tokens("at-9", "rt-9") },
+      "GET /api/v1/me": (c) => (c.auth === "Bearer at-9" ? { body: me } : { status: 401, body: { error: "unauthorized", message: "x" } }),
+      "GET /api/v1/today": { body: today },
+    });
+    render(<App initialPath="/login" />);
+    fillLogin("ada@example.invalid", "long enough password");
+    expect(await screen.findByRole("heading", { name: "Today" })).toBeTruthy();
+    expect(localStorage.getItem("ahm.demo.refresh")).toBeNull();
+  });
+
+  it("signup shows the closed message on 403 signup_closed", async () => {
+    mockApi({ "POST /api/v1/auth/signup": { status: 403, body: { error: "signup_closed", message: "closed" } } });
+    render(<App initialPath="/register" />);
+    fireEvent.change(screen.getByLabelText("Email"), { target: { value: "new@example.invalid" } });
+    fireEvent.change(screen.getByLabelText("Password"), { target: { value: "long enough password" } });
+    fireEvent.click(screen.getByRole("button", { name: "Create account" }));
+    await waitFor(() => expect(screen.getByRole("alert").textContent).toBe("Sign-ups are closed for this demo."));
   });
 
   it("hides Try the demo when the server has demo access off (404)", async () => {

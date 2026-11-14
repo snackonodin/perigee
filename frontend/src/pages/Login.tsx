@@ -15,8 +15,9 @@ export function Login({ signup = false }: { signup?: boolean }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [demoBusy, setDemoBusy] = useState(false);
   const [checkingSetup, setCheckingSetup] = useState(false);
-  // Hidden once the server says the public demo is off (404), for the rest of this tab.
+  // Hidden once the server says the public demo is off (404/405), for the rest of this tab.
   const [demoOff, setDemoOff] = useState(() => { try { return sessionStorage.getItem("demo.off") === "1"; } catch { return false; } });
   const fogRef = useRef<HTMLDivElement>(null);
   const demoLanding = useRef(false);
@@ -76,10 +77,12 @@ export function Login({ signup = false }: { signup?: boolean }) {
 
   async function tryDemo() {
     setBusy(true);
+    setDemoBusy(true);
     setError(null);
     demoLanding.current = true;
     const message = await demo();
     setBusy(false);
+    setDemoBusy(false);
     if (message === "unavailable") {
       setDemoOff(true);
       try { sessionStorage.setItem("demo.off", "1"); } catch { /* hidden for this render only */ }
@@ -104,7 +107,7 @@ export function Login({ signup = false }: { signup?: boolean }) {
             <p className="error" role="alert">{error}</p>
           </form>
           {!signup && !demoOff && (
-            <button type="button" className="login-demo" disabled={busy || checkingSetup} onClick={() => void tryDemo()}>Try the demo</button>
+            <button type="button" className="login-demo" disabled={busy || checkingSetup} aria-busy={demoBusy} onClick={() => void tryDemo()}>{demoBusy ? "Preparing your demo…" : "Try the demo"}</button>
           )}
           <p className="login-toggle">{signup ? "Already have an account?" : `New to ${BRAND}?`} <button type="button" className="link" onClick={() => navigate(signup ? "/login" : "/register")}>{signup ? "Sign in" : "Create an account"}</button></p>
           <p className="login-privacy"><span aria-hidden="true">◈</span> Your personal signals stay in your account.</p>

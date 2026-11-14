@@ -1,6 +1,6 @@
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router";
-import { api, errorText, setUnauthorizedHandler } from "../api/client";
+import { api, errorText, refreshSession, setUnauthorizedHandler } from "../api/client";
 import { tokens } from "../api/tokens";
 import type { MeOut } from "../api/types";
 
@@ -66,7 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         ? await api.POST("/api/v1/auth/signup", { body })
         : await api.POST("/api/v1/auth/login", { body });
       if (!data) return errorText(error, response?.status, response?.headers.get("Retry-After"));
-      tokens.set(data);
+      tokens.set(data, "account");
       await reloadMe();
       return null;
     },
@@ -74,13 +74,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const demo = useCallback(async () => {
+    const markSetupDone = () => {
+      // The demo copy already has a baseline: skip first-run setup and land on Today.
+      try { window.localStorage.setItem("setup.done", "true"); } catch { /* Login re-checks the baseline */ }
+    };
+    // A return visitor keeps their own private copy while its refresh token still works.
+    if (tokens.demo && (await refreshSession())) {
+      markSetupDone();
+      await reloadMe();
+      return null;
+    }
+    // Each call makes a new private copy (~2 s) and uses one of the capped visitor slots.
     const { data, error, response } = await api.POST("/api/v1/auth/demo");
     // 404: demo access off; 405: an older server without the route. Either way, hide the button.
     if (response?.status === 404 || response?.status === 405) return "unavailable";
     if (!data) return errorText(error, response?.status, response?.headers.get("Retry-After"));
-    tokens.set(data);
-    // The demo persona already has a baseline: skip first-run setup and land on Today.
-    try { window.localStorage.setItem("setup.done", "true"); } catch { /* Login re-checks the baseline */ }
+    tokens.set(data, "demo");
+    markSetupDone();
     await reloadMe();
     return null;
   }, [reloadMe]);

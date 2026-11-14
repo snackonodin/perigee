@@ -129,6 +129,9 @@ export function errorText(error: unknown, status?: number, retryAfter?: string |
     const mins = Math.max(1, Math.ceil(Number(retryAfter ?? 60) / 60));
     return `Too many failed sign-ins. Try again in about ${mins} minute${mins === 1 ? "" : "s"}.`;
   }
+  const code = error && typeof error === "object" && "error" in error ? (error as { error: unknown }).error : undefined;
+  if (code === "demo_full") return "The demo is full right now.";
+  if (code === "signup_closed") return "Sign-ups are closed for this demo.";
   if (error && typeof error === "object" && "message" in error) {
     const e = error as { message: string; fields?: string[] };
     return e.fields?.length ? `Please check: ${e.fields.join(", ")}` : e.message;

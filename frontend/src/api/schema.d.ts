@@ -15,7 +15,8 @@ export interface paths {
         put?: never;
         /**
          * Demo
-         * @description Sign in as the seeded synthetic demo persona, no password. 404 unless DEMO_ACCESS=1.
+         * @description A private copy of the synthetic demo persona, no password. 404 unless DEMO_ACCESS=1;
+         *     503 demo_full once DEMO_MAX_USERS visitors exist.
          */
         post: operations["demo_api_v1_auth_demo_post"];
         delete?: never;
@@ -468,6 +469,28 @@ export interface paths {
          * @description All rows for one night (one per source_kind). 404 if there are none.
          */
         get: operations["get_night_api_v1_nights__day__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/persona": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Persona
+         * @description The caller's persona from the Mini-IPIP quiz (instrument mini_ipip), ready as soon
+         *     as it is submitted; no nights needed. available=false until the quiz is taken.
+         *     Traits (E, A, C, N, O; 4-20 each) shape wording only, never scores or alerts.
+         */
+        get: operations["get_persona_api_v1_persona_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -969,6 +992,29 @@ export interface components {
             instrument_version?: string | null;
             /** Slot */
             slot: string;
+        };
+        /** PersonaMatrixOut */
+        PersonaMatrixOut: {
+            /** Agency Score */
+            agency_score: number;
+            /** Quadrant Name */
+            quadrant_name: string;
+            /** Stability Score */
+            stability_score: number;
+        };
+        /** PersonaOut */
+        PersonaOut: {
+            /** Available */
+            available: boolean;
+            persona_matrix?: components["schemas"]["PersonaMatrixOut"] | null;
+            /** Source */
+            source?: string | null;
+            /** Traits */
+            traits: {
+                [key: string]: number;
+            };
+            /** Updated At */
+            updated_at?: string | null;
         };
         /**
          * Posture
@@ -3655,6 +3701,89 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["NightOut"][];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    get_persona_api_v1_persona_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PersonaOut"];
                 };
             };
             /** @description Bad Request */

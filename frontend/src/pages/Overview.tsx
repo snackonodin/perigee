@@ -52,14 +52,14 @@ export function Overview() {
           </div>
           <div className="today-hero-copy"><p className="eyebrow">Breathing · pattern</p><h2 id="today-hero-title">{respiration==null?"Your picture is taking shape":"Your breathing, in context"}</h2>
             <p>{respiration==null?"Readings appear after a full night near the sensor.":"Compared with your own recent nights."}</p>
-            <div className="today-hero-actions">{pending&&<Link className="hero-action" to={`/checkin?instrument=${encodeURIComponent(pending.instrument_id)}`}>Check in <span aria-hidden="true">→</span></Link>}
-              <span className="hero-resilience">{resilience==null?"Personal picture building":<><strong>{Math.round(resilience)}</strong> resilience index</>}</span>
-            </div>
+            {pending&&<div className="today-hero-actions"><Link className="hero-action" to={`/checkin?instrument=${encodeURIComponent(pending.instrument_id)}`}>Check in <span aria-hidden="true">→</span></Link></div>}
           </div>
           <dl className="tonight-panel" aria-label="Tonight">
             <div><dt className="telemetry">Station time</dt><dd>{stationClock(me?.station_time_offset_min)}<small>{stationLabel(me?.station_time_offset_min)}</small></dd></div>
             <div><dt className="telemetry">In your baseline</dt><dd>{nights}<small> / {BASELINE_NIGHTS}</small></dd>
               <span className="nights-track" aria-hidden="true"><i style={{width:`${nights/BASELINE_NIGHTS*100}%`}}/></span></div>
+            <div><dt className="telemetry">Resilience index</dt><dd>{resilience==null?"—":Math.round(resilience)}<small> / 100</small></dd>
+              <span className="tonight-caption">{resilience==null?"Builds with your first nights":"From your recent nights and check-ins"}</span></div>
             <div><dt className="telemetry">Next check-in</dt><dd className="tonight-next">{pending?(pending.slot==="pm"?"Evening":"Morning"):"None due"}</dd></div>
           </dl>
         </section>

@@ -1,4 +1,7 @@
-# Astronaut Health Monitor
+# perigee
+Contactless Wi-Fi CSI sleep sensing fused with psychometric self-reports to track crew strain in isolated, confined and extreme environments. Personal-baseline CUSUM drift detection, context-aware advisories, crisis-first safety design. Research prototype, 
+
+## Astronaut Health Monitor (repository guide)
 
 The app is this whole repository: a FastAPI service and React frontend, offline demos, SQLite-backed processing, `csi_core/`, team estimator adapters, and the capture/analysis/live/Context Engine scripts under `waiwai1/`. Team code is adapted through `plugins/` and capture/injection paths into the backend. See `CLAUDE.md`, `docs/backend-plan.md`, `docs/interfaces.md`, and `waiwai1/README.md` for architecture and setup details.
 

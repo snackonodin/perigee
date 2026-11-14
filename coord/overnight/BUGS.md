@@ -5,7 +5,7 @@ screenshots. Fixing starts after 10:00. Owner: claude (backend/infra), claude-fe
 
 | # | Found | Area | Symptom | Evidence | Owner | Status |
 |---|---|---|---|---|---|---|
-| N1 | 04:11 cycle | tests / isolation | `test_isolation` GET /monitor/sessions FAILED and PUT /me/consents ERROR with 401 "invalid or expired token" | Slow (niced, loaded) run: the `world` fixture takes >15 min, longer than `access_token_minutes=15`, so tokens expire before use. Not a leak. Fix: give the isolation app a long access-token lifetime in the fixture (or mint tokens per case) | claude | FIXED 12:45 (isolation app tokens live 4 h; verifying) |
+| N1 | 04:11 cycle | tests / isolation | `test_isolation` GET /monitor/sessions FAILED and PUT /me/consents ERROR with 401 "invalid or expired token" | Slow (niced, loaded) run: the `world` fixture takes >15 min, longer than `access_token_minutes=15`, so tokens expire before use. Not a leak. Fix: give the isolation app a long access-token lifetime in the fixture (or mint tokens per case) | claude | FIXED 12:45 (isolation app tokens live 4 h; 32/32 pass) |
 | N2 | 04:11 cycle | tooling | `test_portability` flagged `coord/overnight/night.sh` default `$HOME/.venvs/...` | Machine path in a committed script | claude | FIXED 05:55 (VENV passed in env) |
 | N3 | 04:11 cycle | tooling | `night.sh` rebuilt the frontend and restarted the demo every cycle (`last_sha` never set) and re-ran the 1–2 h backend suite each cycle | Loop logic | claude | FIXED 05:50 (suite only when HEAD changes) |
 | N4 | 04:11 cycle | engine (D5) | 4 known engine tests (item 9 fail-closed ×3, state schema_version) | AUDIT.md verdict (a) | user decision D5 | waiting |

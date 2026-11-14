@@ -7,7 +7,7 @@ import { LoadState } from "../components/LoadState";
 import { VitalCard } from "../components/VitalCard";
 import type { Status } from "../components/StatusChip";
 import "./Body.css";
-import anchors from "../assets/body/anchors.json";
+import { BodyPanel, type Region, type Status as RegionState, type SystemInfo } from "../body/BodyPanel";
 
 type ScanToday=TodayOut&{context_engine?:{
   dashboard_visualization_data?:{dual_axis_timeline_point?:{respiration_bpm?:number|null}};
@@ -17,10 +17,6 @@ type ScanToday=TodayOut&{context_engine?:{
 }|null};
 const SYSTEMS=["Respiration","Autonomic","Rest","Mind","Cabin"] as const;
 type System=typeof SYSTEMS[number];
-type Anchor={x:number;y:number;side:"left"|"right"};
-const W=400,H=310;
-// Hotspots are data (assets/body/anchors.json) so the user's figure image can drop in.
-const DOTS=Object.fromEntries(SYSTEMS.map(n=>{const a=(anchors as unknown as Record<string,Anchor>)[n];return [n,[a.x*W,a.y*H,a.side]];})) as Record<System,[number,number,"left"|"right"]>;
 const MEANING:Record<System,string>={
   Respiration:"How you breathe overnight, against your own usual range.",
   Autonomic:"How much your breathing varies overnight, compared with your own nights.",
@@ -30,22 +26,17 @@ const MEANING:Record<System,string>={
 };
 const COLORS:Record<System,string>={Respiration:"mint",Autonomic:"peach",Rest:"sky",Mind:"lavender",Cabin:"butter"};
 type Detail={unit?:string;value:string;copy:string;state?:Status;statusLabel:string};
-function stateFor(level?:number):Status|undefined { if(level==null)return undefined;if(level>=2)return "alert";return level===1?"watch":"normal"; }
-function BodyMap({selected,details,onSelect}:{selected:System;details:Record<System,Detail>;onSelect:(s:System)=>void}) {
-  return <div className="body-map">
-    <svg className="body-map-svg" viewBox="0 0 400 310" role="img" aria-label="Body map with head, torso, arms and legs. Five buttons select a system.">
-      <circle className="body-silhouette" cx="201" cy="45" r="22"/>
-      <path className="body-silhouette" d="M178 77c-17 4-30 14-38 28l-26 52 9 6 34-42-8 54 14 32-13 62h14l28-53 14 53h14l-13-62 14-32-8-54 34 42 9-6-26-52c-8-14-21-24-38-28l-8 18-8-18Z"/>
-      <path className="body-centerline" d="M201 96v113m-24-73c9-10 16-11 24-4 9-7 16-6 24 4m-43 14c7 9 13 12 19 10m19-10c-7 9-13 12-19 10m-14 42 14 16 14-16"/>
-      {SYSTEMS.map(name=>{const [x,y,side]=DOTS[name],left=side==="left",col=left?118:286,outside=left?x<col:x>col,dotEdge=left?x-14:x+14;
-        if(outside)return <g key={name}><text className="body-map-label" x={left?x-18:x+18} y={y+5} textAnchor={left?"end":"start"}>{name}</text></g>;
-        return <g key={name}><line className="body-leader" x1={col} y1={y} x2={dotEdge} y2={y}/><circle className="body-leader-end" cx={col} cy={y} r="2"/><text className="body-map-label" x={left?col-8:col+8} y={y+5} textAnchor={left?"end":"start"}>{name}</text></g>;
-      })}
-    </svg>
-    <div className="body-nodes">{SYSTEMS.map(name=>{const [x,y]=DOTS[name],detail=details[name];return <button key={name} type="button" className={`body-node body-node-${COLORS[name]}${selected===name?" selected":""}`} style={{left:`${x/W*100}%`,top:`${y/H*100}%`}} aria-label={`${name}, ${detail.statusLabel}`} aria-pressed={selected===name} onClick={()=>onSelect(name)}><span className="sr-only">{name}</span></button>;})}</div>
-  </div>;
+const REGION:Record<System,Region>={Respiration:"respiration",Autonomic:"autonomic",Rest:"rest",Mind:"mind",Cabin:"cabin"};
+const SYSTEM_OF=Object.fromEntries(SYSTEMS.map(n=>[REGION[n],n])) as Record<Region,System>;
+/** Engine level -> the figure's baseline-relative state. A value without a comparison stays grey. */
+function regionInfo(d:Detail):SystemInfo {
+  if(d.value==="No reading")return {state:"none"};
+  const reading=d.unit?`${d.value} ${d.unit}`:d.value;
+  const state:RegionState|undefined=d.state==="normal"?"usual":d.state==="watch"||d.state==="alert"?"changed":undefined;
+  return state?{state,reading}:{state:"none",reading,label:"Not compared yet"};
 }
-
+// Body never shows red: any change from usual reads amber ("watch").
+function stateFor(level?:number):Status|undefined { if(level==null)return undefined;return level>=1?"watch":"normal"; }
 export function Body() {
   const load=useLoad(()=>api.GET("/api/v1/today"));
   const [selected,setSelected]=useState<System>("Respiration");
@@ -71,7 +62,11 @@ export function Body() {
       <header className="page-heading"><div><h1>Body</h1><p>Choose a system to see the available reading.</p></div></header>
       {load.apiMock&&<p className="api-mock-note" role="status">Showing sample data: live service unavailable</p>}
       <div className="body-layout">
-        <section className="body-map-card" aria-label="Body systems map"><span className="body-orbit" aria-hidden="true"/><BodyMap selected={selected} details={details} onSelect={setSelected}/></section>
+        <section className="body-map-card body-panel-card" aria-label="Body systems map">
+          <div className="body-panel"><BodyPanel heartRate={null} breathRate={baseline?.median??respiration??null}
+            systems={Object.fromEntries(SYSTEMS.map(n=>[REGION[n],regionInfo(details[n])]))}
+            activeRegion={REGION[selected]} onSelect={r=>setSelected(SYSTEM_OF[r])}/></div>
+        </section>
         <section className="body-detail" aria-live="polite" aria-labelledby="body-detail-title" key={selected}>
           <div className="system-switch" role="group" aria-label="Choose a system">{SYSTEMS.map(name=><button key={name} type="button" className={`system-pill system-pill-${COLORS[name]}`} aria-pressed={selected===name} onClick={()=>setSelected(name)}><i aria-hidden="true"/>{name}</button>)}</div>
           {current.value==="No reading"?<VitalCard label={selected} icon={selected} headingId="body-detail-title" empty={current.copy} footer={footer}/>:

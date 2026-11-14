@@ -30,3 +30,8 @@ html[data-reduce-motion="true"] .body-node.selected::after { animation:none;opac
 .body-page .body-detail { grid-template-rows:auto minmax(0,1fr); }
 .body-page .body-detail>.vital-card { height:100%; }
 .body-page .body-layout .body-detail:has(.vital-card-empty) { align-self:stretch; }
+/* Anatomical panel (src/body/BodyPanel.tsx): 800 x 640 frame, scales with the card. */
+.body-panel-card { display:grid;align-items:center;padding:16px; }
+.body-panel { width:100%;aspect-ratio:800 / 640; }
+.body-panel svg { display:block; }
+@media (max-width:767px) { .body-panel-card { padding:8px; } }

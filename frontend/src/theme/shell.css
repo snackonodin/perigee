@@ -223,4 +223,5 @@ h1,h2,h3 { font-family:var(--font-display);letter-spacing:-.01em; }
 /* Calm tone (persona style flag): no red anywhere; alerts read amber. The safety screen keeps
    its own colours. */
 html[data-calm="true"] { --alert:var(--warn);--alert-ink:var(--warn-ink);--alert-soft:var(--butter); }
-html[data-calm="true"] .safety { --alert:#D1495B;--alert-ink:#A3283A;--alert-soft:#FBD5DA; }
+/* The safety screen keeps its original colours whatever the app tokens say. */
+.safety { --alert:#D1495B;--alert-ink:#A3283A;--alert-soft:#FBD5DA; }

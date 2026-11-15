@@ -1,10 +1,12 @@
 :root {
   color-scheme: light;
   --bg:#F7FBF9; --surface:#FFFFFF; --line:#E3ECE8;
-  --mint:#BFE9D6; --sky:#BFE0F5; --peach:#FFD9C7; --lavender:#D9D0F5; --butter:#FFF1B8; --alert-soft:#FBD5DA;
+  --mint:#BFE9D6; --sky:#BFE0F5; --peach:#FFD9C7; --lavender:#D9D0F5; --butter:#FFF1B8; --alert-soft:#FFE2B3;
   --text:#1F2A37; --muted:#5B6B7A; --teal:#1E7F6E;
-  --ok:#2E9E78; --warn:#C98A1B; --alert:#D1495B;
-  --ok-ink:#1D6B50; --warn-ink:#7A4E00; --alert-ink:#A3283A;
+  /* No red outside the safety screen: 'alert' is a deeper amber than 'warn'. The safety screen
+     pins its own colours (shell.css .safety). */
+  --ok:#2E9E78; --warn:#C98A1B; --alert:#B7791F;
+  --ok-ink:#1D6B50; --warn-ink:#7A4E00; --alert-ink:#7A4E00;
   --glass:rgba(255,255,255,.62);
   --glass-strong:rgba(255,255,255,.78);
   --glass-border:rgba(255,255,255,.75);

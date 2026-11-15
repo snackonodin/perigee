@@ -225,14 +225,14 @@ export function BodyPanel({
           <stop offset="100%" stopColor="#BFE0F5" stopOpacity=".24" />
         </linearGradient>
         <radialGradient id={id("heart")} gradientUnits="userSpaceOnUse" cx="-8" cy="-8" r="34">
-          <stop offset="0%" stopColor="#FFC9C6" />
-          <stop offset="30%" stopColor="#F7A0A6" />
-          <stop offset="62%" stopColor="#D66D7C" />
-          <stop offset="100%" stopColor="#984052" />
+          <stop offset="0%" stopColor="#FFE3D3" />
+          <stop offset="30%" stopColor="#FFC9A8" />
+          <stop offset="62%" stopColor="#F4A882" />
+          <stop offset="100%" stopColor="#B86A45" />
         </radialGradient>
         <linearGradient id={id("vessel")} x1="0" y1="1" x2="1" y2="0">
-          <stop offset="0%" stopColor="#D9858F" />
-          <stop offset="100%" stopColor="#A94960" />
+          <stop offset="0%" stopColor="#F4B08C" />
+          <stop offset="100%" stopColor="#C27250" />
         </linearGradient>
         <linearGradient id={id("scan")} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="#1E7F6E" stopOpacity="0" />
@@ -362,34 +362,34 @@ export function BodyPanel({
           <g {...reg("autonomic")}>
             <ellipse cx="176" cy="188" rx="30" ry="32" fill={col("autonomic")} opacity={aura("autonomic")} filter={url("soft")} pointerEvents="none" />
             <g transform="translate(176 188) rotate(12) scale(.95)">
-              {bpm && <circle className={c("ring")} r="15" fill="none" stroke="#D66D7C" strokeWidth="1.3" />}
-              <path d={HEART} fill="#B94459" opacity=".32" filter={url("hglow")} />
+              {bpm && <circle className={c("ring")} r="15" fill="none" stroke="#E0956C" strokeWidth="1.3" />}
+              <path d={HEART} fill="#D9875F" opacity=".32" filter={url("hglow")} />
               <g className={bpm ? c("beat") : undefined}>
                 {/* Great vessels behind the myocardium */}
-                <g fill={url("vessel")} stroke="#8D4657" strokeWidth=".55" strokeOpacity=".55">
+                <g fill={url("vessel")} stroke="#9A5A3C" strokeWidth=".55" strokeOpacity=".55">
                   <path d={VENA_CAVA} />
                   <path d={AORTA} />
                   <path d={PULMONARY} />
                 </g>
 
                 {/* Main muscle wall */}
-                <path d={HEART} fill={url("heart")} stroke="#9C4859" strokeWidth=".65" strokeOpacity=".8" />
+                <path d={HEART} fill={url("heart")} stroke="#A8603F" strokeWidth=".65" strokeOpacity=".8" />
 
                 <g clipPath={url("hclip")}>
-                  <path d={HEART_RV} fill="#782646" opacity=".27" filter={url("hblur")} />
-                  <path d={GROOVE} fill="none" stroke="#6E1E3C" strokeWidth="1.8" opacity=".48" />
+                  <path d={HEART_RV} fill="#8A4A2E" opacity=".27" filter={url("hblur")} />
+                  <path d={GROOVE} fill="none" stroke="#7A3F25" strokeWidth="1.8" opacity=".48" />
                   <g fill="none" stroke="#FFEBEE" strokeWidth=".5" opacity=".22">
                     {FIBERS.map((d) => <path key={d} d={d} />)}
                   </g>
-                  <g fill="none" stroke="#A83E55" strokeWidth="1" strokeLinecap="round" opacity=".82">
+                  <g fill="none" stroke="#B5643F" strokeWidth="1" strokeLinecap="round" opacity=".82">
                     {CORONARY_MAIN.map((d) => <path key={d} d={d} />)}
                   </g>
-                  <g fill="none" stroke="#B8384F" strokeWidth=".6" strokeLinecap="round" opacity=".72">
+                  <g fill="none" stroke="#C27250" strokeWidth=".6" strokeLinecap="round" opacity=".72">
                     {CORONARY_FINE.map((d) => <path key={d} d={d} />)}
                   </g>
                   <ellipse cx="6.5" cy="-5" rx="6.5" ry="6" fill="#FFFFFF" opacity=".22" filter={url("hsoft")} />
                 </g>
-                <path d={AURICLE} fill="#D9858F" stroke="#A94960" strokeWidth=".6" />
+                <path d={AURICLE} fill="#F4B08C" stroke="#C27250" strokeWidth=".6" />
                 <circle cx="4.5" cy="-6.5" r="1.3" fill="#FFFFFF" opacity=".8" filter={url("fine")} />
               </g>
             </g>

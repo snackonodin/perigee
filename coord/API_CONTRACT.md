@@ -165,3 +165,9 @@ Anchor, Internal Deliberator, Dynamic Explorer. `share` is 0-1 and the four sum 
 of the Stability x Agency plane). Render ONE 4-axis radar in place of the quadrant plane, axes =
 the four types, the person's own quadrant_name highlighted, no numbers. `profile` (5 parts) stays in
 the API but is no longer drawn.
+
+## Persona radar values, updated 2026-11-15
+
+`type_mix` items are now `{type, level, share}`. Draw the radar from `level` (0-1, per axis,
+independent, contrast-widened): radius = 12% + 88% x level of the outer ring. Do NOT rescale to
+the largest value. `share` (sums to 1) is only for the accessible ordering text.

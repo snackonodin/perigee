@@ -39,7 +39,8 @@ class ProfileAxisOut(BaseModel):
 
 class TypeShareOut(BaseModel):
     type: str
-    share: float  # 0-1, the four sum to 1; display only
+    level: float  # 0-1 per axis (closeness to the type's corner, contrast-widened); draw as-is
+    share: float  # the same normalised to sum to 1; display only
 
 
 class PersonaOut(BaseModel):

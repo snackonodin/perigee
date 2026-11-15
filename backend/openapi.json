@@ -2160,6 +2160,10 @@
       },
       "TypeShareOut": {
         "properties": {
+          "level": {
+            "title": "Level",
+            "type": "number"
+          },
           "share": {
             "title": "Share",
             "type": "number"
@@ -2171,6 +2175,7 @@
         },
         "required": [
           "type",
+          "level",
           "share"
         ],
         "title": "TypeShareOut",

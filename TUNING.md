@@ -47,3 +47,4 @@ When a value is validated, record the data and date next to it.
 | hazards.co2_tag_mmhg / co2_limit_mmhg | 2.5 / 3.0 | Cabin ppCO2 context tag on a flagged night (owner-cited NASA-STD-3001 Vol. 2; verify) | no |
 | hazards.symptom_window_days / max_tags | 2 / 2 | Symptom tags look back this many days; at most this many tags under the breathing strip | no |
 
+| backend/services/psyche.py RADAR_CONTRAST | 1.6 | Persona radar display only: widens near/far type contrast so the shape stretches (never a score or threshold) | no |

@@ -172,9 +172,12 @@ def test_profile_has_five_axes_in_0_1(client) -> None:  # noqa: F811
     assert prof[0]["level"] > prof[1]["level"]  # rumination answers raise "Mind at rest"
 
 
-def test_type_mix_leans_to_own_type_and_sums_to_one() -> None:
-    mix = {m["type"]: m["share"] for m in psyche.type_mix(18.0, 16.0)}
-    assert max(mix, key=mix.get) == "Autonomous Pioneer"
-    assert abs(sum(mix.values()) - 1) < 0.01
+def test_type_mix_stretches_toward_own_type() -> None:
+    mix = {m["type"]: m for m in psyche.type_mix(17.0, 16.0)}
+    lv = {t: m["level"] for t, m in mix.items()}
+    assert max(lv, key=lv.get) == "Autonomous Pioneer"
+    assert lv["Autonomous Pioneer"] > 2 * lv["Steady Anchor"]  # a clear stretch, not a square
+    assert lv["Internal Deliberator"] < 0.15  # the opposite corner stays short
+    assert abs(sum(m["share"] for m in mix.values()) - 1) < 0.01
     centre = psyche.type_mix(12.0, 12.0)
-    assert all(abs(m["share"] - 0.25) < 0.01 for m in centre)  # midpoint: an even shape
+    assert len({m["level"] for m in centre}) == 1  # midpoint: a small even diamond

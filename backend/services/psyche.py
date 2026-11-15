@@ -145,20 +145,32 @@ def profile(result: dict[str, Any]) -> list[dict[str, Any]]:
 TYPES = ("Autonomous Pioneer", "Steady Anchor", "Internal Deliberator", "Dynamic Explorer")
 
 
-def type_mix(stability: float, agency: float) -> list[dict[str, Any]]:
-    """How much the person leans toward each of the four persona types, for the radar.
+CORNERS = {  # each type's corner of the Stability x Agency plane (0-1 scale)
+    "Autonomous Pioneer": (1.0, 1.0),
+    "Steady Anchor": (1.0, 0.0),
+    "Internal Deliberator": (0.0, 0.0),
+    "Dynamic Explorer": (0.0, 1.0),
+}
+RADAR_CONTRAST = 1.6  # exponent: widens the gap between near and far types (display only)
 
-    Bilinear share of the Stability x Agency plane (axes 4-20 rescaled to 0-1); the four
-    shares sum to 1. Display only: it never changes a score, an alert or the safety path."""
+
+def type_mix(stability: float, agency: float) -> list[dict[str, Any]]:
+    """Per-type values for the persona radar.
+
+    `level` (0-1): closeness of the person's (Stability, Agency) point to each type's corner,
+    1 - distance / sqrt(2), raised to RADAR_CONTRAST so the shape stretches toward the
+    person's own type instead of staying square. Each axis stands alone (they do not sum to 1).
+    `share`: the same four normalised to sum to 1. Display only: never changes a score, an
+    alert or the safety path."""
     st = min(1.0, max(0.0, (stability - 4) / 16))
     ag = min(1.0, max(0.0, (agency - 4) / 16))
-    share = {
-        "Autonomous Pioneer": st * ag,
-        "Steady Anchor": st * (1 - ag),
-        "Internal Deliberator": (1 - st) * (1 - ag),
-        "Dynamic Explorer": (1 - st) * ag,
-    }
-    return [{"type": t, "share": round(share[t], 3)} for t in TYPES]
+    level = {}
+    for t, (cx, cy) in CORNERS.items():
+        d = ((st - cx) ** 2 + (ag - cy) ** 2) ** 0.5
+        level[t] = max(0.0, 1 - d / 2 ** 0.5) ** RADAR_CONTRAST
+    total = sum(level.values()) or 1.0
+    return [{"type": t, "level": round(level[t], 3), "share": round(level[t] / total, 3)}
+            for t in TYPES]
 
 
 def save(db: Session, user_id: str, result: dict[str, Any]) -> None:

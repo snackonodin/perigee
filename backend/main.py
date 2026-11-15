@@ -44,6 +44,9 @@ def _git_sha() -> str:
     env = os.environ.get("ASTRO_CODE_VERSION")
     if env:
         return env
+    railway = os.environ.get("RAILWAY_GIT_COMMIT_SHA")  # set by Railway on each deploy
+    if railway:
+        return railway[:7]
     try:
         return subprocess.run(
             ["git", "rev-parse", "--short", "HEAD"], cwd=ROOT, capture_output=True,

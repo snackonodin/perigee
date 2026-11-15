@@ -148,3 +148,12 @@ survey-answer consent, so answers are kept encrypted) the server scores them as 
 and `GET /api/v1/persona` becomes available. `/persona.progress = {done: [ids], total: 5,
 answers_kept}`; answers_kept=false means the parts can't be combined (ask for consent).
 UI: one part at a time, items SHUFFLED within the part (stable per user), ~1.5 min each.
+
+## Persona radar profile, added 2026-11-15
+
+`GET /api/v1/persona` (psyche60 source) adds `profile: [{key, label, level}]`, five axes in this
+order: mind_at_rest "Mind at rest", feelings "Feelings and reactions", people "People and
+authority", focus "Focus and motivation", body_feedback "Body and feedback". `level` is 0-1
+(mean of the part's two modules, rescaled). A tendency shape, not a score: render as a radar
+with a gradient fill and NO numbers; add "No shape is better than another." Empty for mini_ipip
+or before all five parts are done.

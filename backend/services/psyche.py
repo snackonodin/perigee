@@ -120,6 +120,28 @@ def score(answers: dict[str, Any], spec: dict[str, Any], cfg: PsycheCfg) -> dict
     }
 
 
+PARTS = (  # the five themed parts, each the mean of two modules (owner spec)
+    ("mind_at_rest", "Mind at rest", ("m1", "m9")),
+    ("feelings", "Feelings and reactions", ("m2", "m3")),
+    ("people", "People and authority", ("m4", "m7")),
+    ("focus", "Focus and motivation", ("m5", "m6")),
+    ("body_feedback", "Body and feedback", ("m8", "m10")),
+)
+
+
+def profile(result: dict[str, Any]) -> list[dict[str, Any]]:
+    """Shape for the persona radar: one level per part, 0-1 (module means 1-5 rescaled).
+    A tendency profile, not a score: no bands, nothing better or worse."""
+    m = result.get("modules") or {}
+    out = []
+    for key, label, mods in PARTS:
+        vals = [m[k] for k in mods if k in m]
+        if vals:
+            out.append({"key": key, "label": label,
+                        "level": round((sum(vals) / len(vals) - 1) / 4, 3)})
+    return out
+
+
 def save(db: Session, user_id: str, result: dict[str, Any]) -> None:
     profile = db.scalar(scoped(select(Profile), Profile, user_id))
     if profile is None:

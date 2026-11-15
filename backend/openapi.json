@@ -1289,6 +1289,14 @@
               }
             ]
           },
+          "profile": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/ProfileAxisOut"
+            },
+            "title": "Profile",
+            "type": "array"
+          },
           "progress": {
             "anyOf": [
               {
@@ -1431,6 +1439,29 @@
         ],
         "title": "Posture",
         "type": "string"
+      },
+      "ProfileAxisOut": {
+        "properties": {
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "level": {
+            "title": "Level",
+            "type": "number"
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "level"
+        ],
+        "title": "ProfileAxisOut",
+        "type": "object"
       },
       "ProfilePatch": {
         "additionalProperties": false,
@@ -2867,6 +2898,102 @@
         "summary": "List Checkins",
         "tags": [
           "readouts"
+        ]
+      }
+    },
+    "/api/v1/demo/stats": {
+      "get": {
+        "description": "Public, aggregate-only demo counts: {visitors_now, demo_sessions_started, cap}.\n404 unless DEMO_ACCESS=1. No ids or e-mails.",
+        "operationId": "demo_stats_api_v1_demo_stats_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "integer"
+                  },
+                  "title": "Response Demo Stats Api V1 Demo Stats Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Demo Stats",
+        "tags": [
+          "auth"
         ]
       }
     },

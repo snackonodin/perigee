@@ -160,3 +160,13 @@ def test_parts_without_answer_consent_never_build_a_persona(client) -> None:  # 
     j = client.get("/api/v1/persona", headers=h).json()
     assert j["available"] is False and j["progress"]["answers_kept"] is False
     assert len(j["progress"]["done"]) == 5
+
+
+def test_profile_has_five_axes_in_0_1(client) -> None:  # noqa: F811
+    _, h = _user("a@example.test")
+    _post(client, h, _answers(3, **{f"q{q}": 5 for q in (1, 2, 3, 5, 6)}))
+    prof = client.get("/api/v1/persona", headers=h).json()["profile"]
+    keys = ["mind_at_rest", "feelings", "people", "focus", "body_feedback"]
+    assert [p["key"] for p in prof] == keys
+    assert all(0.0 <= p["level"] <= 1.0 for p in prof)
+    assert prof[0]["level"] > prof[1]["level"]  # rumination answers raise "Mind at rest"

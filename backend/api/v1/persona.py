@@ -31,6 +31,12 @@ class PartsProgressOut(BaseModel):
     answers_kept: bool
 
 
+class ProfileAxisOut(BaseModel):
+    key: str
+    label: str
+    level: float  # 0-1 tendency, not a score
+
+
 class PersonaOut(BaseModel):
     available: bool
     source: str | None = None
@@ -40,6 +46,7 @@ class PersonaOut(BaseModel):
     style: dict[str, bool] = {}
     advice: list[AdviceOut] = []
     progress: PartsProgressOut | None = None
+    profile: list[ProfileAxisOut] = []
 
 
 @router.get("/persona", response_model=PersonaOut)

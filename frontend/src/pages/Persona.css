@@ -31,20 +31,21 @@
 .persona-part-actions { display:flex;flex-wrap:wrap;gap:8px; }
 .persona-retake-parts { max-width:none; }
 @media (max-width:599px) { .persona-part { flex-direction:column;align-items:stretch; } }
-/* Type radar: the four persona types. Gradient UV -> soft teal; own type highlighted; no numbers. */
+/* Type radar: the four persona types, each axis stretched by its level. Light UV -> teal fill, 2 px
+   UV edge, faint UV stretch lines, own type highlighted; no numbers. */
 .persona-radar { margin:16px 0 0;max-width:420px; }
 .radar-box { position:relative; }
 .radar-box svg { display:block;width:100%;height:auto;overflow:visible; }
 .radar-ring { fill:none;stroke:var(--line);stroke-width:1; }
 .radar-spoke { stroke:var(--line);stroke-width:1; }
-.radar-stop-a { stop-color:var(--uv);stop-opacity:.6; }
-.radar-stop-b { stop-color:var(--teal);stop-opacity:.4; }
-.radar-area { stroke:var(--uv);stroke-width:1.5;stroke-linejoin:round; }
+.radar-stop-a { stop-color:var(--uv); }
+.radar-stop-b { stop-color:var(--teal); }
+.radar-area { fill-opacity:.35;stroke:var(--uv);stroke-width:2;stroke-linejoin:round; }
+.radar-stretch { stroke:var(--uv);stroke-opacity:.45;stroke-width:1.25;stroke-linecap:round; }
 .radar-dot { fill:var(--uv);stroke:var(--surface);stroke-width:1.5; }
+.radar-dot.current { stroke-width:2; }
 .radar-label { position:absolute;max-width:84px;padding:3px 7px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text);font-size:11px;line-height:1.25;text-align:center;white-space:normal; }
 @media (max-width:599px) { .radar-label { max-width:72px;padding:2px 5px;font-size:10.5px; } }
 .radar-label.current { border-color:var(--uv);background:var(--uv-soft);font-weight:700; }
 .persona-radar figcaption { margin-top:8px;color:var(--muted);font-size:var(--fs-small); }
-@keyframes radar-grow { from { transform:scale(0);opacity:.2; } to { transform:none;opacity:1; } }
-.radar-shape.grow { animation:radar-grow 600ms cubic-bezier(.22,1,.36,1) both; }
-@media (prefers-reduced-motion:reduce) { .radar-shape.grow { animation:none; } }
+/* grow-in is scripted (Radar.tsx, per vertex, staggered) and gated by useMotionOK */

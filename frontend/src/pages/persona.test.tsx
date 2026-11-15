@@ -34,8 +34,8 @@ const EMPTY = { available: false, source: null, updated_at: null, traits: {}, pe
 const taken = (style: Record<string, boolean> = {}, advice = ADVICE) => ({
   available: true, source: "psyche60", updated_at: "2026-11-15T10:00:00Z", traits: {},
   persona_matrix: { stability_score: 14.5, agency_score: 9.25, quadrant_name: "Steady Anchor" }, style, advice,
-  type_mix: [{ type: "Autonomous Pioneer", share: 0.25 }, { type: "Steady Anchor", share: 0.4 },
-    { type: "Internal Deliberator", share: 0.2 }, { type: "Dynamic Explorer", share: 0.15 }] as { type: string; share: number }[],
+  type_mix: [{ type: "Autonomous Pioneer", level: 0.28, share: 0.25 }, { type: "Steady Anchor", level: 0.67, share: 0.4 },
+    { type: "Internal Deliberator", level: 0.23, share: 0.2 }, { type: "Dynamic Explorer", level: 0.09, share: 0.15 }] as { type: string; level: number; share: number }[],
   progress: { done: ["psyche_p1", "psyche_p2", "psyche_p3", "psyche_p4", "psyche_p5"], total: 5, answers_kept: true },
 });
 
@@ -134,9 +134,13 @@ describe("Persona: psyche60", () => {
     // axes at the old plane's places: Pioneer top-right, Anchor bottom-right, Deliberator bottom-left, Explorer top-left
     const pos = labels.map((l) => [parseFloat((l as HTMLElement).style.left), parseFloat((l as HTMLElement).style.top)]);
     expect(pos.map(([x, y]) => `${x > 50 ? "right" : "left"}-${y > 50 ? "bottom" : "top"}`)).toEqual(["right-top", "right-bottom", "left-bottom", "left-top"]);
-    expect(radar.querySelectorAll(".radar-ring")).toHaveLength(3);
-    expect(radar.querySelectorAll(".radar-dot")).toHaveLength(4);
-    expect(radar.querySelector(".radar-shape.grow")).toBeNull(); // no motion in tests / reduced motion
+    expect(radar.querySelectorAll(".radar-ring")).toHaveLength(4);
+    expect(radar.querySelectorAll(".radar-stretch")).toHaveLength(4);
+    const dots = [...radar.querySelectorAll(".radar-dot")];
+    expect(dots.map((d) => d.getAttribute("r"))).toEqual(["3.5", "5.5", "3.5", "3.5"]); // own type (Anchor) bigger
+    // radius = (12% + 88% x level) of the outer ring (100), per axis, never rescaled to the largest
+    const dist = dots.map((d) => Math.hypot(+d.getAttribute("cx")! - 200, +d.getAttribute("cy")! - 150));
+    [0.28, 0.67, 0.23, 0.09].forEach((lv, i) => expect(dist[i]).toBeCloseTo((0.12 + 0.88 * lv) * 100, 0));
     expect(screen.getByText("No shape is better than another.")).toBeTruthy();
     expect(document.querySelector(".persona-plane")).toBeNull();
     expect(document.querySelector(".persona-quadrant-panel")!.textContent!).not.toMatch(/\d/);

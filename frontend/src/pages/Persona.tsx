@@ -16,16 +16,17 @@ const BANK = "psyche60";
 // Autonomous Pioneer top-right, Steady Anchor bottom-right, Internal Deliberator bottom-left,
 // Dynamic Explorer top-left (first axis at -45 degrees, then clockwise).
 const TYPE_ORDER = ["Autonomous Pioneer", "Steady Anchor", "Internal Deliberator", "Dynamic Explorer"] as const;
-type TypeShare = { type: string; share: number };
+type TypeShare = { type: string; level?: number; share: number };
 
-/** The four persona types as one radar: shape from each type's share (scaled to the largest, so the
- *  leading type reaches the outer ring), the person's own type highlighted. No numbers. */
+/** The four persona types as one radar, each axis stretched by its own level (0-1, from the API;
+ *  never rescaled here), the person's own type highlighted. No numbers. */
 function TypeRadar({ mix, quadrant, userId }: { mix: readonly TypeShare[]; quadrant: string; userId: string }) {
-  const share = new Map(mix.map((m) => [m.type, Number.isFinite(m.share) ? Math.max(0, m.share) : 0]));
-  const top = Math.max(...TYPE_ORDER.map((t) => share.get(t) ?? 0));
-  if (!(top > 0)) return null;
-  const axes = TYPE_ORDER.map((t) => ({ key: t, label: t, level: (share.get(t) ?? 0) / top, current: t === quadrant }));
-  const ranked = [...TYPE_ORDER].sort((x, y) => (share.get(y) ?? 0) - (share.get(x) ?? 0));
+  const by = new Map(mix.map((m) => [m.type, m]));
+  if (!TYPE_ORDER.every((t) => by.has(t))) return null;
+  const lv = (t: string) => { const v = by.get(t)!.level; return Number.isFinite(v) ? Math.max(0, Math.min(1, v!)) : 0; };
+  const sh = (t: string) => by.get(t)!.share ?? 0;
+  const axes = TYPE_ORDER.map((t) => ({ key: t, label: t, level: lv(t), current: t === quadrant }));
+  const ranked = [...TYPE_ORDER].sort((x, y) => lv(y) - lv(x) || sh(y) - sh(x));
   const label = `Your persona leans most toward ${ranked[0]}, then ${ranked.slice(1, -1).join(", then ")}, and least toward ${ranked[ranked.length - 1]}.`;
   return <Radar axes={axes} label={label} start={-Math.PI / 4} growKey={`persona.types.${userId}`} />;
 }

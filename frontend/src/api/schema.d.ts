@@ -1463,6 +1463,8 @@ export interface components {
         };
         /** TypeShareOut */
         TypeShareOut: {
+            /** Level */
+            level: number;
             /** Share */
             share: number;
             /** Type */

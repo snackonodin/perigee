@@ -137,3 +137,14 @@ New daily instrument `body_cabin` (submit like any survey): red flags FIRST (`re
 elevated | high | no_reading; null when no reading) and `context_tags: [{kind, text}]` (max 2,
 only for a Watch/Alert night; render under the breathing strip, never instead of the flag).
 `GET /api/v1/pet/bubble` may return `safety_severe_somatic` (ui_action OPEN_MEDICAL_HELP_NOW).
+
+## Psyche in five parts, added 2026-11-15
+
+The 60 questions also come as 5 themed instruments of 12 items, `psyche_p1`..`psyche_p5`
+(1 Mind at rest, 2 Feelings and reactions, 3 People and authority, 4 Focus and motivation,
+5 Body and feedback; each has `part: {index, of, blurb}`). Same item keys and answers as psyche60.
+Submit each like any survey, in any order, on any day. When all 5 are answered (with
+survey-answer consent, so answers are kept encrypted) the server scores them as the full bank
+and `GET /api/v1/persona` becomes available. `/persona.progress = {done: [ids], total: 5,
+answers_kept}`; answers_kept=false means the parts can't be combined (ask for consent).
+UI: one part at a time, items SHUFFLED within the part (stable per user), ~1.5 min each.

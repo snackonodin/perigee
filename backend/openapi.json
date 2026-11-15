@@ -1187,6 +1187,32 @@
         "title": "NightOut",
         "type": "object"
       },
+      "PartsProgressOut": {
+        "properties": {
+          "answers_kept": {
+            "title": "Answers Kept",
+            "type": "boolean"
+          },
+          "done": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Done",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "done",
+          "total",
+          "answers_kept"
+        ],
+        "title": "PartsProgressOut",
+        "type": "object"
+      },
       "PendingCheckin": {
         "properties": {
           "instrument_id": {
@@ -1257,6 +1283,16 @@
             "anyOf": [
               {
                 "$ref": "#/components/schemas/PersonaMatrixOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "progress": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PartsProgressOut"
               },
               {
                 "type": "null"

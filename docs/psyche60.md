@@ -34,3 +34,4 @@ shown, nothing here changes a physiological threshold, an alert or the safety pa
   item-9 path is unchanged. Module scores never reach the client; /persona returns only the
   quadrant, axes, style flags and advice text.
 - Not implemented yet: longitudinal module z-scores (needs >= 4 retakes), on-device free-text.
+- Parts: the bank is also offered as 5 themed parts of 12 (psyche_p1..p5: m1+m9, m2+m3, m4+m7, m5+m6, m8+m10). The persona is scored once all 5 are kept; answers are reassembled from the encrypted survey store, never copied elsewhere.

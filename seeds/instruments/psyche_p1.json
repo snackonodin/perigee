@@ -1,0 +1,367 @@
+{
+  "id": "psyche_p1",
+  "name": "Psyche questions, part 1 of 5: Mind at rest",
+  "version": "1.0",
+  "timeframe": "How true is each statement of you, in general?",
+  "license_note": "Perigee team item bank (supplied by the project owner 2026-11-15), inspired by published research cited in docs/psyche60.md. Not a validated clinical instrument.",
+  "source_url": "",
+  "verification": "Item wording and scoring as supplied by the project owner; see docs/psyche60.md. Non-clinical, heuristic demo bands only.",
+  "notes": "Unfinished loops, sleep timing and winding down. Part 1 of the 60-item psyche bank (psyche60); the persona appears once all five parts are answered. Show the items in a shuffled order.",
+  "part": {
+    "index": 1,
+    "of": 5,
+    "bank": "psyche60",
+    "modules": [
+      "m1",
+      "m9"
+    ],
+    "blurb": "Unfinished loops, sleep timing and winding down"
+  },
+  "items": [
+    {
+      "key": "psyche_1",
+      "text": "When a complex problem or awkward conversation goes unresolved, my mind keeps running background simulations of it long after I've technically clocked out.",
+      "module": "m1",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_2",
+      "text": "Quiet, unstructured downtime actually feels noisier to me than focused work because my thoughts immediately snap to whatever feels unfinished.",
+      "module": "m1",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_3",
+      "text": "I can tell the difference between productive reflection and a mental loop, even when I can't immediately shut the loop down.",
+      "module": "m1",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_4",
+      "text": "Once I close my laptop or leave a room, I can genuinely set down the emotional residue of the day until tomorrow.",
+      "module": "m1",
+      "reverse": true,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_5",
+      "text": "My mood drops less from the actual difficulty of my workload than from the feeling that too many threads are left dangling open.",
+      "module": "m1",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_6",
+      "text": "In the final hour before sleep, my brain gets weirdly sharper and more philosophical, making it harder to power down even when my body is tired.",
+      "module": "m1",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_49",
+      "text": "Shifting my bedtime and wake time by even an hour or two over the weekend gives me a subtle Monday \"jet lag\" that lingers in my focus.",
+      "module": "m9",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_50",
+      "text": "I treat sleep regularity and evening wind-down as real infrastructure for my brain, not something I only worry about after I've already burned out.",
+      "module": "m9",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_51",
+      "text": "Late afternoon coffee, a heavy late-night argument, or intense late exercise reliably shows up as lighter, more fragmented sleep for me.",
+      "module": "m9",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_52",
+      "text": "When I wake up, my energy in the first 20 minutes predicts my cognitive ceiling for the entire rest of the day.",
+      "module": "m9",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_53",
+      "text": "I'm willing to sacrifice sleep first whenever a fascinating idea or looming deadline demands extra hours at night.",
+      "module": "m9",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_54",
+      "text": "Even when I get fewer total hours of sleep, keeping a rock-solid wake time leaves me sharper than sleeping in randomly.",
+      "module": "m9",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    }
+  ],
+  "scoring": {
+    "method": "sum",
+    "per_item": true,
+    "min": 12,
+    "max": 60,
+    "ranges_source": "None: no bands; scored only as the full psyche60 bank.",
+    "ranges": []
+  },
+  "direction": null
+}

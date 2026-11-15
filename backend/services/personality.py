@@ -54,6 +54,9 @@ def readout(db: Session, user_id: str) -> dict[str, Any]:
     settings = (profile.settings or {}) if profile else {}
     traits = {k: v for k, v in (settings.get("traits") or {}).items() if k in TRAIT_KEYS}
     p60 = settings.get(psyche.SETTINGS_KEY)
+    prog = psyche.parts_progress(db, user_id)
+    progress = {"done": prog["done"], "total": prog["total"],
+                "answers_kept": prog["answers_kept"]}
     if p60:
         locked = surveys.safety_state(db, user_id)["safety_screen_required"]
         cfg = psyche._cfg()
@@ -70,10 +73,12 @@ def readout(db: Session, user_id: str) -> dict[str, Any]:
             "style": p60.get("flags", {}),
             # safety first: no advice while a safety screen is pending
             "advice": [] if locked else psyche.advice(p60, psyche.context(db, user_id), cfg),
+            "progress": progress,
         }
     if not traits:
         return {"available": False, "source": None, "updated_at": None,
-                "traits": {}, "persona_matrix": None, "style": {}, "advice": []}
+                "traits": {}, "persona_matrix": None, "style": {}, "advice": [],
+                "progress": progress}
     # Persona fields only: no sensing data and no state, so nothing nightly is implied.
     out = engine_run({"persona": {"user_id": user_id, "traits": traits}})
     viz = out.get("dashboard_visualization_data") or {}
@@ -85,4 +90,5 @@ def readout(db: Session, user_id: str) -> dict[str, Any]:
         "persona_matrix": viz.get("persona_matrix"),
         "style": {},
         "advice": [],
+        "progress": progress,
     }

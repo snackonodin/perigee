@@ -8,6 +8,7 @@ import pytest
 SEEDS = Path(__file__).resolve().parents[2] / "seeds" / "instruments"
 EXPECTED = {
     "phq2", "gad2", "who5", "phq9", "daily_am", "daily_pm", "mini_ipip", "psyche60", "body_cabin",
+    "psyche_p1", "psyche_p2", "psyche_p3", "psyche_p4", "psyche_p5",
 }
 
 

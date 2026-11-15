@@ -20,6 +20,7 @@ from backend.models import CheckinDaily, ContextEngineNight, NightFeaturesRow, P
 from csi_core.config import PsycheCfg, get_config
 
 INSTRUMENT_ID = "psyche60"
+PART_IDS = tuple(f"psyche_p{i}" for i in range(1, 6))  # themed parts of 12, any order
 _PREFIX = "psyche_"
 SETTINGS_KEY = "psyche"
 
@@ -222,3 +223,52 @@ def advice(result: dict[str, Any], ctx: dict[str, bool], cfg: PsycheCfg) -> list
             key = "long_middle_drift_private"
         out.append({"tag": tag, "text": ADVICE[key]})
     return out
+
+
+# ----------------------------------------------------------------------------- parts
+
+
+def parts_progress(db: Session, user_id: str) -> dict[str, Any]:
+    """Which of the 5 themed parts the user has answered (latest each), and whether their
+    answers were kept (encrypted, survey-answer consent) so the bank can be assembled."""
+    from backend.models import SurveyResponseRow
+
+    rows = db.scalars(
+        scoped(
+            select(SurveyResponseRow)
+            .where(SurveyResponseRow.instrument_id.in_(PART_IDS))
+            .order_by(SurveyResponseRow.administered_at.desc()),
+            SurveyResponseRow,
+            user_id,
+        )
+    ).all()
+    latest: dict[str, Any] = {}
+    for r in rows:
+        latest.setdefault(r.instrument_id, r)
+    answers: dict[str, int] = {}
+    kept = True
+    for pid in PART_IDS:
+        r = latest.get(pid)
+        if r is None:
+            continue
+        if isinstance(r.answers, dict):
+            answers.update(r.answers)
+        else:
+            kept = False
+    return {
+        "done": [pid for pid in PART_IDS if pid in latest],
+        "total": len(PART_IDS),
+        "answers_kept": kept,
+        "answers": answers,
+    }
+
+
+def update_from_parts(db: Session, user_id: str, spec: dict[str, Any]) -> bool:
+    """When all 5 parts are answered (and kept), score them as the full bank. True if saved."""
+    prog = parts_progress(db, user_id)
+    if len(prog["done"]) < len(PART_IDS) or not prog["answers_kept"]:
+        return False
+    if len(_raw(prog["answers"])) < 60:
+        return False
+    save(db, user_id, score(prog["answers"], spec, _cfg()))
+    return True

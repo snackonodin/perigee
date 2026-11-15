@@ -1,0 +1,367 @@
+{
+  "id": "psyche_p3",
+  "name": "Psyche questions, part 3 of 5: People and authority",
+  "version": "1.0",
+  "timeframe": "How true is each statement of you, in general?",
+  "license_note": "Perigee team item bank (supplied by the project owner 2026-11-15), inspired by published research cited in docs/psyche60.md. Not a validated clinical instrument.",
+  "source_url": "",
+  "verification": "Item wording and scoring as supplied by the project owner; see docs/psyche60.md. Non-clinical, heuristic demo bands only.",
+  "notes": "Your crew, outside rules and social energy. Part 3 of the 60-item psyche bank (psyche60); the persona appears once all five parts are answered. Show the items in a shuffled order.",
+  "part": {
+    "index": 3,
+    "of": 5,
+    "bank": "psyche60",
+    "modules": [
+      "m4",
+      "m7"
+    ],
+    "blurb": "Your crew, outside rules and social energy"
+  },
+  "items": [
+    {
+      "key": "psyche_19",
+      "text": "Heavy workload rarely burns me out on its own; arbitrary rules, micromanagement, or pointless bureaucracy drain me five times faster.",
+      "module": "m4",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_20",
+      "text": "When an authority figure or institution imposes a rigid plan that doesn't match reality on the ground, I quietly work around it rather than argue endlessly.",
+      "module": "m4",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_21",
+      "text": "I get genuinely energized by collaborative friction, as long as I feel like I'm being treated as a peer rather than managed.",
+      "module": "m4",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_22",
+      "text": "When I feel overly monitored or evaluated, I instinctively polish how I appear on paper instead of sharing what's actually slowing me down.",
+      "module": "m4",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_23",
+      "text": "Having someone else structure my day, break times, or recovery routines feels supportive and relieving rather than intrusive.",
+      "module": "m4",
+      "reverse": true,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_24",
+      "text": "Under prolonged pressure, it's much easier to bond with teammates over shared frustration with \"the people in charge\" than to confront friction within the group itself.",
+      "module": "m4",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_37",
+      "text": "What drains me socially isn't people, it's surface-level small talk; an intense two-hour conversation about ideas actually leaves me more energized than sitting alone.",
+      "module": "m7",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_38",
+      "text": "Even with people I genuinely love, I hit an invisible social ceiling where I need quiet, unscheduled solitude to metabolize the day.",
+      "module": "m7",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_39",
+      "text": "When something real is weighing on me, I prefer sitting down with one trusted person at a deliberate time rather than venting casually in a group.",
+      "module": "m7",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_40",
+      "text": "I can go a surprisingly long stretch absorbed in solo projects before I notice that isolation is quietly dulling my mood.",
+      "module": "m7",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_41",
+      "text": "In group settings, I naturally calibrate my energy to pull quieter people into the conversation, even when I'm privately tired.",
+      "module": "m7",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_42",
+      "text": "I trust that if I drop the polished exterior and admit I'm struggling, the people close to me will actually know how to hold it.",
+      "module": "m7",
+      "reverse": true,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    }
+  ],
+  "scoring": {
+    "method": "sum",
+    "per_item": true,
+    "min": 12,
+    "max": 60,
+    "ranges_source": "None: no bands; scored only as the full psyche60 bank.",
+    "ranges": []
+  },
+  "direction": null
+}

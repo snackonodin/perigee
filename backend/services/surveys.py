@@ -508,6 +508,14 @@ def _update_traits(db: Any, user_id: str, instrument: dict, answers: dict) -> di
             db.rollback()
             log.error("psyche result could not be updated (instrument=%s)", instrument_id)
         return None
+    if instrument_id in psyche.PART_IDS:
+        try:
+            spec = get_instrument(db, psyche.INSTRUMENT_ID)["psyche_spec"]
+            psyche.update_from_parts(db, user_id, spec)
+        except Exception:
+            db.rollback()
+            log.error("psyche parts could not be combined (instrument=%s)", instrument_id)
+        return None
     if instrument_id != personality.INSTRUMENT_ID:
         return None
     try:

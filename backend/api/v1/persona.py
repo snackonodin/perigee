@@ -25,6 +25,12 @@ class AdviceOut(BaseModel):
     text: str
 
 
+class PartsProgressOut(BaseModel):
+    done: list[str]
+    total: int
+    answers_kept: bool
+
+
 class PersonaOut(BaseModel):
     available: bool
     source: str | None = None
@@ -33,6 +39,7 @@ class PersonaOut(BaseModel):
     persona_matrix: PersonaMatrixOut | None = None
     style: dict[str, bool] = {}
     advice: list[AdviceOut] = []
+    progress: PartsProgressOut | None = None
 
 
 @router.get("/persona", response_model=PersonaOut)

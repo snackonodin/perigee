@@ -117,3 +117,46 @@ def test_not_a_load_measure(client) -> None:  # noqa: F811
     with db_mod.SessionLocal() as s:
         out = surveys.weekly_indices(s, uid, date(2026, 11, 9))
     assert "psyche60" not in out
+
+
+def _post_part(client, h, i: int, answers: dict[str, int]):  # noqa: F811
+    inst = client.get(f"/api/v1/instruments/psyche_p{i}", headers=h).json()
+    body = {"instrument_id": f"psyche_p{i}", "instrument_version": "1.0",
+            "administered_at": f"2026-11-15T0{i}:00:00Z",
+            "answers": {it["key"]: answers[it["key"]] for it in inst["items"]}}
+    return client.post("/api/v1/responses", json=body, headers=h)
+
+
+def test_five_themed_parts_cover_the_bank_once() -> None:
+    seen: list[str] = []
+    for i in range(1, 6):
+        d = json.loads((Path(__file__).resolve().parents[2]
+                        / f"seeds/instruments/psyche_p{i}.json").read_text())
+        assert len(d["items"]) == 12
+        seen += [it["key"] for it in d["items"]]
+    assert sorted(seen) == sorted(f"psyche_{q}" for q in range(1, 61))
+
+
+def test_parts_one_after_another_give_the_same_persona(client) -> None:  # noqa: F811
+    _, h = _user("a@example.test")
+    a = _answers(3, q19=5, q20=5, q21=5)
+    for i in range(1, 4):
+        assert _post_part(client, h, i, a).json()["crisis"] is False
+    j = client.get("/api/v1/persona", headers=h).json()
+    assert j["available"] is False and len(j["progress"]["done"]) == 3
+    for i in (4, 5):
+        _post_part(client, h, i, a)
+    j = client.get("/api/v1/persona", headers=h).json()
+    full = psyche.score(a, SPEC, CFG)
+    assert j["available"] and j["source"] == "psyche60"
+    assert j["persona_matrix"]["quadrant_name"] == full["quadrant"]
+    assert j["persona_matrix"]["agency_score"] == full["agency"]
+
+
+def test_parts_without_answer_consent_never_build_a_persona(client) -> None:  # noqa: F811
+    _, h = _user("a@example.test", consents=False)
+    for i in range(1, 6):
+        _post_part(client, h, i, _answers(3))
+    j = client.get("/api/v1/persona", headers=h).json()
+    assert j["available"] is False and j["progress"]["answers_kept"] is False
+    assert len(j["progress"]["done"]) == 5

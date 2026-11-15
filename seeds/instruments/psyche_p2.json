@@ -1,0 +1,367 @@
+{
+  "id": "psyche_p2",
+  "name": "Psyche questions, part 2 of 5: Feelings and reactions",
+  "version": "1.0",
+  "timeframe": "How true is each statement of you, in general?",
+  "license_note": "Perigee team item bank (supplied by the project owner 2026-11-15), inspired by published research cited in docs/psyche60.md. Not a validated clinical instrument.",
+  "source_url": "",
+  "verification": "Item wording and scoring as supplied by the project owner; see docs/psyche60.md. Non-clinical, heuristic demo bands only.",
+  "notes": "Empathy, irritability and bouncing back. Part 2 of the 60-item psyche bank (psyche60); the persona appears once all five parts are answered. Show the items in a shuffled order.",
+  "part": {
+    "index": 2,
+    "of": 5,
+    "bank": "psyche60",
+    "modules": [
+      "m2",
+      "m3"
+    ],
+    "blurb": "Empathy, irritability and bouncing back"
+  },
+  "items": [
+    {
+      "key": "psyche_7",
+      "text": "When I am running on low sleep, my empathy becomes clinical rather than warm: I still understand why someone is upset, even if I temporarily stop feeling it with them.",
+      "module": "m2",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_8",
+      "text": "When I get hit by a sudden wave of irritability or heaviness, I usually know within a few minutes what actually triggered it.",
+      "module": "m2",
+      "reverse": true,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_9",
+      "text": "In tense moments, I tend to step into an analytical \"observer mode\" to keep from getting pulled under by other people's emotions.",
+      "module": "m2",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_10",
+      "text": "When someone close to me vents about a recurring problem, my instinct is to dissect the mechanism of the issue rather than just sit in the feeling with them.",
+      "module": "m2",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_11",
+      "text": "Under pressure, I am much sharper at reading subtle shifts in someone else's tone than at noticing when my own emotional bandwidth is quietly running empty.",
+      "module": "m2",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_12",
+      "text": "Even when I know I'm in a bad mood for no logical reason, the feeling still colors how seriously I take minor setbacks that day.",
+      "module": "m2",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_13",
+      "text": "I can usually absorb a lot of external chaos gracefully, until a lack of sleep strips away my filter and a tiny inconvenience suddenly feels personal.",
+      "module": "m3",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_14",
+      "text": "When I make an avoidable mistake, my internal voice is noticeably harsher and more unforgiving than I would ever be to a friend.",
+      "module": "m3",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_15",
+      "text": "Under sustained stress, my frustration leaks out sideways as sharp wit, impatience, or clipped messages rather than open confrontation.",
+      "module": "m3",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_16",
+      "text": "I rarely experience sudden spikes of defensive irritation, even when my schedule is crammed and plans fall apart at the last minute.",
+      "module": "m3",
+      "reverse": true,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_17",
+      "text": "When my energy drops, I become skeptical of other people's motives faster than I do when I'm well rested.",
+      "module": "m3",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_18",
+      "text": "I bounce back quickly from a sharp critique or tense exchange without replaying what I wish I'd said two hours later.",
+      "module": "m3",
+      "reverse": true,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    }
+  ],
+  "scoring": {
+    "method": "sum",
+    "per_item": true,
+    "min": 12,
+    "max": 60,
+    "ranges_source": "None: no bands; scored only as the full psyche60 bank.",
+    "ranges": []
+  },
+  "direction": null
+}

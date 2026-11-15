@@ -1,0 +1,367 @@
+{
+  "id": "psyche_p5",
+  "name": "Psyche questions, part 5 of 5: Body and feedback",
+  "version": "1.0",
+  "timeframe": "How true is each statement of you, in general?",
+  "license_note": "Perigee team item bank (supplied by the project owner 2026-11-15), inspired by published research cited in docs/psyche60.md. Not a validated clinical instrument.",
+  "source_url": "",
+  "verification": "Item wording and scoring as supplied by the project owner; see docs/psyche60.md. Non-clinical, heuristic demo bands only.",
+  "notes": "Body signals, cabin air and how you want news delivered. Part 5 of the 60-item psyche bank (psyche60); the persona appears once all five parts are answered. Show the items in a shuffled order.",
+  "part": {
+    "index": 5,
+    "of": 5,
+    "bank": "psyche60",
+    "modules": [
+      "m8",
+      "m10"
+    ],
+    "blurb": "Body signals, cabin air and how you want news delivered"
+  },
+  "items": [
+    {
+      "key": "psyche_43",
+      "text": "I notice stale air, stuffy rooms, fluorescent lighting, or subtle background hums degrading my focus long before anyone else complains about the environment.",
+      "module": "m8",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_44",
+      "text": "When I'm deeply absorbed in a problem, I treat my body like a vehicle I can ignore until a headache, tight chest, or crash forces me to notice it.",
+      "module": "m8",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_45",
+      "text": "Sudden mood dips for me often turn out to have a boring physical root (dehydration, poor ventilation, missed food, or a terrible night of sleep) before I recognize it.",
+      "module": "m8",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_46",
+      "text": "My stress shows up physically (shallow breathing, jaw tension, restless pacing, or stomach knots) faster than I consciously admit I'm stressed.",
+      "module": "m8",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_47",
+      "text": "A change in how steady my breathing or sleep feels at night tells me something more honest about my week than my own optimism does.",
+      "module": "m8",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_48",
+      "text": "I rarely connect minor physical sluggishness to yesterday's mental load; I usually assume I'm just coming down with something or being lazy.",
+      "module": "m8",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_55",
+      "text": "If a pattern in my sleep or stress is drifting downward, show me the raw numbers, confidence bands, and the exact \"why\"; don't sugarcoat it with vague wellness slogans.",
+      "module": "m10",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_56",
+      "text": "Urgent red alerts and dramatic warnings stress me out more than the underlying issue; a calm, matter-of-fact explanation helps me act much better.",
+      "module": "m10",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_57",
+      "text": "I don't want motivational quotes; give me a crisp 3-step checklist or one tiny experiment I can test tonight.",
+      "module": "m10",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_58",
+      "text": "Comparing me to \"what's normal for the average person\" annoys me; only show me how today compares to my own personal baseline.",
+      "module": "m10",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_59",
+      "text": "Knowing that a late night or stressful day explains a weird spike in my body metrics immediately lowers my anxiety and makes me trust the data more.",
+      "module": "m10",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_60",
+      "text": "I'm far more honest in a self-reflection tool when I know my raw thoughts stay completely private on my device rather than turning into an automatic score.",
+      "module": "m10",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    }
+  ],
+  "scoring": {
+    "method": "sum",
+    "per_item": true,
+    "min": 12,
+    "max": 60,
+    "ranges_source": "None: no bands; scored only as the full psyche60 bank.",
+    "ranges": []
+  },
+  "direction": null
+}

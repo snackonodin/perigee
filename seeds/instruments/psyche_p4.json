@@ -1,0 +1,367 @@
+{
+  "id": "psyche_p4",
+  "name": "Psyche questions, part 4 of 5: Focus and motivation",
+  "version": "1.0",
+  "timeframe": "How true is each statement of you, in general?",
+  "license_note": "Perigee team item bank (supplied by the project owner 2026-11-15), inspired by published research cited in docs/psyche60.md. Not a validated clinical instrument.",
+  "source_url": "",
+  "verification": "Item wording and scoring as supplied by the project owner; see docs/psyche60.md. Non-clinical, heuristic demo bands only.",
+  "notes": "Attention, fatigue and the long middle. Part 4 of the 60-item psyche bank (psyche60); the persona appears once all five parts are answered. Show the items in a shuffled order.",
+  "part": {
+    "index": 4,
+    "of": 5,
+    "bank": "psyche60",
+    "modules": [
+      "m5",
+      "m6"
+    ],
+    "blurb": "Attention, fatigue and the long middle"
+  },
+  "items": [
+    {
+      "key": "psyche_25",
+      "text": "When I'm tired, my overall speed still feels normal, yet I'll suddenly realize I stared at the same paragraph three times or missed an obvious detail.",
+      "module": "m5",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_26",
+      "text": "I can usually tell the exact moment my working memory saturates and I'm just pushing buttons on inertia rather than thinking clearly.",
+      "module": "m5",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_27",
+      "text": "Under time pressure, I have a strong instinct to protect accuracy at the cost of speed, even if it means falling slightly behind schedule.",
+      "module": "m5",
+      "reverse": true,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_28",
+      "text": "Mental fog hits me less like physical sleepiness and more like an invisible drag on how fast I can connect ideas or retrieve the right word.",
+      "module": "m5",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_29",
+      "text": "When my concentration starts slipping, my default reflex is to force my way through with caffeine or sheer stubbornness rather than step away for five minutes.",
+      "module": "m5",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_30",
+      "text": "Solving an unfamiliar logic puzzle or untangling a messy systems problem wakes my brain up faster than routine, predictable work.",
+      "module": "m5",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_31",
+      "text": "Intense, chaotic crises bring out a surprisingly calm side of me; it's repetitive, low-stakes maintenance work that quietly erodes my motivation.",
+      "module": "m6",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_32",
+      "text": "During the unglamorous middle stretch of a long goal, after the novelty wears off and before the finish line is visible, I invent side challenges to stay mentally alive.",
+      "module": "m6",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_33",
+      "text": "Without external milestones or visible feedback, my internal sense of momentum drifts faster than I like to admit.",
+      "module": "m6",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_34",
+      "text": "I can stay grounded in why my daily habits matter even during stretches where life feels monotonous and repetitive.",
+      "module": "m6",
+      "reverse": true,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_35",
+      "text": "When life gets too predictable for too long, I occasionally stir up unnecessary complexity or new projects just to feel intellectual friction.",
+      "module": "m6",
+      "reverse": false,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    },
+    {
+      "key": "psyche_36",
+      "text": "I separate my sense of self-worth cleanly from how productive or impressive a single week happens to look.",
+      "module": "m6",
+      "reverse": true,
+      "options": [
+        {
+          "value": 1,
+          "label": "Not true of me"
+        },
+        {
+          "value": 2,
+          "label": "Slightly true of me"
+        },
+        {
+          "value": 3,
+          "label": "Somewhat true of me"
+        },
+        {
+          "value": 4,
+          "label": "Mostly true of me"
+        },
+        {
+          "value": 5,
+          "label": "Deeply true of me"
+        }
+      ]
+    }
+  ],
+  "scoring": {
+    "method": "sum",
+    "per_item": true,
+    "min": 12,
+    "max": 60,
+    "ranges_source": "None: no bands; scored only as the full psyche60 bank.",
+    "ranges": []
+  },
+  "direction": null
+}

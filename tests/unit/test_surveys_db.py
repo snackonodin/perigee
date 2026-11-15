@@ -80,7 +80,7 @@ def _phq9(item9: int, rest: int = 1) -> dict[str, int]:
 def test_load_catalog_idempotent(db) -> None:
     surveys.load_catalog(db)
     surveys.load_catalog(db)
-    assert db.query(Instrument).count() == 9
+    assert db.query(Instrument).count() == 14
     row = db.scalars(select(Instrument).where(Instrument.instrument_id == "phq9")).one()
     assert row.version == "1.0" and row.source_url and row.definition["id"] == "phq9"
     assert surveys.get_instrument(db, "who5")["scoring"]["method"] == "sum_x4"

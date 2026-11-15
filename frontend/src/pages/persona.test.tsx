@@ -137,10 +137,12 @@ describe("Persona: psyche60", () => {
     expect(radar.querySelectorAll(".radar-ring")).toHaveLength(4);
     expect(radar.querySelectorAll(".radar-stretch")).toHaveLength(4);
     const dots = [...radar.querySelectorAll(".radar-dot")];
-    expect(dots.map((d) => d.getAttribute("r"))).toEqual(["3.5", "5.5", "3.5", "3.5"]); // own type (Anchor) bigger
-    // radius = (12% + 88% x level) of the outer ring (100), per axis, never rescaled to the largest
-    const dist = dots.map((d) => Math.hypot(+d.getAttribute("cx")! - 200, +d.getAttribute("cy")! - 150));
-    [0.28, 0.67, 0.23, 0.09].forEach((lv, i) => expect(dist[i]).toBeCloseTo((0.12 + 0.88 * lv) * 100, 0));
+    expect(dots.map((d) => d.getAttribute("r"))).toEqual(["5", "7.5", "5", "5"]); // own type (Anchor) bigger
+    // radius = (12% + 88% x level) of the outer ring (255, centred on 0,0), per axis, never rescaled
+    const dist = dots.map((d) => Math.hypot(+d.getAttribute("cx")!, +d.getAttribute("cy")!));
+    [0.28, 0.67, 0.23, 0.09].forEach((lv, i) => expect(dist[i]).toBeCloseTo((0.12 + 0.88 * lv) * 255, 0));
+    // label boxes sit outside the ring: above the upper corners, below the lower ones
+    expect(labels.map((l) => l.getAttribute("data-v"))).toEqual(["above", "below", "below", "above"]);
     expect(screen.getByText("No shape is better than another.")).toBeTruthy();
     expect(document.querySelector(".persona-plane")).toBeNull();
     expect(document.querySelector(".persona-quadrant-panel")!.textContent!).not.toMatch(/\d/);

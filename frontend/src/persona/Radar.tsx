@@ -4,8 +4,9 @@ import { useMotionOK } from "../components/motion";
 /** One radar axis. `level` is 0-1 and only sets the shape; it is never shown as a number. */
 export interface RadarAxis { key: string; label: string; level: number; current?: boolean }
 
-// Geometry in viewBox units. Labels are HTML boxes placed in % of the box so long names wrap.
-const W = 400, H = 300, CX = 200, CY = 150, R = 100, LABEL_R = 116, RINGS = [0.25, 0.5, 0.75, 1];
+// Geometry in viewBox units, centred on (0, 0). The viewBox hugs the outer ring (plus room for the
+// dots), so the ring fills the figure's width; ~1 unit per px at the 360 px desktop size.
+const R = 255, RINGS = [0.25, 0.5, 0.75, 1], PAD = 10;
 // radius = 12% + 88% x level of the outer ring (contract "Persona radar values"), so 0 is a small point
 const BASE = 0.12;
 const GROW_MS = 600, STAGGER_MS = 90;
@@ -47,31 +48,37 @@ export function Radar({ axes, label, growKey, start = -Math.PI / 2 }: { axes: re
   const n = axes.length;
   const f = useGrow(n, growKey);
   if (n < 3) return null;
-  const at = (i: number, r: number) => { const t = angle(start, i, n); return [CX + r * Math.cos(t), CY + r * Math.sin(t)] as const; };
+  const at = (i: number, r: number) => { const t = angle(start, i, n); return [r * Math.cos(t), r * Math.sin(t)] as const; };
   const level = (v: number) => Math.max(0, Math.min(1, Number.isFinite(v) ? v : 0));
   const shape = axes.map((a, i) => at(i, (BASE + (1 - BASE) * level(a.level)) * R * f[i]));
+  const outer = axes.map((_, i) => at(i, R));
+  const xs = outer.map(([x]) => x), ys = outer.map(([, y]) => y);
+  const x0 = Math.min(...xs) - PAD, y0 = Math.min(...ys) - PAD, w = Math.max(...xs) + PAD - x0, h = Math.max(...ys) + PAD - y0;
   return <figure className="persona-radar">
     <div className="radar-box" role="img" aria-label={label}>
-      <svg viewBox={`0 0 ${W} ${H}`} aria-hidden="true" focusable="false">
-        <defs>
-          <linearGradient id={`radar-fill-${gid}`} x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" className="radar-stop-a" />
-            <stop offset="1" className="radar-stop-b" />
-          </linearGradient>
-        </defs>
-        {RINGS.map((r) => <polygon key={r} className="radar-ring" points={poly(axes.map((_, i) => at(i, r * R)))} />)}
-        {axes.map((a, i) => { const [x, y] = at(i, R); return <line key={a.key} className="radar-spoke" x1={CX} y1={CY} x2={x} y2={y} />; })}
-        <polygon className="radar-area" points={poly(shape)} fill={`url(#radar-fill-${gid})`} />
-        {shape.map(([x, y], i) => <line key={axes[i].key} className="radar-stretch" x1={CX} y1={CY} x2={x} y2={y} />)}
-        {shape.map(([x, y], i) => <circle key={axes[i].key} className={`radar-dot${axes[i].current ? " current" : ""}`} cx={x} cy={y} r={axes[i].current ? 5.5 : 3.5} />)}
-      </svg>
-      {axes.map((a, i) => {
-        const t = angle(start, i, n), [x, y] = at(i, LABEL_R);
-        // anchor the box on the side facing the centre, so it sits just outside its corner
-        const style = { left: `${(x / W) * 100}%`, top: `${(y / H) * 100}%`,
-          transform: `translate(${(-50 + 50 * Math.cos(t)).toFixed(0)}%, ${(-50 + 50 * Math.sin(t)).toFixed(0)}%)` };
-        return <span key={a.key} className={`radar-label${a.current ? " current" : ""}`} style={style} aria-hidden="true">{a.label}</span>;
-      })}
+      <div className="radar-plot">
+        <svg viewBox={`${x0.toFixed(1)} ${y0.toFixed(1)} ${w.toFixed(1)} ${h.toFixed(1)}`} aria-hidden="true" focusable="false">
+          <defs>
+            <linearGradient id={`radar-fill-${gid}`} x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" className="radar-stop-a" />
+              <stop offset="1" className="radar-stop-b" />
+            </linearGradient>
+          </defs>
+          {RINGS.map((r) => <polygon key={r} className="radar-ring" points={poly(axes.map((_, i) => at(i, r * R)))} />)}
+          {outer.map(([x, y], i) => <line key={axes[i].key} className="radar-spoke" x1={0} y1={0} x2={x} y2={y} />)}
+          <polygon className="radar-area" points={poly(shape)} fill={`url(#radar-fill-${gid})`} />
+          {shape.map(([x, y], i) => <line key={axes[i].key} className="radar-stretch" x1={0} y1={0} x2={x} y2={y} />)}
+          {shape.map(([x, y], i) => <circle key={axes[i].key} className={`radar-dot${axes[i].current ? " current" : ""}`} cx={x} cy={y} r={axes[i].current ? 7.5 : 5} />)}
+        </svg>
+        {axes.map((a, i) => {
+          // Outside the outer ring: above an upper corner / below a lower one, and aligned inward
+          // from its corner (a right corner's box ends at the corner) so the boxes never overhang.
+          const [x, y] = outer[i];
+          const side = x > w * 0.1 ? "right" : x < -w * 0.1 ? "left" : "mid";
+          const style = { left: `${(((x - x0) / w) * 100).toFixed(2)}%`, top: `${(((y - y0) / h) * 100).toFixed(2)}%` };
+          return <span key={a.key} className={`radar-label${a.current ? " current" : ""}`} data-v={y <= 0 ? "above" : "below"} data-h={side} style={style} aria-hidden="true">{a.label}</span>;
+        })}
+      </div>
     </div>
     <figcaption>No shape is better than another.</figcaption>
   </figure>;

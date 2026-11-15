@@ -113,8 +113,16 @@ def test_low_packet_rate_never_passes_link_check():
 
 
 def test_two_stations_fail_the_link_check():
+    # an even split: neither station reaches the rate on its own
     run, _ = _start(port_kwargs={"macs": (MAC_A, MAC_B)})
     assert run.state == "link_error"
+
+
+def test_stray_packets_from_another_device_do_not_fail_the_link_check():
+    # the ESP plus an occasional packet from a phone nearby (seen on real hardware)
+    run, _ = _start(port_kwargs={"hz": 110, "macs": (MAC_A,) * 49 + (MAC_B,)})
+    assert run.state == "complete"
+    assert "calibration_start" in _markers(run)
 
 
 def test_link_lost_during_run_keeps_partial_capture():
@@ -218,6 +226,17 @@ def test_voluntary_measure_shows_only_that_measure():
     assert view["summary"]["respiration"]["values_shown"] is False
 
 
+def test_peak_estimates_shown_for_a_chosen_measure_hidden_for_sleep_by_default():
+    breath, _ = _start(mode="breathing_rate")
+    view = mon.public_view(mon.get("userA", breath.id))
+    assert "peak_estimates" in view["summary"]
+    assert view["summary"]["peak_estimates"]["heart_rate"] == [{"time_s": 15.0, "bpm": 72.0}]
+    sleep, _ = _start(mode="sleep_analysis")
+    assert "peak_estimates" not in mon.public_view(mon.get("userA", sleep.id))["summary"]
+    shown = mon.public_view(mon.get("userA", sleep.id), show_rates=True)
+    assert "peak_estimates" in shown["summary"]
+
+
 def test_repo_monitor_config_loads():
     cfg = get_config().monitor
     assert cfg is not None and cfg.calibration_s > 0
@@ -232,7 +251,9 @@ def test_real_analysis_on_team_iq_fixture():
     fixture = Path(__file__).resolve().parents[1] / "fixtures" / "team_iq_empty_30s.csv"
     t0 = float(pd.read_csv(fixture, usecols=["host_time_wall_s"]).iloc[0, 0])
     out = mon.analyze_capture(fixture, 0.0, datetime.fromtimestamp(t0, UTC), "s1", get_config())
-    assert set(out) == {"respiration", "heart_rate", "motion"}
+    assert set(out) == {"respiration", "heart_rate", "motion", "breath_peaks"}
+    keys = {"spectral_bpm", "peak_count_bpm", "confirmed"}
+    assert all(keys <= set(p) for p in out["breath_peaks"])
     assert len(out["motion"]) > 0  # 30 s of I/Q -> Doppler windows
     assert all({"time_s", "acceleration_m_s2"} <= set(m) for m in out["motion"])
 

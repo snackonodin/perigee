@@ -133,11 +133,13 @@ export function Monitor() {
         <h2 id="monitor-results-title">Session results</h2>
         {summary ? <>
           {session.mode === "sleep_analysis" && <SessionScore summary={summary} />}
-          <div className="monitor-flags">
-            <FlagCard title="Breathing" block={asRecord(summary.respiration)} />
-            <FlagCard title="Heart" block={asRecord(summary.heart_rate)} />
+          {/* each mode shows the measure it is for (plus movement); sleep analysis shows all */}
+          <div className={`monitor-flags monitor-flags-${session.mode === "sleep_analysis" ? 3 : 2}`}>
+            {session.mode !== "heart_rate" && <FlagCard title="Breathing" block={asRecord(summary.respiration)} />}
+            {session.mode !== "breathing_rate" && <FlagCard title="Heart" block={asRecord(summary.heart_rate)} />}
             <FlagCard title="Movement" block={asRecord(summary.motion)} motion />
           </div>
+          <PeakEstimates peaks={asRecord(summary.peak_estimates)} />
           {session.mode === "sleep_analysis" && <p className="muted">{summaryLimitations(summary.limitations)}</p>}
           {session.mode === "sleep_analysis" && <label className="monitor-rate-switch"><span>Show measured rates (experimental)</span><input type="checkbox" role="switch" checked={showRates} onChange={(event) => setShowRates(event.target.checked)} /></label>}
           {showValues && readings.length > 0 && <div className="monitor-readings"><h3>Measured rates <span className="monitor-experimental">Experimental</span></h3><ul>{readings.map((reading, index) => <li key={`${String(reading.time_s)}-${index}`}>{formatReading(reading)}</li>)}</ul></div>}
@@ -145,6 +147,8 @@ export function Monitor() {
       </section>}
 
       {session?.state === "stopped" && <p className="muted monitor-ended" role="status">Session stopped.</p>}
+
+      {!active && <RealCaptures />}
     </section>
   );
 }
@@ -210,4 +214,72 @@ function formatReading(reading: Record<string, unknown>): string {
   const position = typeof reading.position === "string" ? ` · ${reading.position}` : "";
   const value = typeof reading.value === "number" ? ` · ${reading.value}` : "";
   return `${time}${position}${value}`;
+}
+
+type Rec = Record<string, unknown>;
+const num = (v: unknown): number | null => (typeof v === "number" && Number.isFinite(v) ? v : null);
+const bpm = (v: unknown): string => { const n = num(v); return n == null ? "–" : `${n.toFixed(1)}`; };
+
+/** Raw per-window estimates: both breathing methods and heart-rate peaks. A breathing window
+ *  where the two methods disagree is marked unconfirmed (it never becomes a flag or score). */
+function PeakEstimates({ peaks }: { peaks?: Rec }) {
+  const breathing = (Array.isArray(peaks?.breathing) ? peaks.breathing : []) as Rec[];
+  const heart = (Array.isArray(peaks?.heart_rate) ? peaks.heart_rate : []) as Rec[];
+  if (!peaks || (breathing.length === 0 && heart.length === 0)) return null;
+  return <div className="monitor-peaks">
+    <h3>Peak estimates <span className="monitor-experimental">Experimental</span></h3>
+    {breathing.length > 0 && <table className="monitor-peak-table">
+      <caption>Breathing, breaths per minute, per window</caption>
+      <thead><tr><th scope="col">Window end</th><th scope="col">Spectral peak</th><th scope="col">Peak count</th><th scope="col">Status</th></tr></thead>
+      <tbody>{breathing.map((w, i) => <tr key={i}>
+        <td>{bpm(w.time_s)} s</td><td>{bpm(w.spectral_bpm)}</td><td>{bpm(w.peak_count_bpm)}</td>
+        <td>{w.confirmed ? <span className="monitor-chip monitor-chip-ok">Methods agree</span> : <span className="monitor-chip monitor-chip-neutral">Unconfirmed</span>}</td>
+      </tr>)}</tbody>
+    </table>}
+    {heart.length > 0 && <table className="monitor-peak-table">
+      <caption>Heart rate, beats per minute, per window</caption>
+      <thead><tr><th scope="col">Window end</th><th scope="col">Peak estimate</th></tr></thead>
+      <tbody>{heart.map((w, i) => <tr key={i}><td>{bpm(w.time_s)} s</td><td>{bpm(w.bpm)}</td></tr>)}</tbody>
+    </table>}
+    {typeof peaks.note === "string" && <p className="muted">{peaks.note}</p>}
+  </div>;
+}
+
+/** Real ESP32 captures from the team's saved tests. Demo accounts only (the API returns
+ *  an empty list for a real account, and then nothing renders). */
+function RealCaptures() {
+  const samples = useLoad(() => api.GET("/api/v1/monitor/samples"));
+  const list = (samples.data ?? []) as Rec[];
+  if (list.length === 0) return null;
+  async function download(id: string) {
+    const r = await api.GET("/api/v1/monitor/samples/{sample_id}/capture.csv", { params: { path: { sample_id: id } }, parseAs: "blob" });
+    if (!r.data) return;
+    const url = URL.createObjectURL(r.data as Blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `${id}.csv`; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+  return <section className="card monitor-real" aria-labelledby="monitor-real-title">
+    <h2 id="monitor-real-title">Real ESP32 captures</h2>
+    <p className="muted">Recorded by the team with the real sensor. Shown on demo accounts so you can see real data next to the synthetic nights.</p>
+    {list.map((d) => {
+      const acc = asRecord(d.accuracy_pct) ?? {};
+      const truth = asRecord(d.truth) ?? {};
+      const windows = (Array.isArray(d.windows) ? d.windows : []) as Rec[];
+      const when = typeof d.measured_at === "string" ? new Date(d.measured_at) : null;
+      return <article key={String(d.id)} className="monitor-real-item">
+        <h3>{String(d.title)}</h3>
+        <p className="monitor-real-meta">Measured by the host at <time dateTime={String(d.measured_at)}>{when ? when.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "medium", timeZoneName: "short" }) : "–"}</time> · {String(d.rows)} packets at {bpm(d.packet_rate_hz)} Hz</p>
+        <p className="muted">{String(d.setup)}</p>
+        <table className="monitor-peak-table">
+          <caption>Breathing, breaths per minute. True rate {bpm(truth.bpm)} (operator count)</caption>
+          <thead><tr><th scope="col">Window</th><th scope="col">Spectral peak</th><th scope="col">Peak count</th></tr></thead>
+          <tbody>{windows.map((w, i) => <tr key={i}><td>{bpm(w.t_start_s)}–{bpm(w.t_end_s)} s</td><td>{bpm(w.spectral_bpm)}</td><td>{bpm(w.peak_count_bpm)}</td></tr>)}</tbody>
+        </table>
+        <p className="monitor-real-acc"><span className="monitor-chip monitor-chip-ok">Spectral {bpm(acc.spectral)}% accurate</span> <span className="monitor-chip monitor-chip-ok">Peak count {bpm(acc.peak_count)}% accurate</span></p>
+        <p className="muted monitor-real-small">{String(d.accuracy_definition ?? "")} {String(d.measured_by ?? "")}.</p>
+        <button type="button" className="ghost" onClick={() => void download(String(d.id))}>Download CSI capture (CSV)</button>
+      </article>;
+    })}
+  </section>;
 }

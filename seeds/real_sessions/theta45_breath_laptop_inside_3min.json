@@ -1,0 +1,66 @@
+{
+  "id": "theta45_breath_laptop_inside_3min",
+  "title": "45 degree geometry, natural breathing (90 s)",
+  "setup": "Seated person at 45 deg to the router-receiver line, host laptop inside the test area, natural unpaced breathing. CSI stopped after about 90 s of a planned 3 min.",
+  "measured_by": "Host laptop running the team logger (waiwai1/logger.py), ESP32 receiver over USB serial",
+  "measured_at": "2026-11-09T12:49:34+00:00",
+  "capture_start": "2026-11-09T12:49:28+00:00",
+  "capture_end": "2026-11-09T12:51:04+00:00",
+  "rows": 9869,
+  "packet_rate_hz": 100.3,
+  "rssi_median_dbm": -59.0,
+  "analysis_interval_s": 90.4,
+  "window_s": 30.0,
+  "truth": {
+    "bpm": 30.0,
+    "source": "Operator manual breath count recorded in the session markers"
+  },
+  "windows": [
+    {
+      "t_start_s": 0.0,
+      "t_end_s": 30.0,
+      "truth_bpm": 30.0,
+      "spectral_bpm": 16.3,
+      "peak_count_bpm": 21.8,
+      "pnr_db": 2.9,
+      "spectral_error_bpm": 13.7,
+      "peak_count_error_bpm": 8.2
+    },
+    {
+      "t_start_s": 30.0,
+      "t_end_s": 60.0,
+      "truth_bpm": 30.0,
+      "spectral_bpm": 29.8,
+      "peak_count_bpm": 18.5,
+      "pnr_db": 8.0,
+      "spectral_error_bpm": 0.2,
+      "peak_count_error_bpm": 11.5
+    },
+    {
+      "t_start_s": 60.0,
+      "t_end_s": 90.0,
+      "truth_bpm": 30.0,
+      "spectral_bpm": 28.1,
+      "peak_count_bpm": 26.1,
+      "pnr_db": 7.9,
+      "spectral_error_bpm": 1.9,
+      "peak_count_error_bpm": 3.9
+    }
+  ],
+  "accuracy_pct": {
+    "spectral": 82.4,
+    "peak_count": 73.7
+  },
+  "accuracy_definition": "Mean over windows of 100 x (1 - |estimate - truth| / truth).",
+  "source": {
+    "analysis": "waiwai1/theta45_breath_laptop_inside_3min.analysis.json",
+    "markers": "waiwai1/theta45_breath_laptop_inside_3min.markers.csv",
+    "capture": "waiwai1/theta45_breath_laptop_inside_3min.csv",
+    "capture_sha256": "e6118854074070a55b105465564a22753590c6daaf0a9648f12e4ca46bd83dd0"
+  },
+  "limitations": [
+    "Exploratory single-person tests; two to three 30 s windows each.",
+    "Truth is an operator count, not a reference sensor.",
+    "Not a validated or clinical measurement."
+  ]
+}

@@ -34,6 +34,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Literal, Protocol
 
+import numpy as np
+
 from backend.config import get_settings
 from backend.services.session_scoring import score_session
 from csi_core.config import CoreConfig, MonitorCfg, get_config
@@ -72,15 +74,20 @@ def _logger_mod():
 
 
 class LinkCheck:
-    """Preflight: one station and >= min rows/s for N consecutive intervals."""
+    """Preflight: the main station (most rows) at >= min rows/s for N consecutive intervals.
+
+    Only the main station's rows count. A stray packet from another device (a phone with a
+    randomized address walking past) no longer fails the check; analysis keeps only the most
+    frequent station too (csi_core.load.read_team_capture). Two stations sharing the stream
+    evenly still fail, because neither reaches the rate on its own.
+    """
 
     def __init__(self, cfg: MonitorCfg) -> None:
         self.cfg = cfg
         self.good = 0
         self.rows_per_s = 0.0
         self._start: float | None = None
-        self._count = 0
-        self._macs: set[str] = set()
+        self._counts: dict[str, int] = {}
 
     @property
     def passed(self) -> bool:
@@ -90,17 +97,53 @@ class LinkCheck:
         if self._start is None:
             self._start = t
         if mac is not None:
-            self._count += 1
-            self._macs.add(mac)
+            self._counts[mac] = self._counts.get(mac, 0) + 1
         span = t - self._start
         if span >= self.cfg.link_interval_s:
-            self.rows_per_s = self._count / span
-            ok = self.rows_per_s >= self.cfg.link_min_rows_per_s and len(self._macs) == 1
+            main = max(self._counts.values(), default=0)
+            self.rows_per_s = main / span
+            ok = self.rows_per_s >= self.cfg.link_min_rows_per_s
             self.good = self.good + 1 if ok else 0
-            self._start, self._count, self._macs = t, 0, set()
+            self._start, self._counts = t, {}
 
 
 # ---------------------------------------------------------------------------- analysis
+
+
+def breath_peak_estimates(
+    sig: Any, run_start_utc: datetime, cfg: CoreConfig
+) -> list[dict[str, Any]]:
+    """Both raw breathing estimates per window, before the agreement gate.
+
+    For display only (``peak_estimates`` in summary.json): a window whose two methods
+    disagree is shown as unconfirmed and never becomes a reading, flag or score.
+    """
+    from csi_core.breath import resolve_estimator
+    from csi_core.windows import window_slices, window_times
+
+    core = resolve_estimator(cfg.estimators.breath)
+    out: list[dict[str, Any]] = []
+    for s in window_slices(sig, cfg.breath.window_s, cfg.breath.step_s):
+        if cfg.estimators.breath_input == "matrix":
+            rr_a, rr_b, pnr = core(sig.amps[s], sig.active, sig.fs, cfg)
+        else:
+            rr_a, rr_b, pnr = core(sig.x[s], sig.fs, cfg)
+        _, t_end = window_times(sig, s)
+
+        def num(v: Any) -> float | None:
+            return round(float(v), 1) if v is not None and np.isfinite(v) else None
+
+        a, b = num(rr_a), num(rr_b)
+        tol = cfg.breath.max_estimator_disagreement_bpm
+        agree = a is not None and b is not None and abs(a - b) <= tol
+        out.append({
+            "time_s": round((t_end - run_start_utc).total_seconds(), 1),
+            "spectral_bpm": a,
+            "peak_count_bpm": b,
+            "pnr_db": num(pnr),
+            "confirmed": agree,
+        })
+    return out
 
 
 def analyze_capture(
@@ -116,10 +159,13 @@ def analyze_capture(
     df = df[df["host_time_utc"] >= run_start_utc].reset_index(drop=True)
     resp: list[dict[str, Any]] = []
     hearts: list[dict[str, Any]] = []
+    peaks: list[dict[str, Any]] = []
     if len(df) > 1:
-        for w in breath.estimate_windows(clean(df, cfg), session_id, cfg):
+        sig = clean(df, cfg)
+        for w in breath.estimate_windows(sig, session_id, cfg):
             if w.rr_a is not None and not w.motion_flag:
                 resp.append({"time_s": (w.t_end - run_start_utc).total_seconds(), "bpm": w.rr_a})
+        peaks = breath_peak_estimates(sig, run_start_utc, cfg)
         for h in heart.estimate_session(df, session_id, cfg):
             if h.hr_bpm is not None:
                 t = (h.t_end - run_start_utc).total_seconds()
@@ -128,6 +174,7 @@ def analyze_capture(
         "respiration": resp,
         "heart_rate": hearts,
         "motion": acceleration_samples(path, start_host_time_s=run_start_host_s),
+        "breath_peaks": peaks,
     }
 
 
@@ -314,6 +361,7 @@ class MonitorRun:
         if self.mode != "sleep_analysis":
             summary["sleep_score"] = None
             summary["score_status"] = "not_applicable"
+        summary["peak_estimates"] = peak_estimates(readings)
         summary.update(
             id=self.id,
             mode=self.mode,
@@ -439,6 +487,21 @@ def list_runs(user_id: str) -> list[dict[str, Any]]:
     return sorted(out, key=lambda r: r["created_at"], reverse=True)
 
 
+def peak_estimates(readings: dict[str, Any]) -> dict[str, Any]:
+    """Raw per-window estimates for display: breathing from both methods, heart-rate peaks."""
+    return {
+        "breathing": list(readings.get("breath_peaks") or []),
+        "heart_rate": [
+            {"time_s": round(float(r["time_s"]), 1), "bpm": round(float(r["bpm"]), 1)}
+            for r in readings.get("heart_rate") or []
+        ],
+        "note": (
+            "Raw peak estimates from experimental CSI methods. Breathing windows where the "
+            "two methods disagree are unconfirmed and are not used for any flag or score."
+        ),
+    }
+
+
 # ---------------------------------------------------------------------------- display (D1, D4)
 
 
@@ -463,4 +526,7 @@ def public_view(item: dict[str, Any], show_rates: bool = False) -> dict[str, Any
             block.pop("reference_range", None)
             block.pop("mean_deviation_below", None)
             block.pop("mean_deviation_above", None)
+    # raw peak numbers follow the same rule: shown for a chosen measure or with show_rates
+    if not (show_rates or voluntary):
+        summary.pop("peak_estimates", None)
     return item

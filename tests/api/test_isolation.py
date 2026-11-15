@@ -132,6 +132,10 @@ ISOLATION_CASES: list[IsolationCase] = [
     IsolationCase("get", "/api/v1/monitor/sessions/{session_id}", 404,
                   params={"show_rates": "true"}),
     IsolationCase("post", "/api/v1/monitor/sessions/{session_id}/stop", 404),
+    # real ESP32 captures: demo (synthetic) accounts only; B is a real account, so an empty
+    # list and no download. Never A's data either way (shared seed files, not user rows).
+    IsolationCase("get", "/api/v1/monitor/samples", 200),
+    IsolationCase("get", "/api/v1/monitor/samples/{sample_id}/capture.csv", 404),
     IsolationCase(
         "post",
         "/api/v1/ingest/estimates",
@@ -276,6 +280,7 @@ def world(app_client, db, tmp_path) -> dict[str, Any]:
     return {
         "a": a,
         "b": b,
+        "sample_id": "theta0_alt_position_manual_1min",  # a real saved capture (demo-only)
         "a_user_id": a["user_id"],
         "a_session_id": session.id,
         "session_id": session.id,  # OpenAPI template names, for id-addressed routes

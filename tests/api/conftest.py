@@ -30,6 +30,8 @@ def data_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[Path]:
     d.mkdir()
     monkeypatch.setenv("DATA_DIR", str(d))
     monkeypatch.setenv("DATABASE_URL", f"sqlite:///{d / 'db' / 'astro.db'}")
+    # tests never open the real ESP receiver, whatever this machine's .env says
+    monkeypatch.setenv("MONITOR_SERIAL_PORT", "")
     get_settings.cache_clear()
     yield d
     get_settings.cache_clear()

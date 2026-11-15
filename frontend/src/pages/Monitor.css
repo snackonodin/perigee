@@ -109,3 +109,17 @@
 .monitor-nosensor { display:flex;align-items:flex-start;gap:10px;margin:0;padding:12px 16px;border:1px solid var(--line);border-radius:var(--radius);background:color-mix(in srgb,var(--sky) 35%,var(--surface));color:var(--text);font-size:var(--fs-small); }
 .monitor-nosensor svg { flex:none;color:var(--teal-ink); }
 .island-nosensor .island-dot { background:var(--sky); }
+
+/* results: two cards for a single-measure session */
+.monitor-flags.monitor-flags-2 { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.monitor-peaks,.monitor-real-item { display:grid;gap:10px;margin-top:16px; }
+.monitor-peaks h3,.monitor-real-item h3 { margin:0;font-size:var(--fs-h3); }
+.monitor-peak-table { width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:var(--fs-small); }
+.monitor-peak-table caption { text-align:left;padding-bottom:6px;color:var(--muted, inherit); }
+.monitor-peak-table th,.monitor-peak-table td { text-align:left;padding:6px 8px;border-bottom:1px solid var(--line); }
+.monitor-real { margin-top:20px; }
+.monitor-real-item + .monitor-real-item { padding-top:16px;border-top:1px solid var(--line); }
+.monitor-real-meta { margin:0;font-weight:500; }
+.monitor-real-acc { display:flex;flex-wrap:wrap;gap:8px;margin:0; }
+.monitor-real-small { font-size:var(--fs-small);margin:0; }
+@media (max-width:640px) { .monitor-flags.monitor-flags-2 { grid-template-columns:1fr; } .monitor-peak-table { font-size:13px; } }

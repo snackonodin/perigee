@@ -9,11 +9,13 @@ from __future__ import annotations
 from typing import Any, Literal
 
 from fastapi import APIRouter, Query
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
-from backend.deps import CurrentUser
+from backend.deps import CurrentUser, DbSession
 from backend.errors import ERROR_RESPONSES, ApiError
 from backend.services import monitor as svc
+from backend.services import real_sessions
 
 router = APIRouter(prefix="/api/v1/monitor", tags=["monitor"], responses=ERROR_RESPONSES)
 
@@ -93,3 +95,19 @@ def stop_session(session_id: str, user_id: CurrentUser) -> dict[str, Any]:
     if item is None:
         raise _not_found()
     return svc.public_view(item)
+
+
+@router.get("/samples")
+def list_samples(user_id: CurrentUser, db: DbSession) -> list[dict[str, Any]]:
+    """Real ESP32 captures from the team's saved tests (host-measured, with time stamps).
+    Demo accounts only; a real account gets an empty list."""
+    return real_sessions.list_for(db, user_id)
+
+
+@router.get("/samples/{sample_id}/capture.csv", response_class=FileResponse)
+def download_sample(sample_id: str, user_id: CurrentUser, db: DbSession) -> FileResponse:
+    """The raw CSI capture (team logger CSV) of one saved test. Demo accounts only."""
+    p = real_sessions.capture_path(db, user_id, sample_id)
+    if p is None:
+        raise ApiError(404, "not_found", "sample not found")
+    return FileResponse(p, media_type="text/csv", filename=f"{sample_id}.csv")

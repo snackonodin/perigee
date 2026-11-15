@@ -1,0 +1,56 @@
+{
+  "id": "theta0_alt_position_manual_1min",
+  "title": "Straight-line geometry, alternate seat (1 min)",
+  "setup": "Seated person on the straight line between the router and the ESP32 receiver (theta = 0 deg).",
+  "measured_by": "Host laptop running the team logger (waiwai1/logger.py), ESP32 receiver over USB serial",
+  "measured_at": "2026-11-09T11:38:49+00:00",
+  "capture_start": "2026-11-09T11:38:40+00:00",
+  "capture_end": "2026-11-09T11:39:49+00:00",
+  "rows": 6972,
+  "packet_rate_hz": 100.2,
+  "rssi_median_dbm": -60.0,
+  "analysis_interval_s": 60.1,
+  "window_s": 30.0,
+  "truth": {
+    "bpm": 20.0,
+    "source": "Operator manual breath count recorded in the session markers"
+  },
+  "windows": [
+    {
+      "t_start_s": 0.0,
+      "t_end_s": 30.0,
+      "truth_bpm": 20.0,
+      "spectral_bpm": 19.8,
+      "peak_count_bpm": 18.0,
+      "pnr_db": 4.4,
+      "spectral_error_bpm": 0.2,
+      "peak_count_error_bpm": 2.0
+    },
+    {
+      "t_start_s": 30.0,
+      "t_end_s": 60.0,
+      "truth_bpm": 20.0,
+      "spectral_bpm": 11.3,
+      "peak_count_bpm": 16.9,
+      "pnr_db": 6.7,
+      "spectral_error_bpm": 8.7,
+      "peak_count_error_bpm": 3.1
+    }
+  ],
+  "accuracy_pct": {
+    "spectral": 77.9,
+    "peak_count": 87.4
+  },
+  "accuracy_definition": "Mean over windows of 100 x (1 - |estimate - truth| / truth).",
+  "source": {
+    "analysis": "waiwai1/theta0_alt_position_manual_1min.analysis.json",
+    "markers": "waiwai1/theta0_alt_position_manual_1min.markers.csv",
+    "capture": "waiwai1/theta0_alt_position_manual_1min.csv",
+    "capture_sha256": "7ef9c62d9fe4f226a25eeebc86c4475a9cd656268b22a5ed25820bed67963720"
+  },
+  "limitations": [
+    "Exploratory single-person tests; two to three 30 s windows each.",
+    "Truth is an operator count, not a reference sensor.",
+    "Not a validated or clinical measurement."
+  ]
+}

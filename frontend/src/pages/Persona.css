@@ -29,3 +29,16 @@
 
 @media (max-width:1023px) { .persona-layout { grid-template-columns:minmax(0,1fr); } }
 @media (max-width:599px) { .persona-empty,.persona-quadrant-panel,.persona-advice-panel,.persona-quiz { padding:20px; } }
+/* Five parts */
+.persona-progress { margin:0;font-weight:600; }
+.persona-consent-note { margin:0;padding:10px 14px;border-radius:var(--radius);background:var(--bg);border:1px solid var(--line);color:var(--muted);font-size:var(--fs-small); }
+.persona-parts { display:grid;gap:8px;width:100%;margin:4px 0 0;padding:0;list-style:none; }
+.persona-part { display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 16px;border:1px solid var(--line);border-radius:var(--radius);background:var(--bg); }
+.persona-part.next { border-color:var(--teal);background:color-mix(in srgb,var(--mint) 30%,var(--surface)); }
+.persona-part-text { display:grid;gap:2px;min-width:0; }
+.persona-part-text span { color:var(--muted);font-size:var(--fs-small); }
+.persona-part-tick { color:var(--teal); }
+.persona-part button { flex:none;min-height:44px; }
+.persona-part-actions { display:flex;flex-wrap:wrap;gap:8px; }
+.persona-retake-parts { max-width:none; }
+@media (max-width:599px) { .persona-part { flex-direction:column;align-items:stretch; } }

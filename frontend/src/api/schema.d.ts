@@ -1068,6 +1068,15 @@ export interface components {
             /** Wake */
             wake?: string | null;
         };
+        /** PartsProgressOut */
+        PartsProgressOut: {
+            /** Answers Kept */
+            answers_kept: boolean;
+            /** Done */
+            done: string[];
+            /** Total */
+            total: number;
+        };
         /** PendingCheckin */
         PendingCheckin: {
             /** Instrument Id */
@@ -1096,6 +1105,7 @@ export interface components {
             /** Available */
             available: boolean;
             persona_matrix?: components["schemas"]["PersonaMatrixOut"] | null;
+            progress?: components["schemas"]["PartsProgressOut"] | null;
             /** Source */
             source?: string | null;
             /**

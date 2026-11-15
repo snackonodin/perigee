@@ -157,3 +157,11 @@ authority", focus "Focus and motivation", body_feedback "Body and feedback". `le
 (mean of the part's two modules, rescaled). A tendency shape, not a score: render as a radar
 with a gradient fill and NO numbers; add "No shape is better than another." Empty for mini_ipip
 or before all five parts are done.
+
+## Persona type radar, added 2026-11-15 (replaces the separate 5-part radar on screen)
+
+`GET /api/v1/persona` adds `type_mix: [{type, share}]` in this order: Autonomous Pioneer, Steady
+Anchor, Internal Deliberator, Dynamic Explorer. `share` is 0-1 and the four sum to 1 (bilinear share
+of the Stability x Agency plane). Render ONE 4-axis radar in place of the quadrant plane, axes =
+the four types, the person's own quadrant_name highlighted, no numbers. `profile` (5 parts) stays in
+the API but is no longer drawn.

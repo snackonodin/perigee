@@ -72,6 +72,7 @@ def readout(db: Session, user_id: str) -> dict[str, Any]:
             },
             "style": p60.get("flags", {}),
             "profile": psyche.profile(p60),
+            "type_mix": psyche.type_mix(p60["stability"], p60["agency"]),
             # safety first: no advice while a safety screen is pending
             "advice": [] if locked else psyche.advice(p60, psyche.context(db, user_id), cfg),
             "progress": progress,
@@ -79,7 +80,7 @@ def readout(db: Session, user_id: str) -> dict[str, Any]:
     if not traits:
         return {"available": False, "source": None, "updated_at": None,
                 "traits": {}, "persona_matrix": None, "style": {}, "advice": [],
-                "profile": [], "progress": progress}
+                "profile": [], "type_mix": [], "progress": progress}
     # Persona fields only: no sensing data and no state, so nothing nightly is implied.
     out = engine_run({"persona": {"user_id": user_id, "traits": traits}})
     viz = out.get("dashboard_visualization_data") or {}
@@ -92,5 +93,6 @@ def readout(db: Session, user_id: str) -> dict[str, Any]:
         "style": {},
         "advice": [],
         "profile": [],
+        "type_mix": [],
         "progress": progress,
     }

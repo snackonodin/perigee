@@ -142,6 +142,25 @@ def profile(result: dict[str, Any]) -> list[dict[str, Any]]:
     return out
 
 
+TYPES = ("Autonomous Pioneer", "Steady Anchor", "Internal Deliberator", "Dynamic Explorer")
+
+
+def type_mix(stability: float, agency: float) -> list[dict[str, Any]]:
+    """How much the person leans toward each of the four persona types, for the radar.
+
+    Bilinear share of the Stability x Agency plane (axes 4-20 rescaled to 0-1); the four
+    shares sum to 1. Display only: it never changes a score, an alert or the safety path."""
+    st = min(1.0, max(0.0, (stability - 4) / 16))
+    ag = min(1.0, max(0.0, (agency - 4) / 16))
+    share = {
+        "Autonomous Pioneer": st * ag,
+        "Steady Anchor": st * (1 - ag),
+        "Internal Deliberator": (1 - st) * (1 - ag),
+        "Dynamic Explorer": (1 - st) * ag,
+    }
+    return [{"type": t, "share": round(share[t], 3)} for t in TYPES]
+
+
 def save(db: Session, user_id: str, result: dict[str, Any]) -> None:
     profile = db.scalar(scoped(select(Profile), Profile, user_id))
     if profile is None:

@@ -37,6 +37,11 @@ class ProfileAxisOut(BaseModel):
     level: float  # 0-1 tendency, not a score
 
 
+class TypeShareOut(BaseModel):
+    type: str
+    share: float  # 0-1, the four sum to 1; display only
+
+
 class PersonaOut(BaseModel):
     available: bool
     source: str | None = None
@@ -47,6 +52,7 @@ class PersonaOut(BaseModel):
     advice: list[AdviceOut] = []
     progress: PartsProgressOut | None = None
     profile: list[ProfileAxisOut] = []
+    type_mix: list[TypeShareOut] = []
 
 
 @router.get("/persona", response_model=PersonaOut)

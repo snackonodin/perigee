@@ -1333,6 +1333,14 @@
             "title": "Traits",
             "type": "object"
           },
+          "type_mix": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/TypeShareOut"
+            },
+            "title": "Type Mix",
+            "type": "array"
+          },
           "updated_at": {
             "anyOf": [
               {
@@ -2148,6 +2156,24 @@
           "expires_in"
         ],
         "title": "TokenOut",
+        "type": "object"
+      },
+      "TypeShareOut": {
+        "properties": {
+          "share": {
+            "title": "Share",
+            "type": "number"
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "share"
+        ],
+        "title": "TypeShareOut",
         "type": "object"
       },
       "WindowEstimate": {

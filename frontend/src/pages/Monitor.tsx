@@ -269,7 +269,7 @@ function RealCaptures() {
       const when = typeof d.measured_at === "string" ? new Date(d.measured_at) : null;
       return <article key={String(d.id)} className="monitor-real-item">
         <h3>{String(d.title)}</h3>
-        <p className="monitor-real-meta">Measured by the host at <time dateTime={String(d.measured_at)}>{when ? when.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "medium", timeZoneName: "short" }) : "–"}</time> · {String(d.rows)} packets at {bpm(d.packet_rate_hz)} Hz</p>
+        <p className="monitor-real-meta">Measured by the host at <time dateTime={String(d.measured_at)}>{when ? when.toLocaleString(undefined, { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit", timeZoneName: "short" }) : "–"}</time> · {String(d.rows)} packets at {bpm(d.packet_rate_hz)} Hz</p>
         <p className="muted">{String(d.setup)}</p>
         <table className="monitor-peak-table">
           <caption>Breathing, breaths per minute. True rate {bpm(truth.bpm)} (operator count)</caption>

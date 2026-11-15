@@ -54,12 +54,37 @@
 @keyframes pet-z { 0% { opacity:0;transform:translate(0,0) scale(.8); } 15% { opacity:1; } 80%,100% { opacity:0;transform:translate(8px,-24px) scale(1.1); } }
 .pet-z { position:absolute;top:4%;right:6%;font:700 18px/1 var(--font, system-ui);color:var(--pet-zzz, #5B6B7A);pointer-events:none;animation:pet-z 2.5s var(--ease-soft, ease) infinite; }
 
-/* Breathing buddy: 4 s in, 6 s out (40% of a 10 s cycle), at most 10 cycles. */
+/* Breathing buddy: 4 s in, 6 s out (40% of a 10 s cycle), at most 10 cycles. The breath clock runs
+   on the pet root during the exercise so the halo and the art share it. Idle breathing is unchanged.
+   Whole pet 1 -> 1.14 and halo 1 -> 1.3 (opacity .15 -> .35); at <= 480 px 1 -> 1.18 and 1 -> 1.35,
+   and the pet lifts 14 px off the corner so the halo is not clipped. */
 @keyframes pet-buddy { 0%,100% { --breathe:0; } 40% { --breathe:1; } }
-.pet[data-buddy] .pet-art { animation:pet-buddy var(--buddy-s, 10s) var(--ease-soft, ease-in-out) 10; }
-.pet[data-buddy] .pet-svg { transform:scale(calc(1 + .06 * var(--breathe))); }
-.pet-buddy-label { position:absolute;right:0;bottom:calc(100% + 8px);display:flex;align-items:center;gap:8px;width:max-content;max-width:280px;margin:0;padding:8px 8px 8px 16px;
-  border-radius:16px;background:var(--glass-strong, rgba(255,255,255,.78));border:1px solid var(--glass-border, rgba(255,255,255,.75));color:var(--muted, #5B6B7A);font-size:var(--fs-tiny, 12px); }
+.pet[data-buddy] { --buddy-scale:.14;--buddy-halo:.3;animation:pet-buddy var(--buddy-s, 10s) var(--ease-soft, ease-in-out) 10; }
+.pet[data-buddy] .pet-art { animation:none; }
+.pet[data-buddy] .pet-svg { transform:scale(calc(1 + var(--buddy-scale) * var(--breathe)));transform-origin:50% 60%; }
+.pet-buddy-halo { position:absolute;inset:-4%;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle, var(--teal, #1E7F6E) 0%, color-mix(in srgb,var(--teal, #1E7F6E) 70%,var(--mint, #BFE9D6)) 55%, transparent 72%);
+  transform:scale(calc(1 + var(--buddy-halo) * var(--breathe)));opacity:calc(.15 + .2 * var(--breathe)); }
+.pet-buddy-label { position:absolute;right:0;bottom:calc(100% + 28px);display:grid;justify-items:end;gap:6px;width:max-content;max-width:280px;margin:0; }
+.pet[data-buddy] .pet-bubble { visibility:hidden; } /* one thing at a time: the cue replaces the speech bubble */
+.pet-buddy-cue { margin:0;padding:6px 16px;border-radius:16px;background:var(--surface, #fff);border:1px solid var(--line, #E3ECE8);box-shadow:var(--shadow-2, 0 4px 16px rgba(31,42,55,.08));
+  color:var(--teal-ink, #166457);font:600 22px/1.2 var(--font, system-ui);letter-spacing:.01em; }
+.pet-buddy-note { display:flex;align-items:center;gap:8px;margin:0;padding:8px 8px 8px 16px;
+  border-radius:16px;background:var(--surface, #fff);border:1px solid var(--line, #E3ECE8);box-shadow:var(--shadow-1, none);color:var(--muted, #5B6B7A);font-size:var(--fs-tiny, 12px); }
+@media (max-width:480px) {
+  .pet[data-buddy] { --buddy-scale:.18;--buddy-halo:.35;translate:-14px -14px; }
+  .pet-buddy-label { max-width:calc(100vw - 48px); }
+  .pet-buddy-cue { font-size:24px; }
+}
+/* Reduced motion: no scaling; the cue text and a slow opacity change on a still halo. */
+.pet[data-buddy][data-reduced] .pet-buddy-halo, .pet[data-buddy][data-reduced] .pet-svg { transform:none; }
+.pet[data-buddy][data-reduced] .pet-buddy-halo { opacity:.15;transition:opacity 3s ease-in-out !important; }
+.pet[data-buddy][data-reduced] .pet-buddy-halo[data-phase="in"] { opacity:.35; }
+@media (prefers-reduced-motion:reduce) {
+  .pet[data-buddy] .pet-buddy-halo, .pet[data-buddy] .pet-svg { transform:none; }
+  .pet[data-buddy] .pet-buddy-halo { opacity:.15;transition:opacity 3s ease-in-out !important; }
+  .pet[data-buddy] .pet-buddy-halo[data-phase="in"] { opacity:.35; }
+}
 
 /* Controls: options toggle beside the pet, a glass menu, pill buttons (>= 44 px). */
 .pet-menu-toggle { all:unset;position:absolute;right:calc(100% + 4px);bottom:4px;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;cursor:pointer;
@@ -92,8 +117,10 @@
 /* Cursor follow: when the pet roams to the left half or the top of the viewport, its
    bubble, breathe label and menu open toward the side with room. */
 .pet[data-side="left"] .pet-bubble, .pet[data-side="left"] .pet-buddy-label { right:auto;left:0; }
+.pet[data-side="left"] .pet-buddy-label { justify-items:start; }
 .pet[data-side="left"] .pet-menu-toggle, .pet[data-side="left"] .pet-menu { right:auto;left:calc(100% + 4px); }
 .pet[data-vside="below"] .pet-bubble, .pet[data-vside="below"] .pet-buddy-label { bottom:auto;top:calc(100% + 8px); }
+.pet[data-vside="below"] .pet-buddy-label { top:calc(100% + 28px); }
 
 /* Travel in hops: Pet.tsx drives --hop / --squash / --ear-* / --tail per frame from one hop
    clock (crouch, spring, ~0.3 s arc, soft landing, settle, pause), so the body and the travel

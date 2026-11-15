@@ -126,8 +126,27 @@ export function PetLive({ species, personaId, timeOfDay, reducedMotion, nightsLo
   const [buddy, setBuddy] = useState(false);
   useEffect(() => petStore.onBuddy(() => {
     setBuddy(true);
+    setMenu(false); // the options menu would cover the cue
     scheduler.after((BREATHE_IN_S + BREATHE_OUT_S) * BREATHE_MAX_CYCLES * 1000, () => setBuddy(false));
   }), [scheduler]);
+  // "Breathe in" / "Breathe out" cue, on the same 4 s / 6 s clock as the CSS breath. Boundaries are
+  // computed from the start time so the text never drifts from the animation over 10 cycles.
+  const [phase, setPhase] = useState<"in" | "out">("in");
+  useEffect(() => {
+    if (!buddy) return;
+    const start = Date.now(), cycle = (BREATHE_IN_S + BREATHE_OUT_S) * 1000;
+    let cancel = () => {};
+    const at = (k: number, p: "in" | "out") => {
+      const due = start + k * cycle + (p === "out" ? BREATHE_IN_S * 1000 : 0);
+      cancel = scheduler.after(Math.max(0, due - Date.now()), () => {
+        setPhase(p);
+        if (p === "out") at(k + 1, "in"); else at(k, "out");
+      });
+    };
+    setPhase("in");
+    at(0, "out");
+    return () => cancel();
+  }, [buddy, scheduler]);
   const [menu, setMenu] = useState(false);
 
   // timed states end with a tick at `until`
@@ -336,11 +355,15 @@ export function PetLive({ species, personaId, timeOfDay, reducedMotion, nightsLo
   return <div ref={root} className="pet" data-state={b.state} data-species={species} data-placement={placement}
     data-reduced={reduced ? "true" : undefined} data-anim={bubble?.animation && bubble.animation !== "calm" ? bubble.animation : undefined} data-calm={playful === false ? "true" : undefined} data-perched={perched ? "true" : undefined} data-buddy={buddy ? "true" : undefined} style={style}>
     <DialogBubble line={line} scheduler={scheduler} onDone={clearLine} />
+    {buddy && <span className="pet-buddy-halo" data-phase={phase} aria-hidden="true" />}
     <button type="button" className="pet-hit" aria-label={`Pet ${name}`} {...handlers}>
       <PetArt species={species} mood={mood} size={size} accessories={accessories} animated />
     </button>
     {b.state === "sleeping" && <span className="pet-z" aria-hidden="true">z</span>}
-    {buddy && <p className="pet-buddy-label">{b.state === "sleeping" ? "" : "Breathe with me · relaxation exercise, not a medical tool"}<button type="button" className="pet-control" style={{ minWidth: 44, minHeight: 44 }} onClick={() => setBuddy(false)}>Stop</button></p>}
+    {buddy && <div className="pet-buddy-label">
+      <p className="pet-buddy-cue" data-phase={phase} aria-live="polite">{phase === "in" ? "Breathe in" : "Breathe out"}</p>
+      <p className="pet-buddy-note">{b.state === "sleeping" ? "" : "Breathe with me · relaxation exercise, not a medical tool"}<button type="button" className="pet-control" style={{ minWidth: 44, minHeight: 44 }} onClick={() => setBuddy(false)}>Stop</button></p>
+    </div>}
     {!perched && <button type="button" className="pet-menu-toggle" aria-label="Companion options" aria-expanded={menu} onClick={() => setMenu((m) => !m)}>
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="18" cy="12" r="2" /></svg></button>}
     {menu && <div className="pet-menu"><PetControls onHiddenChange={(h) => { setMenu(false); onHiddenChange?.(h); }} /></div>}

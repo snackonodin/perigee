@@ -28,7 +28,9 @@ export interface InstrumentItem {
   key: string;
   text: string;
   options: InstrumentOption[];
-  safety_trigger?: { min_value: number };
+  safety_trigger?: { min_value: number; reason?: string };
+  /** body_cabin: red_flag | cabin | gravity | general | immune | exercise | friction */
+  group?: string;
   /** psyche60: the module this statement belongs to (m1..m10) */
   module?: string;
 }

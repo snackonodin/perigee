@@ -10,7 +10,7 @@ import type { NightOut } from "../api/types";
 import { useAuth } from "../auth/AuthProvider";
 import { emit, Pet, type PersonaId, type PetBubble, type Species, type TimeOfDay } from "../pet";
 import { CHECKIN_SAVED, usePersona } from "../persona/PersonaProvider";
-import { SAFETY_FALLBACK } from "../safety/safety";
+import { fallbackFor, SAFETY_FALLBACK } from "../safety/safety";
 import { useSafety, useSafetyActive } from "../safety/SafetyProvider";
 import type { components } from "../api/schema";
 
@@ -103,6 +103,8 @@ export function CompanionHost() {
     api.GET("/api/v1/pet/bubble").then(({ data }) => {
       if (!data) return;
       if (data.ui_action === "HALT_AND_OPEN_CRISIS_SCREEN") { setBubble(null); showSafety(SAFETY_FALLBACK); return; }
+      // a reported body red flag: same safety screen, with the medical-help reason
+      if (data.ui_action === "OPEN_MEDICAL_HELP_NOW") { setBubble(null); showSafety(fallbackFor("severe_symptom")); return; }
       setBubble(toPetBubble(data));
     }).catch(() => { /* offline: the pet's own dialog cache still speaks */ });
   }, [showSafety]);

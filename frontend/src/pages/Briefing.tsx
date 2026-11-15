@@ -43,7 +43,7 @@ export function Briefing() {
           </dl>
           {advisory?.headline && <p className="briefing-note"><strong>{plainHeadline(advisory.headline)}</strong>{advisory.personality_tailored_message && <> {plainMessage(advisory.personality_tailored_message)}</>}</p>}
         </section>
-        <LatestNight night={t.latest_night ?? undefined}/>
+        <LatestNight night={t.latest_night ?? undefined} cabin={t.cabin}/>
         <section className="card briefing-wide" aria-labelledby="brief-rr-title">
           <h2 id="brief-rr-title">Night breathing vs your usual range</h2><p className="section-meta">Last 7 nights</p>
           <LoadState state={nights} label="the last seven nights">{data => <WeekBreathing nights={data} baseline={baseline} from={from}/>}</LoadState>
@@ -58,13 +58,17 @@ export function Briefing() {
   </div>;
 }
 
-function LatestNight({ night }: { night?: NightOut }) {
+const CABIN_WORD: Record<string, string> = { usual: "usual", elevated: "slightly elevated", high: "high" };
+
+function LatestNight({ night, cabin }: { night?: NightOut; cabin?: EngineToday["cabin"] }) {
+  const air = cabin && CABIN_WORD[cabin.level] ? cabin : null;
   return <section className="card" aria-labelledby="brief-night-title">
     <h2 id="brief-night-title">Last recorded night</h2>{night && <p className="section-meta telemetry">{night.date}</p>}
     {night?.valid ? <dl className="briefing-stats">
       <div><dt>Breathing</dt><dd>{fmt(night.rr_med)}<small>br/min</small></dd></div>
       <div><dt>Time present</dt><dd>{fmt(night.presence_hours, 1)}<small>h</small></dd></div>
     </dl> : <p className="muted">No valid night yet. It appears after a full night near the sensor.</p>}
+    {air && <p className="briefing-cabin">Cabin air {air.date === night?.date ? "that night" : `on ${air.date}`}: {CABIN_WORD[air.level]}{air.ppco2_mmhg != null && <> · <span className="cabin-value">ppCO₂ {fmt(air.ppco2_mmhg, 1)} mmHg</span></>}</p>}
   </section>;
 }
 

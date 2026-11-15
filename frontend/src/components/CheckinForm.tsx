@@ -2,7 +2,7 @@ import { emit } from "../pet";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import { api, errorText } from "../api/client";
 import type { Instrument, InstrumentItem, ResponseOut } from "../api/types";
-import { contentFromServer, localSafetyTriggered, SAFETY_FALLBACK } from "../safety/safety";
+import { contentFromServer, fallbackFor, localSafetyTriggered } from "../safety/safety";
 import { useSafety } from "../safety/SafetyProvider";
 import { announceCheckinSaved } from "../persona/PersonaProvider";
 import { friendlyName } from "./instrumentNames";
@@ -10,10 +10,14 @@ import { friendlyName } from "./instrumentNames";
 /** A questionnaire rendered from its catalog JSON. Safety comes first, always:
  *  1) local safety_trigger check → safety screen before the request is even sent;
  *  2) the server's safety result (also on a 500) → before any score is shown. */
-export function CheckinForm({ instrument, onDone, onSubmitted, submitLabel = "Send check-in", groupBy }: {
+export function CheckinForm({ instrument, onDone, onSubmitted, submitLabel = "Send check-in", groupBy, sectionOf, control }: {
   instrument: Instrument;
   /** Show several questions per page: items with the same group key share a page (e.g. a module). */
   groupBy?(item: InstrumentItem): string;
+  /** optional subheading for items inside a page (e.g. "Cabin air"); shown when it changes */
+  sectionOf?(item: InstrumentItem): string | undefined;
+  /** how an item is answered: option cards (default), compact chips, or a slider */
+  control?(item: InstrumentItem): "cards" | "chips" | "slider";
   onDone?(): void;
   /** Called with a stored, non-crisis result instead of showing the score card (e.g. the personality quiz). */
   onSubmitted?(out: ResponseOut): void;
@@ -21,7 +25,9 @@ export function CheckinForm({ instrument, onDone, onSubmitted, submitLabel = "Se
 }) {
   useEffect(() => { emit("quiz_start"); }, []);
   const { showSafety } = useSafety();
-  const [answers, setAnswers] = useState<Record<string, number>>({});
+  // sliders always show a value, so they start answered at their first option ("None")
+  const [answers, setAnswers] = useState<Record<string, number>>(() => Object.fromEntries(
+    instrument.items.filter((it) => control?.(it) === "slider" && it.options.length).map((it) => [it.key, it.options[0].value])));
   const [step, setStep] = useState(0);
   const [result, setResult] = useState<ResponseOut | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -57,7 +63,8 @@ export function CheckinForm({ instrument, onDone, onSubmitted, submitLabel = "Se
       return;
     }
     const localSafety = localSafetyTriggered(instrument, answers);
-    if (localSafety) showSafety(SAFETY_FALLBACK);
+    // the triggering item's own reason (a body red flag is a medical reason, not the safety item)
+    if (localSafety) showSafety(fallbackFor(instrument.items.find((it) => it.safety_trigger && (answers[it.key] ?? -1) >= it.safety_trigger.min_value)?.safety_trigger?.reason));
     setBusy(true);
     setError(null);
     let out: ResponseOut | undefined;
@@ -109,22 +116,35 @@ export function CheckinForm({ instrument, onDone, onSubmitted, submitLabel = "Se
       <div className="checkin-progress" role="status">{pages.length === instrument.items.length ? `Question ${step + 1} of ${pages.length}` : `Page ${step + 1} of ${pages.length}`}
         <div className="progress-track" aria-hidden="true"><span style={{width:`${((step+1)/pages.length)*100}%`}}/></div>
       </div>
-      {page.map((item) => (
-      <fieldset className="checkin-question-card" key={item.key}>
+      {page.map((item, i) => {
+        const kind = control?.(item) ?? "cards";
+        const section = sectionOf?.(item);
+        const heading = section && (i === 0 || sectionOf?.(page[i - 1]) !== section) ? <h3 className="checkin-section">{section}</h3> : null;
+        const choose = (value: number) => {
+          setAnswers((a) => ({ ...a, [item.key]: value }));
+          setError(null);
+          if (item.safety_trigger && value >= item.safety_trigger.min_value) showSafety(fallbackFor(item.safety_trigger.reason));
+        };
+        if (kind === "slider") {
+          const values = item.options.map((o) => o.value), v = answers[item.key] ?? values[0];
+          const label = item.options.find((o) => o.value === v)?.label ?? "";
+          return <div key={item.key}>{heading}<label className="checkin-slider">
+            <span className="checkin-slider-text">{item.text}</span><output>{label}</output>
+            <input type="range" min={Math.min(...values)} max={Math.max(...values)} step={1} value={v} aria-label={item.text} aria-valuetext={label}
+              onChange={(e) => { const n = Number(e.target.value); const o = item.options.reduce((b, x) => (Math.abs(x.value - n) < Math.abs(b.value - n) ? x : b)); choose(o.value); }} />
+          </label></div>;
+        }
+        return <div key={item.key}>{heading}<fieldset className={kind === "chips" ? "checkin-chips-item" : "checkin-question-card"}>
         <legend>{item.text}</legend>
-        <div className="checkin-question-options">{item.options.map((o) => (
-          <label key={o.value} className={answers[item.key] === o.value ? "checkin-question-option selected" : "checkin-question-option"}>
+        <div className={kind === "chips" ? "checkin-chips" : "checkin-question-options"}>{item.options.map((o) => (
+          <label key={o.value} className={answers[item.key] === o.value ? `${kind === "chips" ? "checkin-chip" : "checkin-question-option"} selected` : kind === "chips" ? "checkin-chip" : "checkin-question-option"}>
             <input type="radio" name={item.key} value={o.value} checked={answers[item.key] === o.value}
-              onChange={() => {
-                setAnswers((a) => ({ ...a, [item.key]: o.value }));
-                setError(null);
-                if (item.safety_trigger && o.value >= item.safety_trigger.min_value) showSafety(SAFETY_FALLBACK);
-              }}/>
-            <span>{o.label}</span>{answers[item.key]===o.value&&<svg className="checkin-selected-mark" aria-hidden="true" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg>}
+              onChange={() => choose(o.value)}/>
+            <span>{o.label}</span>{kind === "cards" && answers[item.key]===o.value&&<svg className="checkin-selected-mark" aria-hidden="true" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg>}
           </label>
         ))}</div>
-      </fieldset>
-      ))}
+      </fieldset></div>;
+      })}
       <div className="checkin-actions">
         {step>0&&<button type="button" className="ghost" onClick={previous}>Previous</button>}
         {step<pages.length-1

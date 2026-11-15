@@ -77,3 +77,9 @@
 .range-bar-marker { position:absolute;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:var(--surface);border:3px solid var(--teal); }
 .range-bar-marker.outside { border-color:var(--uv); }
 .tonight-panel dt { white-space:nowrap; }
+/* Spaceflight-hazard context under the breathing reading: calm, neutral, never red. */
+.today-context { display:grid;gap:8px;margin-top:4px; }
+.context-tags { display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:0;list-style:none; }
+.context-tag { padding:6px 12px;border:1px solid var(--line);border-radius:var(--radius-pill);background:var(--bg);color:var(--text);font-size:var(--fs-small);line-height:1.4; }
+.cabin-line { margin:0;color:var(--muted);font-size:var(--fs-small); }
+.cabin-value { font-family:var(--font-mono);font-variant-numeric:tabular-nums;color:var(--text); }

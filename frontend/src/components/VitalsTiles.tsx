@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { BaselineOut, NightOut } from "../api/types";
 import { fmt } from "./format";
 import { useVitals } from "../live/useVitals";
@@ -44,7 +45,8 @@ function HeartTile({hearts}:{hearts:readonly HeartEvent[]}) {
   </VitalCard>;
 }
 
-export function VitalsTiles({night,baseline,status="none"}:{night?:NightOut|null;baseline?:BaselineOut;status?:Status}) {
+/** `context`: optional calm context (tags, cabin line) shown under the breathing reading, never instead of its status. */
+export function VitalsTiles({night,baseline,status="none",context}:{night?:NightOut|null;baseline?:BaselineOut;status?:Status;context?:ReactNode}) {
   const vitals=useVitals({kind:"live"});
   const windows=vitals.windows.slice(-30);
   const liveWindows=windows.filter(w=>w.presence&&w.rr_a!=null);
@@ -60,6 +62,7 @@ export function VitalsTiles({night,baseline,status="none"}:{night?:NightOut|null
       {rrPoints.length>1||!band?<Trace label="Breathing rate" points={rrPoints} color="var(--teal)" band={band}/>:<RangeBar band={band} value={respiration} label={latest?"Now":"Last night"}/>}
       {band?<div className="vital-range"><span>{fmt(band[0])}</span><span>Your usual range</span><span>{fmt(band[1])}</span></div>:<p className="vital-caption">Your personal breathing range is still taking shape.</p>}
       <p className="vital-caption">{liveStatus}</p>
+      {context}
     </VitalCard>}
     <HeartTile hearts={vitals.hearts}/>
   </>;

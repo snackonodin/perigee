@@ -17,3 +17,15 @@
 .checkin-bento .calendar-day.today { position:relative;border-color:transparent;font-weight:700; }
 .checkin-bento .calendar-day.today::before { content:"";position:absolute;left:50%;top:50%;width:36px;height:36px;transform:translate(-50%,-50%);border:1.5px solid var(--uv);border-radius:50%;pointer-events:none; }
 .checkin-bento .calendar-day.today::after { content:"";position:absolute;left:50%;top:50%;width:6px;height:6px;transform:translate(-50%,-21px);border-radius:50%;background:var(--uv);box-shadow:0 0 0 2px var(--surface);pointer-events:none; }
+/* Compact controls (Body & cabin check-in): Yes/No chips, group subheadings and sliders. */
+.checkin-section { margin:16px 0 4px;font-size:var(--fs-small);font-weight:650;color:var(--muted); }
+.checkin-chips-item { margin:0;padding:10px 0;border:0;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;min-width:0; }
+.checkin-chips-item legend { float:left;max-width:100%;padding:0; }
+.checkin-chips { display:flex;flex-wrap:wrap;gap:6px; }
+.checkin-chip { position:relative;display:inline-flex;align-items:center;min-height:40px;min-width:56px;justify-content:center;padding:6px 14px;border:1px solid var(--line);border-radius:var(--radius-pill);background:var(--bg);cursor:pointer;font-size:var(--fs-small); }
+.checkin-chip.selected { border-color:var(--teal);background:color-mix(in srgb,var(--mint) 55%,var(--surface));font-weight:650; }
+.checkin-chip input { position:absolute;opacity:0;width:1px;height:1px; }
+.checkin-chip:has(input:focus-visible) { outline:2px solid var(--teal);outline-offset:2px; }
+.checkin-slider { display:grid;grid-template-columns:1fr auto;gap:8px 12px;align-items:center;padding:14px 0;border-bottom:1px solid var(--line); }
+.checkin-slider output { font-weight:650; }
+.checkin-slider input { grid-column:1 / -1;width:100%;accent-color:var(--teal); }

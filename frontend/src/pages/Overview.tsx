@@ -28,6 +28,18 @@ function stationLabel(offset?:number|null):string { if(!offset)return "UTC"; con
 function stationClock(offset?:number|null):string { const d=new Date(Date.now()+(offset??0)*60000); return `${String(d.getUTCHours()).padStart(2,"0")}:${String(d.getUTCMinutes()).padStart(2,"0")}`; }
 function status(level?:number):Status { if(level==null)return "none"; if(level>=2)return "alert"; if(level===1)return "watch"; return "normal"; }
 
+const CABIN_WORD:Record<string,string>={usual:"usual",elevated:"slightly elevated",high:"high"};
+/** Spaceflight-hazard context for the latest night: up to two calm chips (only on Watch/Alert
+ *  nights, from the server) and a quiet cabin-air line. Context, never a diagnosis. */
+function TodayContext({tags,cabin}:{tags?:TodayOut["context_tags"];cabin?:TodayOut["cabin"]}) {
+  const shown=(tags??[]).slice(0,2), air=cabin&&cabin.level!=="no_reading"&&CABIN_WORD[cabin.level]?cabin:null;
+  if(!shown.length&&!air)return null;
+  return <div className="today-context">
+    {shown.length>0&&<ul className="context-tags" aria-label="Context for last night">{shown.map(t=><li key={t.kind+t.text} className="context-tag">{t.text}</li>)}</ul>}
+    {air&&<p className="cabin-line">Cabin air: {CABIN_WORD[air.level]}{air.ppco2_mmhg!=null&&<> · <span className="cabin-value">ppCO₂ {fmt(air.ppco2_mmhg,1)} mmHg</span></>}</p>}
+  </div>;
+}
+
 export function Overview() {
   const { persona } = usePersona();
   const hasAdvice = !!(persona?.available && persona.advice?.length);
@@ -67,7 +79,7 @@ export function Overview() {
           </dl>
         </section>
         {hasAdvice&&<div className="today-advice bento-wide" data-pet-perch><AdviceList/></div>}
-        <VitalsTiles night={night} baseline={baseline} status={status(physiology)}/>
+        <VitalsTiles night={night} baseline={baseline} status={status(physiology)} context={<TodayContext tags={today.context_tags} cabin={today.cabin}/>}/>
         {health?.mental_fatigue_score==null?<VitalCard label="Mind and check-ins" icon="◌" to="/checkin" empty="Your check-ins add context here after the first few days."/>:
         <VitalCard label="Mind and check-ins" to="/checkin" icon="◌" state={status(mental)}>
           <p className="vital-caption">From your recent personal inputs.</p>

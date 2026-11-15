@@ -7,6 +7,7 @@ const FRIENDLY: Record<string, string> = {
   who5: "Wellbeing, five questions",
   daily_am: "Morning check-in",
   daily_pm: "Evening check-in",
+  body_cabin: "Body & cabin",
   psyche60: "Persona questions",
 };
 

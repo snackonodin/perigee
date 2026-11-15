@@ -664,6 +664,25 @@ export interface components {
             /** Window Days */
             window_days: number;
         };
+        /** CabinOut */
+        CabinOut: {
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /**
+             * Level
+             * @description usual | elevated | high | no_reading (config hazards:)
+             */
+            level: string;
+            /** Ppco2 Mmhg */
+            ppco2_mmhg?: number | null;
+            /** Rh Pct */
+            rh_pct?: number | null;
+            /** Temp C */
+            temp_c?: number | null;
+        };
         /**
          * CaptureStats
          * @description FR4: capture quality numbers computed from a raw log.
@@ -728,6 +747,16 @@ export interface components {
             scopes: {
                 [key: string]: boolean;
             };
+        };
+        /** ContextTagOut */
+        ContextTagOut: {
+            /**
+             * Kind
+             * @description cabin_co2 | symptoms | immune
+             */
+            kind: string;
+            /** Text */
+            text: string;
         };
         /** DemoIn */
         DemoIn: {
@@ -1333,12 +1362,19 @@ export interface components {
         TodayOut: {
             /** Baselines */
             baselines: components["schemas"]["BaselineOut"][];
+            /** @description Latest cabin air reading */
+            cabin?: components["schemas"]["CabinOut"] | null;
             /** Checkins Consent */
             checkins_consent: boolean;
             /** Context Engine */
             context_engine?: {
                 [key: string]: unknown;
             } | null;
+            /**
+             * Context Tags
+             * @description Up to 2 hazard tags explaining a Watch/Alert night; never hide the flag
+             */
+            context_tags?: components["schemas"]["ContextTagOut"][];
             /**
              * Date
              * Format: date

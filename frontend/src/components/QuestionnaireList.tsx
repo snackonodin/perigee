@@ -2,7 +2,7 @@ import type { InstrumentSummary } from "../api/types";
 import { friendlyName } from "./instrumentNames";
 
 // Daily check-ins are offered on Overview ("Check-ins due"); the rest are questionnaires.
-export const DAILY_INSTRUMENTS = new Set(["daily_am", "daily_pm"]);
+export const DAILY_INSTRUMENTS = new Set(["daily_am", "daily_pm", "body_cabin"]);
 // Not check-ins: the persona questions live on the Persona page only (mini_ipip is retired).
 export const NOT_CHECKINS = new Set(["mini_ipip", "psyche60"]);
 

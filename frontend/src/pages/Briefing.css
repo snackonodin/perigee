@@ -32,3 +32,5 @@
 }
 .briefing-table td:nth-child(-n+2),.briefing-table th { white-space:nowrap; }
 @media (max-width:479px) { .briefing-table { font-size:13px; } .briefing-table th,.briefing-table td { padding:8px 2px; } }
+.briefing-cabin { margin:12px 0 0;color:var(--muted);font-size:var(--fs-small); }
+.briefing-cabin .cabin-value { font-family:var(--font-mono);font-variant-numeric:tabular-nums;color:var(--text); }

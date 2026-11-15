@@ -1,3 +1,4 @@
+import { BODY_CABIN, bodyCabinLayout } from "../components/bodyCabinLayout";
 import { useSearchParams } from "react-router";
 import { api } from "../api/client";
 import type { CheckinOut, Instrument } from "../api/types";
@@ -23,7 +24,7 @@ export function Psyche() {
   const close=()=>{setParams({});history.reload();};
   if(selected)return <div className="screen-page checkin-focused">
     <header className="page-heading app-page-heading"><button type="button" className="ghost checkin-back" onClick={close}><span aria-hidden="true">←</span> All check-ins</button><div><h1>{friendlyName(selected,(inst.data as Instrument|undefined)?.name)}</h1><p>Take this one card at a time.</p>{officialName(selected,(inst.data as Instrument|undefined)?.name)&&<p className="instrument-official">{officialName(selected,(inst.data as Instrument|undefined)?.name)}</p>}</div></header>
-    <section className="checkin-question-panel" data-pet-avoid><LoadState state={inst} label="the check-in">{definition=><CheckinForm key={selected} instrument={definition as unknown as Instrument} onDone={close}/>}</LoadState></section>
+    <section className="checkin-question-panel" data-pet-avoid><LoadState state={inst} label="the check-in">{definition=><CheckinForm key={selected} instrument={definition as unknown as Instrument} onDone={close} {...(selected===BODY_CABIN?bodyCabinLayout:{})}/>}</LoadState></section>
   </div>;
   return <div className="checkin-page"><header className="page-heading"><div><h1>Check-in</h1><p>One card at a time. Answer what feels right for today.</p></div></header>
     <div className="checkin-bento">

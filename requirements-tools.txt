@@ -1,0 +1,3 @@
+# Dev-only tools (not installed on Railway). scripts/voiceover.py: demo-video narration.
+elevenlabs==2.78.0
+python-dotenv==1.2.4

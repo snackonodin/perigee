@@ -44,7 +44,7 @@
 .demo-own button[type=submit] { background:var(--uv);border-color:var(--uv); }
 .demo-note,.demo-busy { margin:0;color:var(--muted);font-size:var(--fs-small); }
 .demo-account { margin:0;text-align:center; }
-.demo-info { display:grid;gap:6px;max-width:720px;margin:0 auto;padding:14px 18px;border:1px solid var(--line);border-left:4px solid var(--lavender);border-radius:var(--radius);background:var(--surface);color:var(--muted);font-size:var(--fs-small);line-height:1.5; }
+.demo-info { display:grid;gap:6px;max-width:720px;margin:0 auto;padding:14px 18px;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);color:var(--muted);font-size:var(--fs-small);line-height:1.5; }
 .demo-info h2 { margin:0;color:var(--text);font-size:var(--fs-small);font-weight:600; }
 .demo-info p { margin:0; }
 @media (max-width:767px) { .demo-cards { grid-template-columns:minmax(0,1fr); } .demo-card { padding:20px; } }

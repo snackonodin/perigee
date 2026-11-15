@@ -51,7 +51,7 @@ function prefersReduced(): boolean {
 /** Optional hooks used by later phases (frost trail, dialog). */
 export interface PetLiveHooks { onStep?(p: Point): void; onTap?(): void; onState?(s: BehaviorState): void }
 
-export function PetLive({ species, personaId, timeOfDay, reducedMotion, nightsLogged, petName, placement = "corner", size = 96, onHiddenChange, hooks, quietUntil = 0, bubble }: PetProps & { hooks?: PetLiveHooks; quietUntil?: number }) {
+export function PetLive({ species, personaId, timeOfDay, reducedMotion, nightsLogged, petName, placement = "corner", size = 96, onHiddenChange, hooks, quietUntil = 0, bubble, tip, onTipShown }: PetProps & { hooks?: PetLiveHooks; quietUntil?: number }) {
   const reduced = reducedMotion || prefersReduced();
   const name = petName ?? DEFAULT_NAMES[species];
   const root = useRef<HTMLDivElement>(null);
@@ -85,6 +85,14 @@ export function PetLive({ species, personaId, timeOfDay, reducedMotion, nightsLo
   const sayRef = useRef(say); sayRef.current = say;
   useEffect(() => subscribe((e) => sayRef.current(e)), []);
   const clearLine = useCallback(() => { serverShowing.current = false; setServerShown(false); setLine(null); }, []);
+  // a host tip (once): waits until the pet is not speaking, then shows dismissibly
+  const tipShown = useRef<string | null>(null);
+  useEffect(() => {
+    if (!tip || line || tipShown.current === tip.id || Date.now() < quietUntil) return;
+    tipShown.current = tip.id;
+    setLine({ text: tip.text, badge: "neutral", dismissible: true, ms: SERVER_BUBBLE_MS });
+    onTipShown?.(tip.id);
+  }, [tip, line, quietUntil, onTipShown]);
   // the server bubble: shown once per id, dismissible, with its small "try" line
   useEffect(() => {
     if (!bubble?.text || Date.now() < quietUntil) return;

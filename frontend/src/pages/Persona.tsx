@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { type CSSProperties, useState } from "react";
 import "./Persona.css";
 import { api } from "../api/client";
 import { useLoad } from "../api/useLoad";
 import { LoadState } from "../components/LoadState";
 import type { Instrument, InstrumentItem } from "../api/types";
 import { CheckinForm } from "../components/CheckinForm";
+import { useMotionOK } from "../components/motion";
 import { AdviceList } from "../persona/AdviceList";
 import { usePersona } from "../persona/PersonaProvider";
 import { useAuth } from "../auth/AuthProvider";
@@ -26,6 +27,14 @@ const unit = (v: number) => Math.max(0, Math.min(1, (v - AXIS_MIN) / (AXIS_MAX -
 function Plane({ stability, agency, quadrant }: { stability: number; agency: number; quadrant: string }) {
   const S = 240, pad = 16, span = S - 2 * pad;
   const cx = pad + unit(agency) * span, cy = pad + (1 - unit(stability)) * span;
+  // first view of this quadrant: the dot glides in from the centre with a short fading trail
+  const ok = useMotionOK();
+  const [glide] = useState(() => {
+    if (!ok) return false;
+    const key = `persona.glide.${quadrant}`;
+    try { if (localStorage.getItem(key)) return false; localStorage.setItem(key, "1"); } catch { /* glide this time */ }
+    return true;
+  });
   return <figure className="persona-plane">
     <svg viewBox={`0 0 ${S} ${S}`} role="img" aria-label={`Your place on the plane: ${quadrant}`}>
       <rect className="plane-bg" x={pad} y={pad} width={span} height={span} rx="12" />
@@ -35,7 +44,9 @@ function Plane({ stability, agency, quadrant }: { stability: number; agency: num
       <line className="plane-axis" x1={pad} y1={S / 2} x2={S - pad} y2={S / 2} />
       {QUADRANTS.map((q) => <text key={q.name} aria-hidden="true" className={`plane-name${q.name === quadrant ? " current" : ""}`}
         x={q.x === "left" ? pad + 10 : S - pad - 10} y={q.y === "top" ? pad + 18 : S - pad - 10} textAnchor={q.x === "left" ? "start" : "end"}>{q.name}</text>)}
-      <circle className="plane-dot" cx={cx} cy={cy} r="7" />
+      {glide && <path className="plane-trail" d={`M${S / 2} ${S / 2} L${cx.toFixed(1)} ${cy.toFixed(1)}`} pathLength={1} />}
+      <circle className={`plane-dot${glide ? " glide" : ""}`} cx={cx} cy={cy} r="7"
+        style={glide ? { "--from-x": `${(S / 2 - cx).toFixed(1)}px`, "--from-y": `${(S / 2 - cy).toFixed(1)}px` } as CSSProperties : undefined} />
     </svg>
     <figcaption>Across: agency, how much you like to steer. Up: stability, how settled you tend to feel.</figcaption>
   </figure>;

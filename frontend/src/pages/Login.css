@@ -45,3 +45,17 @@
 .demo-note,.demo-busy { margin:0;color:var(--muted);font-size:var(--fs-small); }
 .demo-account { margin:0;text-align:center; }
 @media (max-width:767px) { .demo-cards { grid-template-columns:minmax(0,1fr); } .demo-card { padding:20px; } }
+/* Choice cards: on hover a soft teal beam travels once around the border (pointer devices only). */
+@property --beam { syntax:"<angle>";inherits:false;initial-value:0deg; }
+.demo-card { position:relative;isolation:isolate; }
+.demo-card::before { content:"";position:absolute;inset:-1px;z-index:-1;border-radius:inherit;padding:1px;pointer-events:none;opacity:0;
+  background:conic-gradient(from var(--beam),transparent 0 70%,color-mix(in srgb,var(--teal) 70%,transparent) 82%,transparent 94%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0);
+  transition:opacity var(--dur-base) var(--ease); }
+@keyframes demo-beam { to { --beam:360deg; } }
+@media (hover:hover) and (pointer:fine) {
+  .demo-card:hover::before,.demo-card:focus-within::before { opacity:1;animation:demo-beam 1.6s linear 1 both; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .demo-card::before { animation:none !important;background:none;border:1px solid var(--teal);padding:0; }
+}

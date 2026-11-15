@@ -19,7 +19,7 @@ function setup(bubble: Record<string, unknown>) {
 }
 
 describe("pet speech bubble from the server", () => {
-  beforeEach(() => { localStorage.setItem("pet.firstRunDone", "true"); });
+  beforeEach(() => { localStorage.setItem("pet.firstRunDone", "true"); localStorage.setItem("pet.tip.switchCompanion", "1"); });
 
   it("shows one bubble with its try line, dismissible", async () => {
     setup(BUBBLE);
@@ -52,5 +52,32 @@ describe("pet speech bubble from the server", () => {
     const pet = document.querySelector(".pet")!;
     expect(pet.getAttribute("data-calm")).toBe("true");
     expect(pet.getAttribute("data-anim")).toBe("cozy");
+  });
+
+  it("a demo visitor's first visit to Today gets one tip about switching companions, after the server bubble", async () => {
+    localStorage.removeItem("pet.tip.switchCompanion");
+    setup(BUBBLE);
+    const { unmount } = render(<App initialPath="/" />);
+    expect(await screen.findByText(BUBBLE.bubble)).toBeTruthy();
+    expect(screen.queryByText("You can switch companions in Settings.")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Dismiss" }));
+    expect(await screen.findByText("You can switch companions in Settings.")).toBeTruthy();
+    expect(localStorage.getItem("pet.tip.switchCompanion")).toBe("1");
+    unmount();
+    setup({ ...BUBBLE, bubble: null });
+    render(<App initialPath="/" />);
+    await screen.findByRole("heading", { name: "Today" });
+    await new Promise((r) => setTimeout(r, 300));
+    expect(screen.queryByText("You can switch companions in Settings.")).toBeNull();
+  });
+
+  it("no tip for a real (non-demo) account", async () => {
+    localStorage.removeItem("pet.tip.switchCompanion");
+    signIn();
+    mockApi({ "GET /api/v1/me": { body: { ...me, is_synthetic: false } }, "GET /api/v1/today": { body: today }, "GET /api/v1/nights": { body: [] }, "GET /api/v1/pet/bubble": { body: { ...BUBBLE, bubble: null } } });
+    render(<App initialPath="/" />);
+    await screen.findByRole("heading", { name: "Today" });
+    await new Promise((r) => setTimeout(r, 300));
+    expect(screen.queryByText("You can switch companions in Settings.")).toBeNull();
   });
 });

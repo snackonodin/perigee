@@ -54,6 +54,10 @@ export interface PetProps extends PetContext {
   onHiddenChange?: (hidden: boolean) => void;
   /** one speech bubble chosen by the server (GET /api/v1/pet/bubble); null = none. Never scores. */
   bubble?: PetBubble | null;
+  /** a one-time tip from the host (e.g. where to switch companions); shown when the pet is not speaking */
+  tip?: { id: string; text: string } | null;
+  /** called once the tip has been shown */
+  onTipShown?: (id: string) => void;
 }
 
 /** A server-chosen bubble, already mapped by the host. `playful:false` = calm idle only. */

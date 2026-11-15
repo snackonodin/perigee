@@ -4,6 +4,7 @@
 // Watch/Alert status: the persona name is read from the engine output and nothing else.
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
+import { useLocation } from "react-router";
 import { api } from "../api/client";
 import { useLoad } from "../api/useLoad";
 import type { NightOut } from "../api/types";
@@ -15,6 +16,7 @@ import { useSafety, useSafetyActive } from "../safety/SafetyProvider";
 import type { components } from "../api/schema";
 
 type PetBubbleOut = components["schemas"]["PetBubbleOut"];
+const TIP_KEY = "pet.tip.switchCompanion";
 const ANIMATION: Record<string, PetBubble["animation"]> = {
   calm_float: "calm", calm_present: "calm", curious_tilt: "tilt", cozy_listen: "cozy", cozy_support: "cozy", cozy_glow: "cozy",
 };
@@ -99,14 +101,26 @@ export function CompanionHost() {
   // one speech bubble chosen by the server: on app open and after every check-in or quiz.
   // A pending safety screen comes back as HALT_AND_OPEN_CRISIS_SCREEN: open the existing one.
   const [bubble, setBubble] = useState<PetBubble | null>(null);
+  // the first-visit tip waits until the server has had its say (bubble loaded, or none)
+  const [bubbleReady, setBubbleReady] = useState(false);
+
+  // first time a demo visitor lands on Today: one tip about switching companions (once per visitor)
+  const { pathname } = useLocation();
+  const [tip, setTip] = useState<{ id: string; text: string } | null>(null);
+  useEffect(() => {
+    if (pathname !== "/" || !me?.is_synthetic || !bubbleReady || read(TIP_KEY)) { setTip(null); return; }
+    setTip({ id: "tip_switch_companion", text: "You can switch companions in Settings." });
+  }, [pathname, me?.is_synthetic, bubbleReady]);
+  const tipShown = useCallback(() => { write(TIP_KEY, "1"); }, []);
   const loadBubble = useCallback(() => {
     api.GET("/api/v1/pet/bubble").then(({ data }) => {
+      setBubbleReady(true);
       if (!data) return;
       if (data.ui_action === "HALT_AND_OPEN_CRISIS_SCREEN") { setBubble(null); showSafety(SAFETY_FALLBACK); return; }
       // a reported body red flag: same safety screen, with the medical-help reason
       if (data.ui_action === "OPEN_MEDICAL_HELP_NOW") { setBubble(null); showSafety(fallbackFor("severe_symptom")); return; }
       setBubble(toPetBubble(data));
-    }).catch(() => { /* offline: the pet's own dialog cache still speaks */ });
+    }).catch(() => { setBubbleReady(true); /* offline: the pet's own dialog cache still speaks */ });
   }, [showSafety]);
   useEffect(() => { loadBubble(); }, [loadBubble]);
   useEffect(() => {
@@ -147,5 +161,5 @@ export function CompanionHost() {
   if (!slot) return null;
   return createPortal(<Pet species={species} personaId={personaId} timeOfDay={timeOfDay} safetyActive={safetyActive}
     reducedMotion={reducedMotion} streakDays={counts.streakDays} nightsLogged={counts.nightsLogged}
-    placement={wide ? "stage" : "corner"} size={wide ? 96 : 72} bubble={bubble} />, slot);
+    placement={wide ? "stage" : "corner"} size={wide ? 96 : 72} bubble={bubble} tip={tip} onTipShown={tipShown} />, slot);
 }

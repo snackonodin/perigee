@@ -35,7 +35,7 @@ function TodayContext({tags,cabin}:{tags?:TodayOut["context_tags"];cabin?:TodayO
   const shown=(tags??[]).slice(0,2), air=cabin&&cabin.level!=="no_reading"&&CABIN_WORD[cabin.level]?cabin:null;
   if(!shown.length&&!air)return null;
   return <div className="today-context">
-    {shown.length>0&&<ul className="context-tags" aria-label="Context for last night">{shown.map(t=><li key={t.kind+t.text} className="context-tag">{t.text}</li>)}</ul>}
+    {shown.length>0&&<ul className="context-tags" aria-label="Context for last night">{shown.map((t,i)=><li key={t.kind+t.text} className="context-tag" style={{"--i":i} as CSSProperties}>{t.text}</li>)}</ul>}
     {air&&<p className="cabin-line">Cabin air: {CABIN_WORD[air.level]}{air.ppco2_mmhg!=null&&<> · <span className="cabin-value">ppCO₂ {fmt(air.ppco2_mmhg,1)} mmHg</span></>}</p>}
   </div>;
 }

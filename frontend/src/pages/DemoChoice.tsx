@@ -2,6 +2,7 @@ import { type FormEvent, useState } from "react";
 import type { components } from "../api/schema";
 import { BRAND } from "../brand";
 import { Icon } from "../components/icons";
+import { TextReveal } from "../components/motion";
 
 export type DemoBody = components["schemas"]["DemoIn"];
 type Profile = components["schemas"]["DemoProfileIn"];
@@ -40,7 +41,7 @@ export function DemoChoice({ busy, error, onChoose, onAccount }: {
   return <main className="demo-choice" aria-labelledby="demo-title">
     <header className="demo-head">
       <p className="auth-brand"><span className="brand-mark" aria-hidden="true"><Icon name="brand" size={22}/></span>{BRAND}</p>
-      <h1 id="demo-title">Explore {BRAND}</h1>
+      <TextReveal id="demo-title" text={`Explore ${BRAND}`} />
       <p className="muted">No sign-in needed. Pick a way in; you get your own private copy.</p>
     </header>
     <div className="demo-cards">

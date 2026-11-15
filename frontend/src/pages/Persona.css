@@ -42,3 +42,9 @@
 .persona-part-actions { display:flex;flex-wrap:wrap;gap:8px; }
 .persona-retake-parts { max-width:none; }
 @media (max-width:599px) { .persona-part { flex-direction:column;align-items:stretch; } }
+/* First view: the dot glides from the centre to its place (900 ms) with a trail that draws and fades. */
+@keyframes plane-glide { from { transform:translate(var(--from-x),var(--from-y));opacity:.4; } to { transform:none;opacity:1; } }
+@keyframes plane-trail { 0% { stroke-dashoffset:1;opacity:.6; } 60% { stroke-dashoffset:0;opacity:.5; } 100% { stroke-dashoffset:0;opacity:0; } }
+.plane-dot.glide { animation:plane-glide 900ms var(--ease) both; }
+.plane-trail { fill:none;stroke:var(--uv);stroke-width:3;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1;opacity:0;animation:plane-trail 1400ms var(--ease) both; }
+@media (prefers-reduced-motion:reduce) { .plane-dot.glide { animation:none; } .plane-trail { display:none; } }

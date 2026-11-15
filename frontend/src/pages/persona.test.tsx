@@ -34,6 +34,8 @@ const EMPTY = { available: false, source: null, updated_at: null, traits: {}, pe
 const taken = (style: Record<string, boolean> = {}, advice = ADVICE) => ({
   available: true, source: "psyche60", updated_at: "2026-11-15T10:00:00Z", traits: {},
   persona_matrix: { stability_score: 14.5, agency_score: 9.25, quadrant_name: "Steady Anchor" }, style, advice,
+  type_mix: [{ type: "Autonomous Pioneer", share: 0.25 }, { type: "Steady Anchor", share: 0.4 },
+    { type: "Internal Deliberator", share: 0.2 }, { type: "Dynamic Explorer", share: 0.15 }] as { type: string; share: number }[],
   progress: { done: ["psyche_p1", "psyche_p2", "psyche_p3", "psyche_p4", "psyche_p5"], total: 5, answers_kept: true },
 });
 
@@ -120,36 +122,32 @@ describe("Persona: psyche60", () => {
     expect(quadrant).not.toMatch(/\d/);
   });
 
-  it("with a profile draws the five-part radar: labels, words-only accessible name, no numbers", async () => {
-    const PROFILE = [
-      { key: "mind_at_rest", label: "Mind at rest", level: 0.82 },
-      { key: "feelings", label: "Feelings and reactions", level: 0.5 },
-      { key: "people", label: "People and authority", level: 0.1 },
-      { key: "focus", label: "Focus and motivation", level: 0.66 },
-      { key: "body_feedback", label: "Body and feedback", level: 0.34 },
-    ];
-    persona = { ...taken(), profile: PROFILE } as ReturnType<typeof taken>;
+  it("draws the four persona types as one radar: own type highlighted, ranked words-only name, no numbers", async () => {
+    persona = taken();
     render(<App initialPath="/persona" />);
-    const radar = await screen.findByRole("img", { name: /tendency shape/ });
+    const radar = await screen.findByRole("img", { name: /leans most toward/ });
     const name = radar.getAttribute("aria-label")!;
-    expect(name).toBe("Your tendency shape across the five parts: Mind at rest, higher; Feelings and reactions, middle; "
-      + "People and authority, lower; Focus and motivation, middle; Body and feedback, middle.");
-    expect(name).not.toMatch(/\d/);
-    expect([...radar.querySelectorAll(".radar-label")].map((l) => l.textContent)).toEqual(PROFILE.map((a) => a.label));
+    expect(name).toBe("Your persona leans most toward Steady Anchor, then Autonomous Pioneer, then Internal Deliberator, and least toward Dynamic Explorer.");
+    const labels = [...radar.querySelectorAll(".radar-label")];
+    expect(labels.map((l) => l.textContent)).toEqual(["Autonomous Pioneer", "Steady Anchor", "Internal Deliberator", "Dynamic Explorer"]);
+    expect(labels.filter((l) => l.classList.contains("current")).map((l) => l.textContent)).toEqual(["Steady Anchor"]);
+    // axes at the old plane's places: Pioneer top-right, Anchor bottom-right, Deliberator bottom-left, Explorer top-left
+    const pos = labels.map((l) => [parseFloat((l as HTMLElement).style.left), parseFloat((l as HTMLElement).style.top)]);
+    expect(pos.map(([x, y]) => `${x > 50 ? "right" : "left"}-${y > 50 ? "bottom" : "top"}`)).toEqual(["right-top", "right-bottom", "left-bottom", "left-top"]);
     expect(radar.querySelectorAll(".radar-ring")).toHaveLength(3);
-    expect(radar.querySelectorAll(".radar-dot")).toHaveLength(5);
+    expect(radar.querySelectorAll(".radar-dot")).toHaveLength(4);
     expect(radar.querySelector(".radar-shape.grow")).toBeNull(); // no motion in tests / reduced motion
     expect(screen.getByText("No shape is better than another.")).toBeTruthy();
-    const panel = document.querySelector(".persona-quadrant-panel")!.textContent!;
-    expect(panel).not.toMatch(/\d/);
+    expect(document.querySelector(".persona-plane")).toBeNull();
+    expect(document.querySelector(".persona-quadrant-panel")!.textContent!).not.toMatch(/\d/);
   });
 
-  it("shows no radar before the profile exists", async () => {
-    persona = { ...taken(), profile: [] } as ReturnType<typeof taken>;
+  it("shows no radar while type_mix is empty, and never draws the five-part profile", async () => {
+    persona = { ...taken(), type_mix: [], profile: [{ key: "feelings", label: "Feelings and reactions", level: 0.5 }] } as ReturnType<typeof taken>;
     render(<App initialPath="/persona" />);
     expect(await screen.findByRole("heading", { name: "Steady Anchor" })).toBeTruthy();
-    expect(screen.queryByRole("img", { name: /tendency shape/ })).toBeNull();
-    expect(screen.queryByText("No shape is better than another.")).toBeNull();
+    expect(document.querySelector(".persona-radar")).toBeNull();
+    expect(document.querySelector(".radar-label")).toBeNull();
   });
 
   it("renders advice as a numbered checklist when the person prefers structure", async () => {

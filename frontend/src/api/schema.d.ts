@@ -1145,6 +1145,11 @@ export interface components {
             traits: {
                 [key: string]: number;
             };
+            /**
+             * Type Mix
+             * @default []
+             */
+            type_mix: components["schemas"]["TypeShareOut"][];
             /** Updated At */
             updated_at?: string | null;
         };
@@ -1455,6 +1460,13 @@ export interface components {
             token_type: string;
             /** User Id */
             user_id: string;
+        };
+        /** TypeShareOut */
+        TypeShareOut: {
+            /** Share */
+            share: number;
+            /** Type */
+            type: string;
         };
         /**
          * WindowEstimate

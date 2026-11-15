@@ -1,11 +1,10 @@
-import { type CSSProperties, useState } from "react";
+import { useState } from "react";
 import "./Persona.css";
 import { api } from "../api/client";
 import { useLoad } from "../api/useLoad";
 import { LoadState } from "../components/LoadState";
 import type { Instrument, InstrumentItem } from "../api/types";
 import { CheckinForm } from "../components/CheckinForm";
-import { useMotionOK } from "../components/motion";
 import { AdviceList } from "../persona/AdviceList";
 import { Radar } from "../persona/Radar";
 import { usePersona } from "../persona/PersonaProvider";
@@ -13,44 +12,22 @@ import { useAuth } from "../auth/AuthProvider";
 import { ITEMS_PER_PAGE, nextPart, PARTS, type PartId, stableShuffle } from "../persona/parts";
 
 const BANK = "psyche60";
-// Engine axes: stability and agency on 4-20, quadrants split at the midpoint. Used only to place
-// the dot; no number is ever shown.
-const AXIS_MIN = 4, AXIS_MAX = 20;
-const QUADRANTS = [
-  { name: "Steady Anchor", x: "left", y: "top" },
-  { name: "Autonomous Pioneer", x: "right", y: "top" },
-  { name: "Internal Deliberator", x: "left", y: "bottom" },
-  { name: "Dynamic Explorer", x: "right", y: "bottom" },
-] as const;
-const unit = (v: number) => Math.max(0, Math.min(1, (v - AXIS_MIN) / (AXIS_MAX - AXIS_MIN)));
+// Axis order matches GET /persona type_mix; the axes sit where the old plane had each quadrant:
+// Autonomous Pioneer top-right, Steady Anchor bottom-right, Internal Deliberator bottom-left,
+// Dynamic Explorer top-left (first axis at -45 degrees, then clockwise).
+const TYPE_ORDER = ["Autonomous Pioneer", "Steady Anchor", "Internal Deliberator", "Dynamic Explorer"] as const;
+type TypeShare = { type: string; share: number };
 
-/** Two-axis plane: agency left to right, stability bottom to top, with the person's place. */
-function Plane({ stability, agency, quadrant }: { stability: number; agency: number; quadrant: string }) {
-  const S = 240, pad = 16, span = S - 2 * pad;
-  const cx = pad + unit(agency) * span, cy = pad + (1 - unit(stability)) * span;
-  // first view of this quadrant: the dot glides in from the centre with a short fading trail
-  const ok = useMotionOK();
-  const [glide] = useState(() => {
-    if (!ok) return false;
-    const key = `persona.glide.${quadrant}`;
-    try { if (localStorage.getItem(key)) return false; localStorage.setItem(key, "1"); } catch { /* glide this time */ }
-    return true;
-  });
-  return <figure className="persona-plane">
-    <svg viewBox={`0 0 ${S} ${S}`} role="img" aria-label={`Your place on the plane: ${quadrant}`}>
-      <rect className="plane-bg" x={pad} y={pad} width={span} height={span} rx="12" />
-      {QUADRANTS.map((q) => <rect key={q.name} className={`plane-q${q.name === quadrant ? " current" : ""}`}
-        x={q.x === "left" ? pad : S / 2} y={q.y === "top" ? pad : S / 2} width={span / 2} height={span / 2} rx="10" />)}
-      <line className="plane-axis" x1={S / 2} y1={pad} x2={S / 2} y2={S - pad} />
-      <line className="plane-axis" x1={pad} y1={S / 2} x2={S - pad} y2={S / 2} />
-      {QUADRANTS.map((q) => <text key={q.name} aria-hidden="true" className={`plane-name${q.name === quadrant ? " current" : ""}`}
-        x={q.x === "left" ? pad + 10 : S - pad - 10} y={q.y === "top" ? pad + 18 : S - pad - 10} textAnchor={q.x === "left" ? "start" : "end"}>{q.name}</text>)}
-      {glide && <path className="plane-trail" d={`M${S / 2} ${S / 2} L${cx.toFixed(1)} ${cy.toFixed(1)}`} pathLength={1} />}
-      <circle className={`plane-dot${glide ? " glide" : ""}`} cx={cx} cy={cy} r="7"
-        style={glide ? { "--from-x": `${(S / 2 - cx).toFixed(1)}px`, "--from-y": `${(S / 2 - cy).toFixed(1)}px` } as CSSProperties : undefined} />
-    </svg>
-    <figcaption>Across: agency, how much you like to steer. Up: stability, how settled you tend to feel.</figcaption>
-  </figure>;
+/** The four persona types as one radar: shape from each type's share (scaled to the largest, so the
+ *  leading type reaches the outer ring), the person's own type highlighted. No numbers. */
+function TypeRadar({ mix, quadrant, userId }: { mix: readonly TypeShare[]; quadrant: string; userId: string }) {
+  const share = new Map(mix.map((m) => [m.type, Number.isFinite(m.share) ? Math.max(0, m.share) : 0]));
+  const top = Math.max(...TYPE_ORDER.map((t) => share.get(t) ?? 0));
+  if (!(top > 0)) return null;
+  const axes = TYPE_ORDER.map((t) => ({ key: t, label: t, level: (share.get(t) ?? 0) / top, current: t === quadrant }));
+  const ranked = [...TYPE_ORDER].sort((x, y) => (share.get(y) ?? 0) - (share.get(x) ?? 0));
+  const label = `Your persona leans most toward ${ranked[0]}, then ${ranked.slice(1, -1).join(", then ")}, and least toward ${ranked[ranked.length - 1]}.`;
+  return <Radar axes={axes} label={label} start={-Math.PI / 4} growKey={`persona.types.${userId}`} />;
 }
 
 type PartInstrument = Instrument & { part?: { index: number; of: number; blurb?: string } };
@@ -102,8 +79,6 @@ export function Persona() {
     onFinished={() => { setJustDone(part); setPart(null); reload(); }}/></div>;
   if (loading && !persona) return <div className="persona-page">{head}<p className="muted">Loading your persona…</p></div>;
   const matrix = persona?.available && persona.source === BANK ? persona.persona_matrix : null;
-  // five-part tendency shape; empty until all five parts are done (and for older sources)
-  const profile = matrix ? persona?.profile ?? [] : [];
   const keptOff = persona?.progress?.answers_kept === false
     && <p className="persona-consent-note">To combine your parts, allow keeping questionnaire answers in Settings → Consent.</p>;
   // after a part: "Part n of 5 done", then the next part or later
@@ -128,13 +103,10 @@ export function Persona() {
           {keptOff}
           <PartCards done={done} onStart={setPart}/></section>
       : <><div className="persona-layout">
-          <section className={`persona-quadrant-panel${profile.length ? " has-radar" : ""}`} data-pet-perch aria-labelledby="quadrant-title">
+          <section className="persona-quadrant-panel" data-pet-perch aria-labelledby="quadrant-title">
             <h2 id="quadrant-title">{matrix.quadrant_name}</h2>
-            <p className="muted">Your place on two everyday axes: how settled you tend to feel, and how much you like to steer. No place is better than another.</p>
-            <div className="persona-charts">
-              <Plane stability={matrix.stability_score} agency={matrix.agency_score} quadrant={matrix.quadrant_name} />
-              {profile.length > 0 && <Radar profile={profile} growKey={me?.id ?? "anon"} />}
-            </div>
+            <p className="muted">How your answers lean across the four persona types. Your own type is highlighted.</p>
+            <TypeRadar mix={persona?.type_mix ?? []} quadrant={matrix.quadrant_name} userId={me?.id ?? "anon"} />
           </section>
           <section className="persona-advice-panel"><AdviceList emptyText="No suggestions right now. They appear when your nights or check-ins point to something worth trying." /><p className="persona-footnote">Suggestions follow your latest night and check-ins. They are not medical advice.</p></section>
         </div>

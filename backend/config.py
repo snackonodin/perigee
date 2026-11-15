@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     demo_access: bool = False
     demo_email: str = "drift@ex.com"
     # Each demo visitor gets a private copy of the persona; at most this many (0 = no cap).
-    demo_max_users: int = 50
+    demo_max_users: int = 0
     # Cap on self-registered real accounts for a public deployment (0 = no cap).
     signup_max_users: int = 0
 

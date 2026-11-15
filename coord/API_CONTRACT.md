@@ -71,7 +71,7 @@ seeded synthetic persona `settings.demo_email` (default `drift@ex.com`), only wh
 the server runs with `DEMO_ACCESS=1`; otherwise 404. Updated 2026-11-14 evening: every call creates a
 new visitor account (`demo-<hex>@example.invalid`, synthetic) holding a copy of the persona's 14
 nights, check-ins and surveys, so visitors never see each other's answers. Copy takes ~2 s.
-At most `DEMO_MAX_USERS` visitors (default 50): then 503 `{"error":"demo_full"}`. A visitor may
+At most `DEMO_MAX_USERS` visitors (default 0 = no cap): then 503 `{"error":"demo_full"}`. A visitor may
 `DELETE /api/v1/me` (frees a slot); the seeded template personas stay 403 `demo_protected`.
 The copy starts with **no personality traits**: the visitor takes the Mini-IPIP quiz.
 Frontend: a "Try the demo" button on Login calls this route once, stores the tokens like a

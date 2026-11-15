@@ -48,3 +48,22 @@
 .plane-dot.glide { animation:plane-glide 900ms var(--ease) both; }
 .plane-trail { fill:none;stroke:var(--uv);stroke-width:3;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1;opacity:0;animation:plane-trail 1400ms var(--ease) both; }
 @media (prefers-reduced-motion:reduce) { .plane-dot.glide { animation:none; } .plane-trail { display:none; } }
+/* Radar: five-part tendency shape beside the plane. Gradient UV/lavender -> soft teal; no numbers. */
+.persona-quadrant-panel.has-radar { grid-column:1 / -1; }
+.persona-charts { display:flex;flex-wrap:wrap;align-items:flex-start;gap:24px 40px;margin-top:16px; }
+.persona-charts .persona-plane { margin:0;flex:1 1 260px; }
+.persona-radar { margin:0;flex:1 1 300px;max-width:420px; }
+.radar-box { position:relative; }
+.radar-box svg { display:block;width:100%;height:auto;overflow:visible; }
+.radar-ring { fill:none;stroke:var(--line);stroke-width:1; }
+.radar-spoke { stroke:var(--line);stroke-width:1; }
+.radar-stop-a { stop-color:var(--uv);stop-opacity:.6; }
+.radar-stop-b { stop-color:var(--teal);stop-opacity:.4; }
+.radar-area { stroke:var(--uv);stroke-width:1.5;stroke-linejoin:round; }
+.radar-dot { fill:var(--uv);stroke:var(--surface);stroke-width:1.5; }
+.radar-label { position:absolute;max-width:84px;padding:3px 7px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text);font-size:11px;line-height:1.25;text-align:center;white-space:normal; }
+@media (max-width:599px) { .radar-label { max-width:72px;padding:2px 5px;font-size:10.5px; } }
+.persona-radar figcaption { margin-top:8px;color:var(--muted);font-size:var(--fs-small); }
+@keyframes radar-grow { from { transform:scale(0);opacity:.2; } to { transform:none;opacity:1; } }
+.radar-shape.grow { animation:radar-grow 600ms cubic-bezier(.22,1,.36,1) both; }
+@media (prefers-reduced-motion:reduce) { .radar-shape.grow { animation:none; } }

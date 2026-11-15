@@ -7,6 +7,7 @@ import type { Instrument, InstrumentItem } from "../api/types";
 import { CheckinForm } from "../components/CheckinForm";
 import { useMotionOK } from "../components/motion";
 import { AdviceList } from "../persona/AdviceList";
+import { Radar } from "../persona/Radar";
 import { usePersona } from "../persona/PersonaProvider";
 import { useAuth } from "../auth/AuthProvider";
 import { ITEMS_PER_PAGE, nextPart, PARTS, type PartId, stableShuffle } from "../persona/parts";
@@ -92,6 +93,7 @@ function PartCards({ done, onStart }: { done: readonly string[]; onStart(id: Par
 
 export function Persona() {
   const { persona, loading, reload } = usePersona();
+  const { me } = useAuth();
   const [part, setPart] = useState<PartId | null>(null);
   const [justDone, setJustDone] = useState<PartId | null>(null);
   const head = <header className="persona-head"><div><h1>Persona</h1><p>How you like to work and rest, in your own words. Private to you.</p></div></header>;
@@ -100,6 +102,8 @@ export function Persona() {
     onFinished={() => { setJustDone(part); setPart(null); reload(); }}/></div>;
   if (loading && !persona) return <div className="persona-page">{head}<p className="muted">Loading your persona…</p></div>;
   const matrix = persona?.available && persona.source === BANK ? persona.persona_matrix : null;
+  // five-part tendency shape; empty until all five parts are done (and for older sources)
+  const profile = matrix ? persona?.profile ?? [] : [];
   const keptOff = persona?.progress?.answers_kept === false
     && <p className="persona-consent-note">To combine your parts, allow keeping questionnaire answers in Settings → Consent.</p>;
   // after a part: "Part n of 5 done", then the next part or later
@@ -124,10 +128,13 @@ export function Persona() {
           {keptOff}
           <PartCards done={done} onStart={setPart}/></section>
       : <><div className="persona-layout">
-          <section className="persona-quadrant-panel" data-pet-perch aria-labelledby="quadrant-title">
+          <section className={`persona-quadrant-panel${profile.length ? " has-radar" : ""}`} data-pet-perch aria-labelledby="quadrant-title">
             <h2 id="quadrant-title">{matrix.quadrant_name}</h2>
             <p className="muted">Your place on two everyday axes: how settled you tend to feel, and how much you like to steer. No place is better than another.</p>
-            <Plane stability={matrix.stability_score} agency={matrix.agency_score} quadrant={matrix.quadrant_name} />
+            <div className="persona-charts">
+              <Plane stability={matrix.stability_score} agency={matrix.agency_score} quadrant={matrix.quadrant_name} />
+              {profile.length > 0 && <Radar profile={profile} growKey={me?.id ?? "anon"} />}
+            </div>
           </section>
           <section className="persona-advice-panel"><AdviceList emptyText="No suggestions right now. They appear when your nights or check-ins point to something worth trying." /><p className="persona-footnote">Suggestions follow your latest night and check-ins. They are not medical advice.</p></section>
         </div>

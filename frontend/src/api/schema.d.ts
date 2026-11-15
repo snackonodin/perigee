@@ -123,6 +123,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/demo/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Demo Stats
+         * @description Public, aggregate-only demo counts: {visitors_now, demo_sessions_started, cap}.
+         *     404 unless DEMO_ACCESS=1. No ids or e-mails.
+         */
+        get: operations["demo_stats_api_v1_demo_stats_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/flags": {
         parameters: {
             query?: never;
@@ -1105,6 +1126,11 @@ export interface components {
             /** Available */
             available: boolean;
             persona_matrix?: components["schemas"]["PersonaMatrixOut"] | null;
+            /**
+             * Profile
+             * @default []
+             */
+            profile: components["schemas"]["ProfileAxisOut"][];
             progress?: components["schemas"]["PartsProgressOut"] | null;
             /** Source */
             source?: string | null;
@@ -1148,6 +1174,15 @@ export interface components {
          * @enum {string}
          */
         Posture: "supine" | "side" | "prone" | "sitting" | "other";
+        /** ProfileAxisOut */
+        ProfileAxisOut: {
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Level */
+            level: number;
+        };
         /**
          * ProfilePatch
          * @description Only the fields sent are changed.
@@ -1923,6 +1958,91 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CheckinOut"][];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    demo_stats_api_v1_demo_stats_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: number;
+                    };
                 };
             };
             /** @description Bad Request */

@@ -120,6 +120,38 @@ describe("Persona: psyche60", () => {
     expect(quadrant).not.toMatch(/\d/);
   });
 
+  it("with a profile draws the five-part radar: labels, words-only accessible name, no numbers", async () => {
+    const PROFILE = [
+      { key: "mind_at_rest", label: "Mind at rest", level: 0.82 },
+      { key: "feelings", label: "Feelings and reactions", level: 0.5 },
+      { key: "people", label: "People and authority", level: 0.1 },
+      { key: "focus", label: "Focus and motivation", level: 0.66 },
+      { key: "body_feedback", label: "Body and feedback", level: 0.34 },
+    ];
+    persona = { ...taken(), profile: PROFILE } as ReturnType<typeof taken>;
+    render(<App initialPath="/persona" />);
+    const radar = await screen.findByRole("img", { name: /tendency shape/ });
+    const name = radar.getAttribute("aria-label")!;
+    expect(name).toBe("Your tendency shape across the five parts: Mind at rest, higher; Feelings and reactions, middle; "
+      + "People and authority, lower; Focus and motivation, middle; Body and feedback, middle.");
+    expect(name).not.toMatch(/\d/);
+    expect([...radar.querySelectorAll(".radar-label")].map((l) => l.textContent)).toEqual(PROFILE.map((a) => a.label));
+    expect(radar.querySelectorAll(".radar-ring")).toHaveLength(3);
+    expect(radar.querySelectorAll(".radar-dot")).toHaveLength(5);
+    expect(radar.querySelector(".radar-shape.grow")).toBeNull(); // no motion in tests / reduced motion
+    expect(screen.getByText("No shape is better than another.")).toBeTruthy();
+    const panel = document.querySelector(".persona-quadrant-panel")!.textContent!;
+    expect(panel).not.toMatch(/\d/);
+  });
+
+  it("shows no radar before the profile exists", async () => {
+    persona = { ...taken(), profile: [] } as ReturnType<typeof taken>;
+    render(<App initialPath="/persona" />);
+    expect(await screen.findByRole("heading", { name: "Steady Anchor" })).toBeTruthy();
+    expect(screen.queryByRole("img", { name: /tendency shape/ })).toBeNull();
+    expect(screen.queryByText("No shape is better than another.")).toBeNull();
+  });
+
   it("renders advice as a numbered checklist when the person prefers structure", async () => {
     persona = taken({ structured_checklist_mode: true });
     render(<App initialPath="/persona" />);

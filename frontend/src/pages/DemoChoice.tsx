@@ -71,6 +71,10 @@ export function DemoChoice({ busy, error, onChoose, onAccount }: {
       </section>
     </div>
     <p className="error" role="alert">{error}</p>
+    <aside className="demo-info" aria-labelledby="demo-info-title">
+      <h2 id="demo-info-title">For judges and visitors</h2>
+      <p>These accounts are for demonstration only. Every crew member and every night is synthetic (the ISS crew are calibrated to published NASA sleep studies), so nothing here is a real person's health data. The two real ESP32 captures on the Monitor tab are the team's own sensor test recordings. {BRAND} is a screening and awareness tool, not a diagnosis.</p>
+    </aside>
     <p className="demo-account"><button type="button" className="link" onClick={onAccount}>I have an account</button></p>
   </main>;
 }

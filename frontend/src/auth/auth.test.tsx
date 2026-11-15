@@ -64,6 +64,7 @@ describe("AuthProvider", () => {
     fireEvent.click(within(screen.getByRole("group", { name: "Mood lately" })).getByRole("radio", { name: "Low" }));
     fireEvent.click(screen.getByRole("checkbox", { name: /travel or illness/ }));
     expect(screen.getByText("Synthetic data for exploring the app, not a health assessment.")).toBeTruthy();
+    expect(screen.getByRole("complementary", { name: "For judges and visitors" }).textContent).toMatch(/demonstration only.*synthetic.*not a diagnosis/);
     fireEvent.click(screen.getByRole("button", { name: "Build my nights" }));
     expect(screen.getByRole("button", { name: "Building your 14 nights…" })).toBeTruthy();
     expect(await screen.findByRole("heading", { name: "Today" })).toBeTruthy();

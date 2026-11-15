@@ -9,6 +9,7 @@ from typing import Literal
 from fastapi import APIRouter, Request, status
 from pydantic import BaseModel, ConfigDict, Field
 
+from backend.config import get_settings
 from backend.deps import DbSession
 from backend.errors import ERROR_RESPONSES, ApiError, unauthorized
 from backend.services import accounts as svc
@@ -104,6 +105,18 @@ class DemoProfileIn(_In):
 class DemoIn(_In):
     crew: Literal["iss-flight", "iss-aligned", "iss-misaligned"] | None = None
     profile: DemoProfileIn | None = None
+
+
+@router.get("/demo/stats")
+def demo_stats(db: DbSession) -> dict[str, int]:
+    """Public, aggregate-only demo counts: {visitors_now, demo_sessions_started, cap}.
+    404 unless DEMO_ACCESS=1. No ids or e-mails."""
+    from backend.services import demo_pool
+
+    s = get_settings()
+    if not s.demo_access:
+        raise ApiError(404, "not_found", "demo access is not enabled")
+    return {**demo_pool.stats(db), "cap": s.demo_max_users}
 
 
 @router.post("/auth/demo")

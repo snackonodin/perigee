@@ -110,3 +110,14 @@ def clone_user(db: Session, template_id: str, cap: int) -> str:
             out.append(row)
         db.execute(insert(t), out)
     return new_uid
+
+
+def stats(db: Session) -> dict[str, int]:
+    """Aggregate demo numbers only (no ids, no emails): visitor copies that exist now, and
+    every demo sign-in ever started (audit rows survive account deletion, anonymised)."""
+    from backend.models import AuditLog
+
+    started = db.scalar(
+        select(func.count()).select_from(AuditLog).where(AuditLog.action == "auth.demo_login")
+    ) or 0
+    return {"visitors_now": visitor_count(db), "demo_sessions_started": started}

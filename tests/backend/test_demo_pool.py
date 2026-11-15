@@ -127,3 +127,11 @@ def test_signup_cap(api, db, monkeypatch) -> None:  # noqa: F811
         assert res.status_code == 403 and res.json()["error"] == "signup_closed"
     finally:
         get_settings.cache_clear()
+
+
+def test_demo_stats_are_aggregate_only(api, db, template, demo_on) -> None:  # noqa: F811
+    _, ha = _visitor(api)
+    _visitor(api)
+    assert api.delete("/api/v1/me", headers=ha).status_code == 204
+    j = api.get("/api/v1/demo/stats").json()
+    assert j == {"visitors_now": 1, "demo_sessions_started": 2, "cap": 2}

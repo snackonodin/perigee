@@ -61,6 +61,8 @@ ISOLATION_CASES: list[IsolationCase] = [
     IsolationCase("get", "/api/v1/me", 200),
     # public demo sign-in: off in tests (DEMO_ACCESS unset) -> 404, touches nothing of A
     IsolationCase("post", "/api/v1/auth/demo", 404),
+    # aggregate demo counts only (no user data); off in tests -> 404
+    IsolationCase("get", "/api/v1/demo/stats", 404),
     IsolationCase("patch", "/api/v1/me", 200, json={"display_name": "Bob"}),
     IsolationCase("get", "/api/v1/me/consents", 200),
     IsolationCase(
